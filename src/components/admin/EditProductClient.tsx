@@ -42,7 +42,7 @@ export function EditProductClient({
 
       {hasVariants ? <ProductVariantsEditor productId={productId} /> : null}
 
-      <div className="sticky bottom-0 z-40 -mx-6 border-t bg-white/95 px-6 py-4 backdrop-blur">
+      <div className="sticky bottom-0 z-40 -mx-4 border-t bg-white/95 px-4 py-4 backdrop-blur sm:-mx-6 sm:px-6">
         <div className="flex items-center justify-end">
           <button
             type="submit"

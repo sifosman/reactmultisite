@@ -46,7 +46,7 @@ export function AdminShell({
   const config = getSiteConfig();
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="flex min-h-screen overflow-x-hidden bg-slate-50">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div 
@@ -147,10 +147,10 @@ export function AdminShell({
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 lg:ml-64">
+      <div className="min-w-0 flex-1 lg:ml-64">
         {/* Top Header */}
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-white px-4 lg:px-8">
-          <div className="flex items-center gap-4">
+          <div className="min-w-0 flex items-center gap-4">
             <button 
               className="lg:hidden rounded-lg p-2 hover:bg-slate-100"
               onClick={() => setSidebarOpen(true)}

@@ -21,7 +21,8 @@ export default async function AdminCustomersPage() {
       ) : null}
 
       <div className="mt-6 overflow-hidden rounded-xl border bg-white shadow-sm">
-        <table className="w-full">
+        <div className="w-full overflow-x-auto">
+          <table className="w-full min-w-[780px]">
           <thead>
             <tr className="border-b bg-slate-50">
               <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Customer</th>
@@ -34,9 +35,11 @@ export default async function AdminCustomersPage() {
             {(customers ?? []).map((c) => (
               <tr key={c.id} className="hover:bg-slate-50">
                 <td className="px-6 py-4">
-                  <div className="text-sm font-medium text-slate-900">{c.full_name ?? c.email}</div>
-                  <div className="text-sm text-slate-500">{c.email}</div>
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-medium text-slate-900">{c.full_name ?? c.email}</div>
+                    <div className="truncate text-sm text-slate-500">{c.email}</div>
                   {c.phone ? <div className="text-xs text-slate-400">{c.phone}</div> : null}
+                  </div>
                 </td>
                 <td className="px-6 py-4 text-sm text-slate-700">{c.total_orders}</td>
                 <td className="px-6 py-4 text-sm font-semibold text-slate-900">
@@ -48,7 +51,8 @@ export default async function AdminCustomersPage() {
               </tr>
             ))}
           </tbody>
-        </table>
+          </table>
+        </div>
       </div>
 
       {(customers ?? []).length === 0 ? (

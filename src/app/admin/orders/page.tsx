@@ -112,7 +112,8 @@ export default async function AdminOrdersPage() {
       {/* Orders Table */}
       {(orders ?? []).length > 0 ? (
         <div className="mt-6 overflow-hidden rounded-xl border bg-white shadow-sm">
-          <table className="w-full">
+          <div className="w-full overflow-x-auto">
+            <table className="w-full min-w-[850px]">
             <thead>
               <tr className="border-b bg-slate-50">
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
@@ -177,7 +178,8 @@ export default async function AdminOrdersPage() {
                 </tr>
               ))}
             </tbody>
-          </table>
+            </table>
+          </div>
         </div>
       ) : (
         <div className="mt-6 flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-200 bg-white py-12">

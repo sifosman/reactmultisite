@@ -64,7 +64,8 @@ export default async function AdminProductsPage() {
       {/* Products Table */}
       {(products ?? []).length > 0 ? (
         <div className="mt-6 overflow-hidden rounded-xl border bg-white shadow-sm">
-          <table className="w-full">
+          <div className="w-full overflow-x-auto">
+            <table className="w-full min-w-[900px]">
             <thead>
               <tr className="border-b bg-slate-50">
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
@@ -104,9 +105,9 @@ export default async function AdminProductsPage() {
                             </div>
                           )}
                         </div>
-                        <div>
-                          <p className="font-medium text-slate-900">{p.name}</p>
-                          <p className="text-sm text-slate-500">{p.slug}</p>
+                        <div className="min-w-0">
+                          <p className="truncate font-medium text-slate-900">{p.name}</p>
+                          <p className="truncate text-sm text-slate-500">{p.slug}</p>
                         </div>
                       </div>
                     </td>
@@ -160,7 +161,8 @@ export default async function AdminProductsPage() {
                 );
               })}
             </tbody>
-          </table>
+            </table>
+          </div>
         </div>
       ) : (
         <div className="mt-6 flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-200 bg-white py-12">

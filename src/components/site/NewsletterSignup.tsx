@@ -41,7 +41,7 @@ export function NewsletterSignup({
 
   return (
     <div className="w-full max-w-md">
-      <form onSubmit={onSubmit} className="flex w-full gap-3">
+      <form onSubmit={onSubmit} className="flex w-full flex-col gap-3 sm:flex-row">
         <input
           type="email"
           placeholder="Enter your email"
@@ -59,8 +59,8 @@ export function NewsletterSignup({
           disabled={status === "loading"}
           className={
             isDark
-              ? "shrink-0 rounded-full bg-white px-6 py-3 font-semibold text-zinc-900 transition hover:bg-zinc-100 disabled:opacity-70"
-              : "shrink-0 rounded-full bg-zinc-900 px-6 py-3 font-semibold text-white transition hover:bg-zinc-800 disabled:opacity-70"
+              ? "w-full shrink-0 rounded-full bg-white px-6 py-3 font-semibold text-zinc-900 transition hover:bg-zinc-100 disabled:opacity-70 sm:w-auto"
+              : "w-full shrink-0 rounded-full bg-zinc-900 px-6 py-3 font-semibold text-white transition hover:bg-zinc-800 disabled:opacity-70 sm:w-auto"
           }
         >
           {status === "loading" ? "..." : status === "success" ? "Done" : "Subscribe"}
@@ -74,12 +74,12 @@ export function NewsletterSignup({
       ) : null}
 
       {status === "success" ? (
-        <div className="fixed bottom-6 right-6 z-50 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800 shadow-lg">
+        <div className="fixed bottom-6 right-4 z-50 max-w-[calc(100vw-2rem)] rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800 shadow-lg sm:right-6">
           Subscribed
         </div>
       ) : null}
       {status === "error" ? (
-        <div className="fixed bottom-6 right-6 z-50 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-800 shadow-lg">
+        <div className="fixed bottom-6 right-4 z-50 max-w-[calc(100vw-2rem)] rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-800 shadow-lg sm:right-6">
           Subscribe failed
         </div>
       ) : null}
