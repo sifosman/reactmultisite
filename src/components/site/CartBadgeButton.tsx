@@ -1,11 +1,14 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ShoppingBag } from "lucide-react";
 import { readGuestCart } from "@/lib/cart/storage";
 
-export function CartBadgeButton() {
+export function CartBadgeButton({
+  onClick,
+}: {
+  onClick: () => void;
+}) {
   const [count, setCount] = useState(0);
 
   useEffect(() => {
@@ -18,7 +21,7 @@ export function CartBadgeButton() {
     refresh();
 
     function onStorage(e: StorageEvent) {
-      if (e.key === "guest_cart") {
+      if (e.key === "guest_cart_v1") {
         refresh();
       }
     }
@@ -35,10 +38,11 @@ export function CartBadgeButton() {
   }, []);
 
   return (
-    <Link
-      href="/cart"
+    <button
+      type="button"
       className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border bg-white hover:bg-zinc-50"
       aria-label="Cart"
+      onClick={onClick}
     >
       <ShoppingBag className="h-4 w-4" />
       {count > 0 ? (
@@ -46,6 +50,6 @@ export function CartBadgeButton() {
           {count}
         </span>
       ) : null}
-    </Link>
+    </button>
   );
 }

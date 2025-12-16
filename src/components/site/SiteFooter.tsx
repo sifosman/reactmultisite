@@ -1,9 +1,26 @@
 import Link from "next/link";
 import { Facebook, Instagram, Twitter, Mail, MapPin, Phone, CreditCard } from "lucide-react";
 import { getSiteConfig } from "@/lib/config/site";
+import { NewsletterSignup } from "@/components/site/NewsletterSignup";
 
-export function SiteFooter() {
+export function SiteFooter({
+  site,
+}: {
+  site?: {
+    logoUrl?: string;
+    name?: string;
+    tagline?: string;
+    footerAbout?: string;
+    termsHref?: string;
+    termsLabel?: string;
+  };
+}) {
   const config = getSiteConfig();
+  const brandName = site?.name ?? config.name;
+  const logoUrl = site?.logoUrl ?? config.logo;
+  const footerAbout = site?.footerAbout ?? site?.tagline ?? config.tagline;
+  const termsHref = site?.termsHref;
+  const termsLabel = site?.termsLabel ?? "Terms";
   
   return (
     <footer className="bg-zinc-900 text-white">
@@ -15,16 +32,7 @@ export function SiteFooter() {
               <h3 className="text-2xl font-bold">Join Our Newsletter</h3>
               <p className="mt-2 text-zinc-400">Subscribe to get special offers, free giveaways, and updates.</p>
             </div>
-            <div className="flex w-full max-w-md gap-3">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="flex-1 rounded-full border-0 bg-white/10 px-5 py-3 text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-white/30"
-              />
-              <button className="shrink-0 rounded-full bg-white px-6 py-3 font-semibold text-zinc-900 transition hover:bg-zinc-100">
-                Subscribe
-              </button>
-            </div>
+            <NewsletterSignup variant="dark" source="footer" />
           </div>
         </div>
       </div>
@@ -34,9 +42,15 @@ export function SiteFooter() {
         <div className="grid grid-cols-1 gap-12 sm:grid-cols-2 lg:grid-cols-4">
           {/* Brand Column */}
           <div className="lg:col-span-1">
-            <Link href="/" className="text-2xl font-bold">{config.name}</Link>
+            <Link href="/" className="inline-flex items-center gap-3 text-2xl font-bold">
+              {logoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={logoUrl} alt={brandName} className="h-9 w-auto" />
+              ) : null}
+              <span>{brandName}</span>
+            </Link>
             <p className="mt-4 text-sm leading-relaxed text-zinc-400">
-              {config.tagline}
+              {footerAbout}
             </p>
             
             {/* Social Links */}
@@ -134,8 +148,16 @@ export function SiteFooter() {
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
             <p className="text-sm text-zinc-400">
-              © {new Date().getFullYear()} {config.name}. All rights reserved.
+              © {new Date().getFullYear()} <a href="https://owdsolutions.co.za" target="_blank" rel="noreferrer" className="text-zinc-300 underline-offset-4 hover:underline">OWD Solutions</a>. All rights reserved.
             </p>
+
+            {termsHref ? (
+              <div className="flex items-center gap-4 text-sm">
+                <Link href={termsHref} className="text-zinc-400 transition hover:text-white">
+                  {termsLabel}
+                </Link>
+              </div>
+            ) : null}
             
             {/* Payment Methods */}
             <div className="flex items-center gap-3">

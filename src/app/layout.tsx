@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { SiteFooter } from "@/components/site/SiteFooter";
-import { SiteHeader } from "@/components/site/SiteHeader";
+import { SiteChrome } from "@/components/site/SiteChrome";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -30,9 +29,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <div className="min-h-screen bg-[radial-gradient(1200px_circle_at_10%_-10%,rgba(17,24,39,0.08),transparent_55%),radial-gradient(900px_circle_at_90%_0%,rgba(17,24,39,0.06),transparent_45%)]">
-          <SiteHeader />
-          {children}
-          <SiteFooter />
+          <SiteChrome>{children}</SiteChrome>
         </div>
       </body>
     </html>

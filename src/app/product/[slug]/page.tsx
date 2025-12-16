@@ -30,6 +30,10 @@ export default async function ProductPage({
     notFound();
   }
 
+  const isOnSale =
+    product.compare_at_price_cents != null &&
+    product.compare_at_price_cents > product.price_cents;
+
   const [{ data: images }, { data: variants }] = await Promise.all([
     supabase
       .from("product_images")
@@ -69,9 +73,18 @@ export default async function ProductPage({
             <div className="text-xs font-semibold tracking-wide text-zinc-500">Product</div>
             <h1 className="mt-2 text-2xl font-semibold tracking-tight">{product.name}</h1>
 
-            <div className="mt-4 flex items-baseline gap-3">
-              <div className="text-3xl font-semibold">R{price}</div>
-              {compareAt ? <div className="text-sm text-zinc-500 line-through">R{compareAt}</div> : null}
+            <div className="mt-4 flex items-center gap-3">
+              {isOnSale ? (
+                <div className="inline-flex rounded-full bg-red-500 px-3 py-1 text-xs font-bold uppercase tracking-wide text-white">
+                  Sale
+                </div>
+              ) : null}
+              <div className="flex items-baseline gap-3">
+                <div className="text-2xl font-semibold">R{(product.price_cents / 100).toFixed(2)}</div>
+                {product.compare_at_price_cents ? (
+                  <div className="text-sm text-zinc-500 line-through">R{(product.compare_at_price_cents / 100).toFixed(2)}</div>
+                ) : null}
+              </div>
             </div>
 
             {product.description ? (

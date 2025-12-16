@@ -3,6 +3,7 @@ import { Truck, Shield, CreditCard, RotateCcw, ChevronRight, Sparkles } from "lu
 import { createPublicSupabaseServerClient } from "@/lib/storefront/publicClient";
 import { ProductCard } from "@/components/storefront/ProductCard";
 import { getSiteConfig } from "@/lib/config/site";
+import { NewsletterSignup } from "@/components/site/NewsletterSignup";
 
 export const revalidate = 60;
 
@@ -22,12 +23,31 @@ async function HomeContent() {
 
   const homepage = (data?.data ?? {}) as Record<string, unknown>;
   const hero = (homepage.hero ?? {}) as Record<string, unknown>;
+  const promoCards = (homepage.promoCards ?? {}) as Record<string, unknown>;
+  const promoLeft = (promoCards.left ?? {}) as Record<string, unknown>;
+  const promoRight = (promoCards.right ?? {}) as Record<string, unknown>;
 
   const heroTitle = typeof hero.title === "string" ? hero.title : "Discover Your Style";
   const heroSubtitle = typeof hero.subtitle === "string" ? hero.subtitle : "Explore our curated collection of premium products designed for the modern lifestyle.";
   const ctaText = typeof hero.ctaText === "string" ? hero.ctaText : "Shop Collection";
   const ctaHref = typeof hero.ctaHref === "string" ? hero.ctaHref : "/products";
   const heroImageUrl = typeof hero.imageUrl === "string" ? hero.imageUrl : null;
+
+  const leftBadge = typeof promoLeft.badge === "string" ? promoLeft.badge : "Limited Time";
+  const leftTitle = typeof promoLeft.title === "string" ? promoLeft.title : "Summer Sale";
+  const leftSubtitle = typeof promoLeft.subtitle === "string" ? promoLeft.subtitle : "Up to 40% off selected items";
+  const leftButtonText = typeof promoLeft.buttonText === "string" ? promoLeft.buttonText : "Shop Sale";
+  const leftButtonHref = typeof promoLeft.buttonHref === "string" ? promoLeft.buttonHref : "/products";
+  const leftTheme = promoLeft.theme === "sky" ? "sky" : "amber";
+  const leftImageUrl = typeof promoLeft.imageUrl === "string" ? promoLeft.imageUrl : null;
+
+  const rightBadge = typeof promoRight.badge === "string" ? promoRight.badge : "New Collection";
+  const rightTitle = typeof promoRight.title === "string" ? promoRight.title : "Premium Picks";
+  const rightSubtitle = typeof promoRight.subtitle === "string" ? promoRight.subtitle : "Discover our curated selection";
+  const rightButtonText = typeof promoRight.buttonText === "string" ? promoRight.buttonText : "Explore Now";
+  const rightButtonHref = typeof promoRight.buttonHref === "string" ? promoRight.buttonHref : "/products";
+  const rightTheme = promoRight.theme === "amber" ? "amber" : "sky";
+  const rightImageUrl = typeof promoRight.imageUrl === "string" ? promoRight.imageUrl : null;
 
   const [{ data: categories }, { data: products }] = await Promise.all([
     supabase.from("categories").select("id,name,slug,image_url").order("created_at", { ascending: false }).limit(6),
@@ -151,61 +171,58 @@ async function HomeContent() {
       </section>
 
       {/* Categories Grid */}
-      <section className="bg-zinc-50 py-16 sm:py-20">
+      <section className="bg-zinc-50 py-10 sm:py-12">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col items-center text-center sm:flex-row sm:items-end sm:justify-between sm:text-left">
+          <div className="flex items-end justify-between gap-4">
             <div>
-              <h2 className="text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">
-                Shop by Category
-              </h2>
-              <p className="mt-2 text-lg text-zinc-600">
-                Browse our curated collections
-              </p>
+              <h2 className="text-xl font-bold tracking-tight text-zinc-900 sm:text-2xl">Shop by Category</h2>
+              <p className="mt-1 text-sm text-zinc-600">Browse collections</p>
             </div>
-            <Link 
+            <Link
               href="/categories"
-              className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-zinc-900 hover:text-zinc-600 sm:mt-0"
+              className="inline-flex items-center gap-1 text-sm font-semibold text-zinc-900 hover:text-zinc-600"
             >
-              View all categories
+              View all
               <ChevronRight className="h-4 w-4" />
             </Link>
           </div>
 
-          <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {(categories ?? []).slice(0, 6).map((c, idx) => (
-              <Link
-                key={c.id}
-                href={`/category/${c.slug}`}
-                className={`group relative overflow-hidden rounded-2xl bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${
-                  idx === 0 ? "sm:col-span-2 sm:row-span-2" : ""
-                }`}
-              >
-                <div className={`${idx === 0 ? "aspect-[16/9] sm:aspect-square" : "aspect-[4/3]"} w-full bg-gradient-to-br from-zinc-100 to-zinc-200`}>
-                  {c.image_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img 
-                      src={c.image_url} 
-                      alt={c.name} 
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" 
-                    />
-                  ) : (
-                    <div className="flex h-full items-center justify-center">
-                      <span className="text-4xl font-bold text-zinc-300">{c.name.charAt(0)}</span>
+          <div className="mt-5 overflow-x-auto pb-2">
+            <div className="flex snap-x snap-mandatory gap-4">
+              {(categories ?? []).slice(0, 12).map((c, idx) => {
+                const fallbackBg = [
+                  "from-amber-200/70 to-orange-200/70",
+                  "from-sky-200/70 to-indigo-200/70",
+                  "from-emerald-200/70 to-teal-200/70",
+                  "from-fuchsia-200/70 to-pink-200/70",
+                  "from-lime-200/70 to-emerald-200/70",
+                  "from-rose-200/70 to-orange-200/70",
+                ][idx % 6];
+
+                return (
+                  <Link
+                    key={c.id}
+                    href={`/category/${c.slug}`}
+                    className="group relative min-w-[220px] snap-start overflow-hidden rounded-2xl border bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg sm:min-w-[260px]"
+                  >
+                    <div
+                      className={`relative h-24 w-full ${
+                        c.image_url
+                          ? "bg-zinc-100"
+                          : `bg-gradient-to-br ${fallbackBg} bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.55)_1px,transparent_0)] bg-[size:18px_18px]`
+                      }`}
+                      style={c.image_url ? { backgroundImage: `url(${c.image_url})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/20 to-transparent" />
+                      <div className="absolute inset-0 flex items-center justify-between px-5">
+                        <div className="text-base font-semibold text-white">{c.name}</div>
+                        <ChevronRight className="h-5 w-5 text-white/80 transition-transform group-hover:translate-x-1" />
+                      </div>
                     </div>
-                  )}
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-6">
-                  <h3 className={`font-bold text-white ${idx === 0 ? "text-2xl sm:text-3xl" : "text-xl"}`}>
-                    {c.name}
-                  </h3>
-                  <div className="mt-2 flex items-center gap-1 text-sm text-white/80">
-                    <span>Shop now</span>
-                    <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                  </div>
-                </div>
-              </Link>
-            ))}
+                  </Link>
+                );
+              })}
+            </div>
           </div>
         </div>
       </section>
@@ -222,16 +239,7 @@ async function HomeContent() {
                 Sign up for our newsletter and receive exclusive offers
               </p>
             </div>
-            <div className="flex w-full max-w-md gap-3 sm:w-auto">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="flex-1 rounded-full border-0 bg-white/10 px-5 py-3 text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-white/50"
-              />
-              <button className="shrink-0 rounded-full bg-white px-6 py-3 font-semibold text-zinc-900 transition hover:bg-zinc-100">
-                Subscribe
-              </button>
-            </div>
+            <NewsletterSignup variant="dark" source="homepage" />
           </div>
         </div>
       </section>
@@ -287,48 +295,80 @@ async function HomeContent() {
       <section className="bg-zinc-50 py-16 sm:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <div className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-100 to-orange-100 p-8 sm:p-12">
+            <div
+              className={`group relative overflow-hidden rounded-3xl p-8 sm:p-12 ${
+                leftImageUrl
+                  ? "bg-zinc-100"
+                  : leftTheme === "sky"
+                  ? "bg-gradient-to-br from-sky-100 to-indigo-100"
+                  : "bg-gradient-to-br from-amber-100 to-orange-100"
+              }`}
+              style={leftImageUrl ? { backgroundImage: `url(${leftImageUrl})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}
+            >
+              {leftImageUrl ? <div className="absolute inset-0 bg-white/65" /> : null}
               <div className="relative z-10">
-                <div className="inline-flex rounded-full bg-amber-500/20 px-3 py-1 text-sm font-semibold text-amber-800">
-                  Limited Time
+                <div
+                  className={`inline-flex rounded-full px-3 py-1 text-sm font-semibold ${
+                    leftTheme === "sky" ? "bg-sky-500/20 text-sky-800" : "bg-amber-500/20 text-amber-800"
+                  }`}
+                >
+                  {leftBadge}
                 </div>
-                <h3 className="mt-4 text-2xl font-bold text-zinc-900 sm:text-3xl">
-                  Summer Sale
-                </h3>
-                <p className="mt-2 text-zinc-600">
-                  Up to 40% off selected items
-                </p>
+                <h3 className="mt-4 text-2xl font-bold text-zinc-900 sm:text-3xl">{leftTitle}</h3>
+                <p className="mt-2 text-zinc-600">{leftSubtitle}</p>
                 <Link
-                  href="/products"
+                  href={leftButtonHref}
                   className="mt-6 inline-flex items-center gap-2 rounded-full bg-zinc-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800"
                 >
-                  Shop Sale
+                  {leftButtonText}
                   <ChevronRight className="h-4 w-4" />
                 </Link>
               </div>
-              <div className="absolute -bottom-10 -right-10 h-40 w-40 rounded-full bg-amber-300/50 blur-3xl transition-all group-hover:scale-150" />
+              {!leftImageUrl ? (
+                <div
+                  className={`absolute -bottom-10 -right-10 h-40 w-40 rounded-full blur-3xl transition-all group-hover:scale-150 ${
+                    leftTheme === "sky" ? "bg-sky-300/50" : "bg-amber-300/50"
+                  }`}
+                />
+              ) : null}
             </div>
-            
-            <div className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-sky-100 to-indigo-100 p-8 sm:p-12">
+
+            <div
+              className={`group relative overflow-hidden rounded-3xl p-8 sm:p-12 ${
+                rightImageUrl
+                  ? "bg-zinc-100"
+                  : rightTheme === "amber"
+                  ? "bg-gradient-to-br from-amber-100 to-orange-100"
+                  : "bg-gradient-to-br from-sky-100 to-indigo-100"
+              }`}
+              style={rightImageUrl ? { backgroundImage: `url(${rightImageUrl})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}
+            >
+              {rightImageUrl ? <div className="absolute inset-0 bg-white/65" /> : null}
               <div className="relative z-10">
-                <div className="inline-flex rounded-full bg-sky-500/20 px-3 py-1 text-sm font-semibold text-sky-800">
-                  New Collection
+                <div
+                  className={`inline-flex rounded-full px-3 py-1 text-sm font-semibold ${
+                    rightTheme === "amber" ? "bg-amber-500/20 text-amber-800" : "bg-sky-500/20 text-sky-800"
+                  }`}
+                >
+                  {rightBadge}
                 </div>
-                <h3 className="mt-4 text-2xl font-bold text-zinc-900 sm:text-3xl">
-                  Premium Picks
-                </h3>
-                <p className="mt-2 text-zinc-600">
-                  Discover our curated selection
-                </p>
+                <h3 className="mt-4 text-2xl font-bold text-zinc-900 sm:text-3xl">{rightTitle}</h3>
+                <p className="mt-2 text-zinc-600">{rightSubtitle}</p>
                 <Link
-                  href="/products"
+                  href={rightButtonHref}
                   className="mt-6 inline-flex items-center gap-2 rounded-full bg-zinc-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800"
                 >
-                  Explore Now
+                  {rightButtonText}
                   <ChevronRight className="h-4 w-4" />
                 </Link>
               </div>
-              <div className="absolute -bottom-10 -right-10 h-40 w-40 rounded-full bg-sky-300/50 blur-3xl transition-all group-hover:scale-150" />
+              {!rightImageUrl ? (
+                <div
+                  className={`absolute -bottom-10 -right-10 h-40 w-40 rounded-full blur-3xl transition-all group-hover:scale-150 ${
+                    rightTheme === "amber" ? "bg-amber-300/50" : "bg-sky-300/50"
+                  }`}
+                />
+              ) : null}
             </div>
           </div>
         </div>

@@ -18,11 +18,7 @@ export function ProductCard({
 }) {
   const price = (priceCents / 100).toFixed(2);
   const compareAt = compareAtCents ? (compareAtCents / 100).toFixed(2) : null;
-
-  const discountPct =
-    compareAtCents && compareAtCents > priceCents
-      ? Math.round(((compareAtCents - priceCents) / compareAtCents) * 100)
-      : null;
+  const isOnSale = Boolean(compareAtCents && compareAtCents > priceCents);
 
   return (
     <Link
@@ -46,10 +42,10 @@ export function ProductCard({
         {/* Overlay on hover */}
         <div className="absolute inset-0 bg-black/0 transition-colors duration-300 group-hover:bg-black/10" />
 
-        {/* Discount badge */}
-        {discountPct ? (
-          <div className="absolute left-3 top-3 rounded-full bg-red-500 px-2.5 py-1 text-xs font-bold text-white shadow-lg">
-            -{discountPct}%
+        {/* Sale badge */}
+        {isOnSale ? (
+          <div className="absolute left-3 top-3 rounded-full bg-red-500 px-3 py-1 text-xs font-bold uppercase tracking-wide text-white shadow-lg">
+            Sale
           </div>
         ) : null}
 

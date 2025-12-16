@@ -10,6 +10,7 @@ export const productUpsertSchema = z.object({
   description: z.string().trim().optional(),
   price_cents: z.number().int().min(0),
   compare_at_price_cents: z.number().int().min(0).nullable().optional(),
+  stock_qty: z.number().int().min(0).optional(),
   active: z.boolean(),
   has_variants: z.boolean(),
 });

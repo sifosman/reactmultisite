@@ -23,3 +23,21 @@ body {
   background: var(--background);
   color: var(--foreground);
 }
+
+ a,
+ button,
+ [role="button"],
+ input[type="button"],
+ input[type="submit"],
+ input[type="reset"],
+ summary {
+   cursor: pointer;
+ }
+
+ button:disabled,
+ [role="button"][aria-disabled="true"],
+ input[type="button"]:disabled,
+ input[type="submit"]:disabled,
+ input[type="reset"]:disabled {
+   cursor: not-allowed;
+ }

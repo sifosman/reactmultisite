@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { verifyYocoWebhook } from "@/lib/yoco/webhookVerify";
 import { sendOrderPaidEmail } from "@/lib/brevo/sendOrderPaidEmail";
+import { upsertCustomerFromOrder } from "@/lib/customers/upsertCustomerFromOrder";
 
 export async function POST(req: Request) {
   const rawBody = await req.text();
@@ -89,6 +90,63 @@ export async function POST(req: Request) {
       .from("orders")
       .update({ status: "paid" })
       .eq("id", payment.order_id);
+
+    const { data: items } = await supabaseAdmin
+      .from("order_items")
+      .select("product_id,variant_id,qty")
+      .eq("order_id", payment.order_id);
+
+    for (const item of (items ?? []) as Array<{ product_id: string; variant_id: string | null; qty: number }>) {
+      if (item.variant_id) {
+        const { data: v } = await supabaseAdmin
+          .from("product_variants")
+          .select("id,stock_qty")
+          .eq("id", item.variant_id)
+          .maybeSingle();
+
+        if (v) {
+          await supabaseAdmin
+            .from("product_variants")
+            .update({ stock_qty: Math.max(0, (v.stock_qty ?? 0) - item.qty) })
+            .eq("id", item.variant_id);
+        }
+      } else {
+        const { data: p } = await supabaseAdmin
+          .from("products")
+          .select("id,stock_qty")
+          .eq("id", item.product_id)
+          .maybeSingle();
+
+        if (p) {
+          await supabaseAdmin
+            .from("products")
+            .update({ stock_qty: Math.max(0, (p.stock_qty ?? 0) - item.qty) })
+            .eq("id", item.product_id);
+        }
+      }
+    }
+
+    const { data: order } = await supabaseAdmin
+      .from("orders")
+      .select("user_id,customer_email,customer_name,customer_phone,total_cents,created_at")
+      .eq("id", payment.order_id)
+      .maybeSingle();
+
+    if (order) {
+      try {
+        await upsertCustomerFromOrder({
+          user_id: order.user_id,
+          customer_email: order.customer_email,
+          customer_name: order.customer_name,
+          customer_phone: order.customer_phone,
+          total_cents: order.total_cents,
+          created_at: order.created_at,
+          isPaid: true,
+        });
+      } catch {
+        // Don't fail webhook if customer upsert fails.
+      }
+    }
 
     try {
       await sendOrderPaidEmail(payment.order_id);

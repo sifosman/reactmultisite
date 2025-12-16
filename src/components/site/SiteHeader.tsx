@@ -1,14 +1,27 @@
 import Link from "next/link";
 import { Facebook, Instagram, Twitter, User } from "lucide-react";
+import { useState } from "react";
 import { CartBadgeButton } from "@/components/site/CartBadgeButton";
 import { HeaderSearch } from "@/components/site/HeaderSearch";
 import { getSiteConfig } from "@/lib/config/site";
+import { CartDrawer } from "@/components/cart/CartDrawer";
 
-export function SiteHeader() {
+export function SiteHeader({
+  site,
+}: {
+  site?: {
+    logoUrl?: string;
+    name?: string;
+  };
+}) {
   const config = getSiteConfig();
+  const brandName = site?.name ?? config.name;
+  const logoUrl = site?.logoUrl ?? config.logo;
+  const [cartOpen, setCartOpen] = useState(false);
   
   return (
     <header className="sticky top-0 z-40">
+      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
       {config.announcement?.enabled && (
         <div className="bg-zinc-900 text-white">
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-2 text-xs">
@@ -46,8 +59,13 @@ export function SiteHeader() {
 
       <div className="border-b bg-white/95 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-6">
-          <Link href="/" className="shrink-0 text-base font-semibold tracking-tight">
-            {config.name}
+          <Link href="/" className="shrink-0">
+            {logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={logoUrl} alt={brandName} className="h-9 w-auto" />
+            ) : (
+              <div className="text-base font-semibold tracking-tight">{brandName}</div>
+            )}
           </Link>
 
           <nav className="flex items-center gap-1 text-sm text-zinc-700">
@@ -69,7 +87,7 @@ export function SiteHeader() {
             >
               <User className="h-4 w-4" />
             </Link>
-            <CartBadgeButton />
+            <CartBadgeButton onClick={() => setCartOpen(true)} />
           </div>
         </div>
       </div>

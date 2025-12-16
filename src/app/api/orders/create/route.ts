@@ -3,6 +3,7 @@ import { createOrderSchema } from "@/lib/checkout/schemas";
 import { SHIPPING_CENTS } from "@/lib/money/zar";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { upsertCustomerFromOrder } from "@/lib/customers/upsertCustomerFromOrder";
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
@@ -37,7 +38,7 @@ export async function POST(req: Request) {
     await Promise.all([
       supabaseAdmin
         .from("products")
-        .select("id,name,price_cents,active")
+        .select("id,name,price_cents,active,has_variants,stock_qty")
         .in("id", productIds),
       variantIds.length
         ? supabaseAdmin
@@ -54,7 +55,17 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: variantsError.message }, { status: 500 });
   }
 
-  const productsById = new Map<string, { id: string; name: string; price_cents: number; active: boolean }>();
+  const productsById = new Map<
+    string,
+    {
+      id: string;
+      name: string;
+      price_cents: number;
+      active: boolean;
+      has_variants: boolean;
+      stock_qty: number;
+    }
+  >();
   (products ?? []).forEach((p) => productsById.set(p.id, p));
 
   const variantsById = new Map<
@@ -107,6 +118,10 @@ export async function POST(req: Request) {
         name: variant.name,
         attributes: variant.attributes,
       };
+    } else {
+      if (!product.has_variants && product.stock_qty < item.qty) {
+        return NextResponse.json({ error: "out_of_stock" }, { status: 400 });
+      }
     }
 
     orderItems.push({
@@ -154,6 +169,17 @@ export async function POST(req: Request) {
 
   if (itemsError) {
     return NextResponse.json({ error: itemsError.message }, { status: 500 });
+  }
+
+  try {
+    await upsertCustomerFromOrder({
+      user_id: userId,
+      customer_email: input.customer.email,
+      customer_name: input.customer.name ?? null,
+      customer_phone: input.customer.phone ?? null,
+    });
+  } catch {
+    // Do not fail checkout if customer upsert fails.
   }
 
   return NextResponse.json({ orderId: order.id });

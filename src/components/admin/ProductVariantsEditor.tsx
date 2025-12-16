@@ -30,6 +30,7 @@ export function ProductVariantsEditor({ productId }: { productId: string }) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
   const [productSlug, setProductSlug] = useState<string>("");
   const [variants, setVariants] = useState<Variant[]>([]);
 
@@ -143,6 +144,8 @@ export function ProductVariantsEditor({ productId }: { productId: string }) {
     }
 
     router.refresh();
+    setSaved(true);
+    window.setTimeout(() => setSaved(false), 1800);
   }
 
   function updateAttribute(idx: number, patch: Partial<AttributeDef>) {
@@ -181,6 +184,12 @@ export function ProductVariantsEditor({ productId }: { productId: string }) {
 
       {error ? (
         <div className="mt-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>
+      ) : null}
+
+      {saved ? (
+        <div className="fixed bottom-6 right-6 z-50 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800 shadow-lg">
+          Saved
+        </div>
       ) : null}
 
       <div className="mt-6 rounded-xl border bg-zinc-50 p-4">
@@ -282,13 +291,21 @@ export function ProductVariantsEditor({ productId }: { productId: string }) {
                       <div className="text-xs text-zinc-600">Stock</div>
                       <input
                         className="h-10 w-full rounded-md border px-3 text-sm"
-                        type="number"
-                        min={0}
-                        value={v.stock_qty}
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        value={String(v.stock_qty)}
                         onChange={(e) =>
                           setVariants((prev) =>
                             prev.map((x) =>
-                              x.id === v.id ? { ...x, stock_qty: Number(e.target.value) || 0 } : x
+                              x.id === v.id
+                                ? {
+                                    ...x,
+                                    stock_qty:
+                                      e.target.value.replace(/\D+/g, "") === ""
+                                        ? 0
+                                        : Number(e.target.value.replace(/\D+/g, "")),
+                                  }
+                                : x
                             )
                           )
                         }

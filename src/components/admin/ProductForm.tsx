@@ -4,41 +4,69 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { productUpsertSchema, type ProductUpsertInput } from "@/lib/admin/productSchemas";
 
+ function centsToRandsString(cents: number) {
+   return (cents / 100).toFixed(2);
+ }
+
+ function randsStringToCents(value: string) {
+   const normalized = value.replaceAll(",", ".").trim();
+   const num = Number(normalized);
+   if (!Number.isFinite(num) || num < 0) return 0;
+   return Math.round(num * 100);
+ }
+
 export function ProductForm({
   mode,
   productId,
   initial,
+  onHasVariantsChange,
 }: {
   mode: "create" | "edit";
   productId?: string;
   initial?: Partial<ProductUpsertInput>;
+  onHasVariantsChange?: (next: boolean) => void;
 }) {
   const router = useRouter();
+
+  const hasSale =
+    (initial?.compare_at_price_cents ?? null) != null &&
+    (initial?.compare_at_price_cents ?? 0) > (initial?.price_cents ?? 0);
 
   const [name, setName] = useState(initial?.name ?? "");
   const [slug, setSlug] = useState(initial?.slug ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
-  const [priceCents, setPriceCents] = useState<number>(initial?.price_cents ?? 0);
-  const [compareAtCents, setCompareAtCents] = useState<number | "">(
-    initial?.compare_at_price_cents ?? ""
+  const [regularPriceRands, setRegularPriceRands] = useState<string>(
+    centsToRandsString(hasSale ? (initial?.compare_at_price_cents ?? 0) : (initial?.price_cents ?? 0))
+  );
+  const [salePriceRands, setSalePriceRands] = useState<string>(
+    hasSale ? centsToRandsString(initial?.price_cents ?? 0) : ""
   );
   const [active, setActive] = useState<boolean>(initial?.active ?? true);
   const [hasVariants, setHasVariants] = useState<boolean>(initial?.has_variants ?? false);
+  const [stockQty, setStockQty] = useState<number>((initial as any)?.stock_qty ?? 0);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
 
   const payload = useMemo(() => {
+    const regularCents = randsStringToCents(regularPriceRands);
+    const saleCents = salePriceRands === "" ? null : randsStringToCents(salePriceRands);
+
+    const finalPriceCents = saleCents != null ? saleCents : regularCents;
+    const compareAtCents = saleCents != null ? regularCents : null;
+
     return {
       name,
       slug,
       description: description ? description : undefined,
-      price_cents: Number(priceCents),
-      compare_at_price_cents: compareAtCents === "" ? null : Number(compareAtCents),
+      price_cents: finalPriceCents,
+      compare_at_price_cents: compareAtCents,
+      stock_qty: hasVariants ? undefined : stockQty,
       active,
       has_variants: hasVariants,
     };
-  }, [name, slug, description, priceCents, compareAtCents, active, hasVariants]);
+  }, [name, slug, description, regularPriceRands, salePriceRands, stockQty, active, hasVariants]);
 
   const canSubmit = productUpsertSchema.safeParse(payload).success;
 
@@ -71,11 +99,24 @@ export function ProductForm({
     }
 
     router.refresh();
+    setSaved(true);
+    window.setTimeout(() => setSaved(false), 1800);
+
+    if (mode === "create") {
+      const newId = json?.id as string | undefined;
+      if (hasVariants && newId) {
+        router.push(`/admin/products/${newId}`);
+        return;
+      }
+    }
+
     router.push("/admin/products");
   }
 
+  const formId = mode === "edit" ? `product-form-${productId ?? ""}` : undefined;
+
   return (
-    <form onSubmit={onSubmit} className="mt-6 space-y-6">
+    <form id={formId} onSubmit={onSubmit} className="mt-6 space-y-6">
       <section className="rounded-xl border bg-white p-4">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-2 sm:col-span-2">
@@ -107,23 +148,25 @@ export function ProductForm({
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">Price (cents)</label>
+            <label className="text-sm font-medium">Regular price (ZAR)</label>
             <input
               className="h-10 w-full rounded-md border px-3 text-sm"
-              value={priceCents}
-              onChange={(e) => setPriceCents(Number(e.target.value) || 0)}
+              value={regularPriceRands}
+              onChange={(e) => setRegularPriceRands(e.target.value)}
               type="number"
+              step="0.01"
               min={0}
               required
             />
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium">Compare-at (cents)</label>
+            <label className="text-sm font-medium">Sale price (ZAR)</label>
             <input
               className="h-10 w-full rounded-md border px-3 text-sm"
-              value={compareAtCents}
-              onChange={(e) => setCompareAtCents(e.target.value === "" ? "" : Number(e.target.value) || 0)}
+              value={salePriceRands}
+              onChange={(e) => setSalePriceRands(e.target.value)}
               type="number"
+              step="0.01"
               min={0}
             />
           </div>
@@ -137,10 +180,30 @@ export function ProductForm({
             <input
               type="checkbox"
               checked={hasVariants}
-              onChange={(e) => setHasVariants(e.target.checked)}
+              onChange={(e) => {
+                const next = e.target.checked;
+                setHasVariants(next);
+                onHasVariantsChange?.(next);
+              }}
             />
             Has variants
           </label>
+
+          {!hasVariants ? (
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Stock quantity</label>
+              <input
+                className="h-10 w-full rounded-md border px-3 text-sm"
+                value={String(stockQty)}
+                onChange={(e) => {
+                  const next = e.target.value.replace(/\D+/g, "");
+                  setStockQty(next === "" ? 0 : Number(next));
+                }}
+                inputMode="numeric"
+                pattern="[0-9]*"
+              />
+            </div>
+          ) : null}
         </div>
       </section>
 
@@ -157,6 +220,12 @@ export function ProductForm({
       >
         {loading ? "Saving..." : mode === "create" ? "Create product" : "Save changes"}
       </button>
+
+      {saved ? (
+        <div className="fixed bottom-6 right-6 z-50 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800 shadow-lg">
+          Saved
+        </div>
+      ) : null}
     </form>
   );
 }
