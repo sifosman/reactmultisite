@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { SiteHeader } from "@/components/site/SiteHeader";
+import { MobileBottomNav } from "@/components/site/MobileBottomNav";
+import { FloatingWhatsAppButton } from "@/components/site/FloatingWhatsAppButton";
 
 export function SiteChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -39,12 +41,14 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
     const branding = (siteData?.branding ?? {}) as Record<string, unknown>;
     const footer = (siteData?.footer ?? {}) as Record<string, unknown>;
     const legal = (siteData?.legal ?? {}) as Record<string, unknown>;
+    const contact = (siteData?.contact ?? {}) as Record<string, unknown>;
 
     const name = typeof branding.name === "string" ? branding.name : undefined;
     const logoUrl = typeof branding.logoUrl === "string" ? branding.logoUrl : undefined;
     const footerAbout = typeof footer.about === "string" ? footer.about : undefined;
     const termsLabel = typeof footer.termsLabel === "string" ? footer.termsLabel : undefined;
     const hasTerms = typeof legal.termsContent === "string" && legal.termsContent.trim().length > 0;
+    const whatsappNumber = typeof contact.whatsappNumber === "string" ? contact.whatsappNumber : undefined;
 
     return {
       header: {
@@ -58,14 +62,19 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
         termsLabel,
         termsHref: hasTerms ? "/terms" : undefined,
       },
+      contact: {
+        whatsappNumber,
+      },
     };
   }, [siteData]);
 
   return (
     <>
       <SiteHeader site={site.header} />
-      {children}
+      <div className="pb-16 sm:pb-0">{children}</div>
       <SiteFooter site={site.footer} />
+      <MobileBottomNav />
+      <FloatingWhatsAppButton phoneNumber={site.contact.whatsappNumber} />
     </>
   );
 }

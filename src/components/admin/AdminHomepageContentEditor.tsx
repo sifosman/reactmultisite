@@ -48,6 +48,9 @@ type SiteData = {
   legal?: {
     termsContent?: string;
   };
+  contact?: {
+    whatsappNumber?: string;
+  };
 };
 
 export function AdminHomepageContentEditor() {
@@ -85,6 +88,7 @@ export function AdminHomepageContentEditor() {
   const [footerAbout, setFooterAbout] = useState<string>("");
   const [termsLabel, setTermsLabel] = useState<string>("Terms & Conditions");
   const [termsContent, setTermsContent] = useState<string>("");
+  const [whatsappNumber, setWhatsappNumber] = useState<string>("");
 
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [promoLeftFile, setPromoLeftFile] = useState<File | null>(null);
@@ -127,6 +131,7 @@ export function AdminHomepageContentEditor() {
       const branding = site.branding ?? {};
       const footer = site.footer ?? {};
       const legal = site.legal ?? {};
+      const contact = site.contact ?? {};
 
       setTitle(hero.title ?? "Affordable Finds");
       setSubtitle(hero.subtitle ?? "Shop the latest deals");
@@ -156,6 +161,7 @@ export function AdminHomepageContentEditor() {
       setFooterAbout(footer.about ?? "");
       setTermsLabel(footer.termsLabel ?? "Terms & Conditions");
       setTermsContent(legal.termsContent ?? "");
+      setWhatsappNumber(contact.whatsappNumber ?? "");
     }
 
     void load();
@@ -230,8 +236,11 @@ export function AdminHomepageContentEditor() {
       legal: {
         termsContent: termsContent || undefined,
       },
+      contact: {
+        whatsappNumber: whatsappNumber || undefined,
+      },
     };
-  }, [brandName, logoUrl, footerAbout, termsLabel, termsContent]);
+  }, [brandName, logoUrl, footerAbout, termsLabel, termsContent, whatsappNumber]);
 
   async function onSave() {
     setError(null);
@@ -419,6 +428,16 @@ export function AdminHomepageContentEditor() {
             <div className="space-y-2">
               <label className="text-sm font-medium">Brand name (optional override)</label>
               <input className="h-11 w-full rounded-md border bg-white px-3 text-sm" value={brandName} onChange={(e) => setBrandName(e.target.value)} />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">WhatsApp number (optional)</label>
+              <input
+                className="h-11 w-full rounded-md border bg-white px-3 text-sm"
+                value={whatsappNumber}
+                onChange={(e) => setWhatsappNumber(e.target.value)}
+                placeholder="e.g. +27 82 123 4567"
+              />
             </div>
 
             <div className="space-y-2 sm:col-span-2">
