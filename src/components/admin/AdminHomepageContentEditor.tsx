@@ -34,6 +34,12 @@ type HomepageData = {
       theme?: "amber" | "sky";
     };
   };
+  categorySections?: Array<{
+    id?: string;
+    title?: string;
+    categorySlug?: string;
+    imageUrl?: string;
+  }>;
 };
 
 type SiteData = {
@@ -94,6 +100,14 @@ export function AdminHomepageContentEditor() {
   const [promoLeftFile, setPromoLeftFile] = useState<File | null>(null);
   const [promoRightFile, setPromoRightFile] = useState<File | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
+
+  const [categorySections, setCategorySections] = useState<
+    Array<{ id: string; title: string; categorySlug: string; imageUrl: string }>
+  >([]);
+  const [categoryCardFiles, setCategoryCardFiles] = useState<Record<string, File | null>>({});
+  const [allCategories, setAllCategories] = useState<
+    Array<{ id: string; name: string; slug: string }>
+  >([]);
 
   useEffect(() => {
     async function load() {
@@ -156,6 +170,20 @@ export function AdminHomepageContentEditor() {
       setPromoRightTheme(right.theme === "amber" ? "amber" : "sky");
       setPromoRightImageUrl(right.imageUrl ?? "");
 
+      const sectionsRaw = (data.categorySections ?? []) as Array<{
+        id?: string;
+        title?: string;
+        categorySlug?: string;
+        imageUrl?: string;
+      }>;
+      const withIds = sectionsRaw.map((s, index) => ({
+        id: s.id || `cat-card-${index + 1}`,
+        title: s.title ?? "",
+        categorySlug: s.categorySlug ?? "",
+        imageUrl: s.imageUrl ?? "",
+      }));
+      setCategorySections(withIds);
+
       setBrandName(branding.name ?? "");
       setLogoUrl(branding.logoUrl ?? "");
       setFooterAbout(footer.about ?? "");
@@ -165,6 +193,18 @@ export function AdminHomepageContentEditor() {
     }
 
     void load();
+  }, []);
+
+  useEffect(() => {
+    async function loadCategories() {
+      const res = await fetch("/api/admin/categories", { method: "GET" });
+      const json = await res.json().catch(() => null);
+      if (res.ok && Array.isArray(json?.categories)) {
+        setAllCategories(json.categories as Array<{ id: string; name: string; slug: string }>);
+      }
+    }
+
+    void loadCategories();
   }, []);
 
   const payload = useMemo<HomepageData>(() => {
@@ -199,6 +239,15 @@ export function AdminHomepageContentEditor() {
           imageUrl: promoRightImageUrl || undefined,
         },
       },
+      categorySections:
+        categorySections.length > 0
+          ? categorySections.map((s) => ({
+              id: s.id,
+              title: s.title || undefined,
+              categorySlug: s.categorySlug || undefined,
+              imageUrl: s.imageUrl || undefined,
+            }))
+          : undefined,
     };
   }, [
     title,
@@ -221,6 +270,7 @@ export function AdminHomepageContentEditor() {
     promoRightButtonHref,
     promoRightTheme,
     promoRightImageUrl,
+    categorySections,
   ]);
 
   const sitePayload = useMemo<SiteData>(() => {
@@ -349,6 +399,42 @@ export function AdminHomepageContentEditor() {
     return url;
   }
 
+  async function onUploadCategoryCardImage(cardId: string) {
+    const file = categoryCardFiles[cardId];
+    if (!file) return;
+    setError(null);
+    setSaving(true);
+    try {
+      const url = await uploadPromoImage(file);
+      setCategorySections((prev) =>
+        prev.map((c) => (c.id === cardId ? { ...c, imageUrl: url } : c))
+      );
+      setCategoryCardFiles((prev) => ({ ...prev, [cardId]: null }));
+      router.refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Upload failed");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function addCategorySection() {
+    const id = `cat-card-${Date.now()}`;
+    setCategorySections((prev) => [
+      ...prev,
+      { id, title: "", categorySlug: "", imageUrl: "" },
+    ]);
+  }
+
+  function removeCategorySection(id: string) {
+    setCategorySections((prev) => prev.filter((c) => c.id !== id));
+    setCategoryCardFiles((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+  }
+
   async function onUploadPromoLeft() {
     if (!promoLeftFile) return;
     setError(null);
@@ -417,6 +503,128 @@ export function AdminHomepageContentEditor() {
           <div className="space-y-2 sm:col-span-2">
             <label className="text-sm font-medium">Promo strip text</label>
             <input className="h-11 w-full rounded-md border bg-white px-3 text-sm" value={promoText} onChange={(e) => setPromoText(e.target.value)} />
+          </div>
+        </div>
+
+        <div className="mt-6 rounded-xl border bg-zinc-50 p-4">
+          <div className="text-sm font-semibold">Homepage category cards</div>
+          <div className="mt-1 text-xs text-zinc-600">
+            Optional curated category sections shown on the homepage under the hero icons.
+          </div>
+
+          <div className="mt-4 space-y-4">
+            {categorySections.map((card) => (
+              <div key={card.id} className="rounded-xl border bg-white p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="space-y-2 flex-1">
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium">Card title (optional)</label>
+                      <input
+                        className="h-10 w-full rounded-md border bg-white px-3 text-sm"
+                        value={card.title}
+                        onChange={(e) =>
+                          setCategorySections((prev) =>
+                            prev.map((c) =>
+                              c.id === card.id ? { ...c, title: e.target.value } : c
+                            )
+                          )
+                        }
+                        placeholder="e.g. Shop Men, Shop Kids"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium">Linked category</label>
+                      <select
+                        className="h-10 w-full rounded-md border bg-white px-3 text-sm"
+                        value={card.categorySlug}
+                        onChange={(e) =>
+                          setCategorySections((prev) =>
+                            prev.map((c) =>
+                              c.id === card.id ? { ...c, categorySlug: e.target.value } : c
+                            )
+                          )
+                        }
+                      >
+                        <option value="">Select a category</option>
+                        {allCategories.map((cat) => (
+                          <option key={cat.id} value={cat.slug}>
+                            {cat.name}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="text-xs text-zinc-500">
+                        Category slug: {card.categorySlug || "None"}
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="h-8 rounded-md border bg-white px-3 text-xs text-zinc-700 hover:bg-zinc-50"
+                    onClick={() => removeCategorySection(card.id)}
+                  >
+                    Remove
+                  </button>
+                </div>
+
+                <div className="mt-4 rounded-lg border bg-zinc-50 p-3">
+                  <div className="text-xs font-medium text-zinc-700">Background image</div>
+                  {card.imageUrl ? (
+                    <div className="mt-2 overflow-hidden rounded-md border bg-white">
+                      <div className="aspect-[16/6] bg-zinc-100">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={card.imageUrl} alt="" className="h-full w-full object-cover" />
+                      </div>
+                      <div className="px-2 py-1 text-[11px] text-zinc-600 break-all">{card.imageUrl}</div>
+                    </div>
+                  ) : (
+                    <div className="mt-2 text-xs text-zinc-500">No image uploaded yet.</div>
+                  )}
+
+                  <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
+                    <input
+                      id={`category-card-file-${card.id}`}
+                      type="file"
+                      accept="image/*"
+                      className="sr-only"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] ?? null;
+                        setCategoryCardFiles((prev) => ({ ...prev, [card.id]: file }));
+                      }}
+                      key={card.imageUrl}
+                    />
+                    <label
+                      htmlFor={`category-card-file-${card.id}`}
+                      className="inline-flex h-10 items-center justify-center rounded-md bg-white px-4 text-sm font-medium text-zinc-900 shadow-sm ring-1 ring-zinc-200 transition hover:bg-zinc-50"
+                    >
+                      {categoryCardFiles[card.id] ? "Change file" : "Choose file"}
+                    </label>
+                    <div className="text-xs text-zinc-600 flex-1">
+                      {categoryCardFiles[card.id]
+                        ? categoryCardFiles[card.id]?.name
+                        : "No file selected"}
+                    </div>
+                    <button
+                      type="button"
+                      className="h-10 rounded-md bg-black px-4 text-sm text-white disabled:opacity-60"
+                      disabled={!categoryCardFiles[card.id] || saving}
+                      onClick={() => onUploadCategoryCardImage(card.id)}
+                    >
+                      {saving ? "Uploading..." : "Upload image"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            <button
+              type="button"
+              className="inline-flex items-center justify-center rounded-md border bg-white px-4 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-50"
+              onClick={addCategorySection}
+            >
+              Add category card
+            </button>
           </div>
         </div>
 

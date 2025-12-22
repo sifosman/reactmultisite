@@ -23,13 +23,22 @@ export default async function AdminProductsPage() {
         <p className="text-sm text-slate-500">
           Manage your product catalog ({(products ?? []).length} products)
         </p>
-        <Link 
-          href="/admin/products/new"
-          className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-indigo-700"
-        >
-          <Plus className="h-4 w-4" />
-          Add Product
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/admin/products/bulk"
+            className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-white px-4 py-2.5 text-sm font-medium text-indigo-700 hover:bg-indigo-50"
+          >
+            <Plus className="h-4 w-4" />
+            Bulk upload
+          </Link>
+          <Link
+            href="/admin/products/new"
+            className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-indigo-700"
+          >
+            <Plus className="h-4 w-4" />
+            Add Product
+          </Link>
+        </div>
       </div>
 
       {/* Filters Bar */}

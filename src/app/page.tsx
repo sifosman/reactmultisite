@@ -26,6 +26,9 @@ async function HomeContent() {
   const promoCards = (homepage.promoCards ?? {}) as Record<string, unknown>;
   const promoLeft = (promoCards.left ?? {}) as Record<string, unknown>;
   const promoRight = (promoCards.right ?? {}) as Record<string, unknown>;
+  const categorySectionsRaw = Array.isArray(homepage.categorySections)
+    ? (homepage.categorySections as Array<Record<string, unknown>>)
+    : [];
 
   const heroTitle = typeof hero.title === "string" ? hero.title : "Discover Your Style";
   const heroSubtitle = typeof hero.subtitle === "string" ? hero.subtitle : "Explore our curated collection of premium products designed for the modern lifestyle.";
@@ -58,6 +61,20 @@ async function HomeContent() {
       .order("created_at", { ascending: false })
       .limit(8),
   ]);
+
+  const categorySections = categorySectionsRaw
+    .map((s, index) => {
+      const slug = typeof s.categorySlug === "string" ? s.categorySlug : "";
+      const title = typeof s.title === "string" ? s.title : "";
+      const imageUrl = typeof s.imageUrl === "string" ? s.imageUrl : "";
+      return {
+        id: (typeof s.id === "string" && s.id) || `cat-card-${index + 1}`,
+        categorySlug: slug,
+        title,
+        imageUrl,
+      };
+    })
+    .filter((s) => s.categorySlug);
 
   return (
     <main>
@@ -170,53 +187,64 @@ async function HomeContent() {
         </div>
       </section>
 
-      {/* Categories Grid */}
-      <section className="bg-zinc-50 py-10 sm:py-12">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <h2 className="text-xl font-bold tracking-tight text-zinc-900 sm:text-2xl">Shop by Category</h2>
-              <p className="mt-1 text-sm text-zinc-600">Browse collections</p>
+      {categorySections.length > 0 ? (
+        <section className="bg-white py-8 sm:py-10">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mb-4 flex items-end justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-bold tracking-tight text-zinc-900 sm:text-2xl">
+                  Featured categories
+                </h2>
+                <p className="mt-1 text-sm text-zinc-600">
+                  Curated sections from your homepage settings
+                </p>
+              </div>
             </div>
-            <Link
-              href="/categories"
-              className="inline-flex items-center gap-1 text-sm font-semibold text-zinc-900 hover:text-zinc-600"
-            >
-              View all
-              <ChevronRight className="h-4 w-4" />
-            </Link>
-          </div>
 
-          <div className="mt-5 overflow-x-auto pb-2">
-            <div className="flex snap-x snap-mandatory gap-4">
-              {(categories ?? []).slice(0, 12).map((c, idx) => {
-                const fallbackBg = [
-                  "from-amber-200/70 to-orange-200/70",
-                  "from-sky-200/70 to-indigo-200/70",
-                  "from-emerald-200/70 to-teal-200/70",
-                  "from-fuchsia-200/70 to-pink-200/70",
-                  "from-lime-200/70 to-emerald-200/70",
-                  "from-rose-200/70 to-orange-200/70",
-                ][idx % 6];
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {categorySections.map((card) => {
+                const cat = (categories ?? []).find((c) => c.slug === card.categorySlug);
+                if (!cat) return null;
+
+                const bgUrl = card.imageUrl || (cat as any).image_url || null;
+                const fallbackBg = "from-zinc-100 via-zinc-50 to-white";
 
                 return (
                   <Link
-                    key={c.id}
-                    href={`/category/${c.slug}`}
-                    className="group relative min-w-[220px] snap-start overflow-hidden rounded-2xl border bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg sm:min-w-[260px]"
+                    key={card.id}
+                    href={`/category/${cat.slug}`}
+                    className="group relative overflow-hidden rounded-2xl border bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg"
                   >
                     <div
-                      className={`relative h-24 w-full ${
-                        c.image_url
+                      className={`relative h-40 w-full ${
+                        bgUrl
                           ? "bg-zinc-100"
-                          : `bg-gradient-to-br ${fallbackBg} bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.55)_1px,transparent_0)] bg-[size:18px_18px]`
+                          : `bg-gradient-to-br ${fallbackBg} bg-[radial-gradient(circle_at_1px_1px,rgba(0,0,0,0.03)_1px,transparent_0)] bg-[size:18px_18px]`
                       }`}
-                      style={c.image_url ? { backgroundImage: `url(${c.image_url})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}
+                      style={
+                        bgUrl
+                          ? {
+                              backgroundImage: `url(${bgUrl})`,
+                              backgroundSize: "cover",
+                              backgroundPosition: "center",
+                            }
+                          : undefined
+                      }
                     >
-                      <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/20 to-transparent" />
-                      <div className="absolute inset-0 flex items-center justify-between px-5">
-                        <div className="text-base font-semibold text-white">{c.name}</div>
-                        <ChevronRight className="h-5 w-5 text-white/80 transition-transform group-hover:translate-x-1" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/20 to-transparent" />
+                      <div className="absolute inset-0 flex flex-col justify-between p-5">
+                        <div className="text-xs font-medium uppercase tracking-wide text-white/80">
+                          Category
+                        </div>
+                        <div>
+                          <div className="text-lg font-semibold text-white sm:text-xl">
+                            {card.title || cat.name}
+                          </div>
+                          <div className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-white/80">
+                            Shop now
+                            <ChevronRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </Link>
@@ -224,8 +252,8 @@ async function HomeContent() {
               })}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      ) : null}
 
       {/* Promotional Banner */}
       <section className="bg-gradient-to-r from-zinc-900 to-zinc-800 py-16">

@@ -22,6 +22,21 @@ async function assertAdmin() {
   return { ok: true as const };
 }
 
+export async function GET() {
+  const auth = await assertAdmin();
+  if (!auth.ok) return NextResponse.json({ error: "forbidden" }, { status: 403 });
+
+  const supabaseAdmin = createSupabaseAdminClient();
+  const { data, error } = await supabaseAdmin
+    .from("categories")
+    .select("id,name,slug")
+    .order("name", { ascending: true });
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  return NextResponse.json({ categories: data ?? [] });
+}
+
 export async function POST(req: Request) {
   const auth = await assertAdmin();
   if (!auth.ok) return NextResponse.json({ error: "forbidden" }, { status: 403 });
