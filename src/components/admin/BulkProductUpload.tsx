@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
 import { productUpsertSchema, type ProductUpsertInput } from "@/lib/admin/productSchemas";
 
@@ -419,6 +420,13 @@ export function BulkProductUpload() {
             >
               Upload CSV
             </button>
+            <Link
+              href="/admin/categories/new"
+              target="_blank"
+              className="rounded-md border px-3 py-1.5 text-slate-700 hover:bg-slate-50"
+            >
+              Add category
+            </Link>
             <input
               type="file"
               accept=".csv,text/csv"

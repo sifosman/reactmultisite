@@ -29,8 +29,36 @@ export default function LoginPage() {
       return;
     }
 
-    router.refresh();
-    router.push("/account");
+    // Decide redirect based on profile role
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        router.refresh();
+        router.push("/account");
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      router.refresh();
+
+      if (profile?.role === "admin") {
+        router.push("/admin");
+      } else {
+        router.push("/account");
+      }
+    } catch {
+      // Fallback: treat as normal customer
+      router.refresh();
+      router.push("/account");
+    }
   }
 
   return (

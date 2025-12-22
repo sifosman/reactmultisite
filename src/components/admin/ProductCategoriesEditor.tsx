@@ -22,10 +22,23 @@ export function ProductCategoriesEditor({
   const [selected, setSelected] = useState<string[]>(initialCategoryIds);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [createName, setCreateName] = useState("");
+  const [createSlug, setCreateSlug] = useState("");
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [createLoading, setCreateLoading] = useState(false);
 
   const sortedCategories = useMemo(() => {
     return [...categories].sort((a, b) => a.name.localeCompare(b.name));
   }, [categories]);
+
+  function slugify(name: string) {
+    return name
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  }
 
   async function onSave() {
     setError(null);
@@ -50,6 +63,36 @@ export function ProductCategoriesEditor({
 
   function toggle(id: string) {
     setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  }
+
+  async function onCreateCategory(e: React.FormEvent) {
+    e.preventDefault();
+    if (!createName.trim()) return;
+
+    const name = createName.trim();
+    const slug = (createSlug.trim() || slugify(name));
+
+    setCreateError(null);
+    setCreateLoading(true);
+
+    const res = await fetch("/api/admin/categories", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, slug, image_url: null }),
+    });
+
+    const json = await res.json().catch(() => null);
+    setCreateLoading(false);
+
+    if (!res.ok) {
+      setCreateError(json?.error ?? "Create failed");
+      return;
+    }
+
+    setCreateName("");
+    setCreateSlug("");
+    setCreating(false);
+    router.refresh();
   }
 
   return (

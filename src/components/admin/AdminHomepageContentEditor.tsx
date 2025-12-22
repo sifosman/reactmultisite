@@ -10,6 +10,13 @@ type HomepageData = {
     ctaText?: string;
     ctaHref?: string;
     imageUrl?: string;
+    mobileImageUrl?: string;
+    titleColor?: string;
+    subtitleColor?: string;
+    primaryButtonBgColor?: string;
+    primaryButtonTextColor?: string;
+    secondaryButtonBgColor?: string;
+    secondaryButtonTextColor?: string;
   };
   promoStrip?: {
     text?: string;
@@ -72,6 +79,14 @@ export function AdminHomepageContentEditor() {
   const [ctaHref, setCtaHref] = useState("/products");
   const [promoText, setPromoText] = useState("Flat shipping R99");
   const [imageUrl, setImageUrl] = useState<string>("");
+  const [heroMobileImageUrl, setHeroMobileImageUrl] = useState<string>("");
+
+  const [heroTitleColor, setHeroTitleColor] = useState<string>("");
+  const [heroSubtitleColor, setHeroSubtitleColor] = useState<string>("");
+  const [heroPrimaryButtonBgColor, setHeroPrimaryButtonBgColor] = useState<string>("");
+  const [heroPrimaryButtonTextColor, setHeroPrimaryButtonTextColor] = useState<string>("");
+  const [heroSecondaryButtonBgColor, setHeroSecondaryButtonBgColor] = useState<string>("");
+  const [heroSecondaryButtonTextColor, setHeroSecondaryButtonTextColor] = useState<string>("");
 
   const [promoLeftBadge, setPromoLeftBadge] = useState("Limited Time");
   const [promoLeftTitle, setPromoLeftTitle] = useState("Summer Sale");
@@ -97,6 +112,7 @@ export function AdminHomepageContentEditor() {
   const [whatsappNumber, setWhatsappNumber] = useState<string>("");
 
   const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [heroMobileBannerFile, setHeroMobileBannerFile] = useState<File | null>(null);
   const [promoLeftFile, setPromoLeftFile] = useState<File | null>(null);
   const [promoRightFile, setPromoRightFile] = useState<File | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -153,6 +169,14 @@ export function AdminHomepageContentEditor() {
       setCtaHref(hero.ctaHref ?? "/products");
       setPromoText(promo.text ?? "Flat shipping R99");
       setImageUrl(hero.imageUrl ?? "");
+      setHeroMobileImageUrl(hero.mobileImageUrl ?? "");
+
+      setHeroTitleColor(hero.titleColor ?? "");
+      setHeroSubtitleColor(hero.subtitleColor ?? "");
+      setHeroPrimaryButtonBgColor(hero.primaryButtonBgColor ?? "");
+      setHeroPrimaryButtonTextColor(hero.primaryButtonTextColor ?? "");
+      setHeroSecondaryButtonBgColor(hero.secondaryButtonBgColor ?? "");
+      setHeroSecondaryButtonTextColor(hero.secondaryButtonTextColor ?? "");
 
       setPromoLeftBadge(left.badge ?? "Limited Time");
       setPromoLeftTitle(left.title ?? "Summer Sale");
@@ -215,6 +239,13 @@ export function AdminHomepageContentEditor() {
         ctaText,
         ctaHref,
         imageUrl: imageUrl || undefined,
+        mobileImageUrl: heroMobileImageUrl || undefined,
+        titleColor: heroTitleColor || undefined,
+        subtitleColor: heroSubtitleColor || undefined,
+        primaryButtonBgColor: heroPrimaryButtonBgColor || undefined,
+        primaryButtonTextColor: heroPrimaryButtonTextColor || undefined,
+        secondaryButtonBgColor: heroSecondaryButtonBgColor || undefined,
+        secondaryButtonTextColor: heroSecondaryButtonTextColor || undefined,
       },
       promoStrip: {
         text: promoText,
@@ -256,6 +287,13 @@ export function AdminHomepageContentEditor() {
     ctaHref,
     promoText,
     imageUrl,
+    heroMobileImageUrl,
+    heroTitleColor,
+    heroSubtitleColor,
+    heroPrimaryButtonBgColor,
+    heroPrimaryButtonTextColor,
+    heroSecondaryButtonBgColor,
+    heroSecondaryButtonTextColor,
     promoLeftBadge,
     promoLeftTitle,
     promoLeftSubtitle,
@@ -353,6 +391,33 @@ export function AdminHomepageContentEditor() {
 
     setImageUrl(json.url);
     setBannerFile(null);
+    router.refresh();
+  }
+
+  async function onUploadHeroMobileBanner() {
+    if (!heroMobileBannerFile) return;
+
+    setError(null);
+    setSaving(true);
+
+    const form = new FormData();
+    form.set("file", heroMobileBannerFile);
+
+    const res = await fetch("/api/admin/uploads/banner", {
+      method: "POST",
+      body: form,
+    });
+
+    const json = await res.json().catch(() => null);
+    setSaving(false);
+
+    if (!res.ok) {
+      setError(json?.error ?? "Upload failed");
+      return;
+    }
+
+    setHeroMobileImageUrl(json.url);
+    setHeroMobileBannerFile(null);
     router.refresh();
   }
 
@@ -486,26 +551,203 @@ export function AdminHomepageContentEditor() {
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-2 sm:col-span-2">
             <label className="text-sm font-medium">Hero title</label>
-            <input className="h-11 w-full rounded-md border bg-white px-3 text-sm" value={title} onChange={(e) => setTitle(e.target.value)} />
+            <div className="flex items-center gap-3">
+              <input
+                className="h-11 w-full rounded-md border bg-white px-3 text-sm"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+              />
+              <div className="flex items-center gap-1">
+                <input
+                  type="color"
+                  className="h-9 w-9 cursor-pointer rounded border bg-white p-1"
+                  value={heroTitleColor || "#ffffff"}
+                  onChange={(e) => setHeroTitleColor(e.target.value)}
+                />
+              </div>
+            </div>
           </div>
           <div className="space-y-2 sm:col-span-2">
             <label className="text-sm font-medium">Hero subtitle</label>
-            <textarea className="min-h-24 w-full rounded-md border bg-white px-3 py-2 text-sm" value={subtitle} onChange={(e) => setSubtitle(e.target.value)} />
+            <div className="flex items-start gap-3">
+              <textarea
+                className="min-h-24 w-full rounded-md border bg:white px-3 py-2 text-sm"
+                value={subtitle}
+                onChange={(e) => setSubtitle(e.target.value)}
+              />
+              <input
+                type="color"
+                className="mt-1 h-9 w-9 cursor-pointer rounded border bg-white p-1"
+                value={heroSubtitleColor || "#e5e5e5"}
+                onChange={(e) => setHeroSubtitleColor(e.target.value)}
+              />
+            </div>
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium">CTA text</label>
-            <input className="h-11 w-full rounded-md border bg-white px-3 text-sm" value={ctaText} onChange={(e) => setCtaText(e.target.value)} />
+            <input
+              className="h-11 w-full rounded-md border bg-white px-3 text-sm"
+              value={ctaText}
+              onChange={(e) => setCtaText(e.target.value)}
+            />
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium">CTA link</label>
-            <input className="h-11 w-full rounded-md border bg-white px-3 text-sm" value={ctaHref} onChange={(e) => setCtaHref(e.target.value)} />
+            <input
+              className="h-11 w-full rounded-md border bg-white px-3 text-sm"
+              value={ctaHref}
+              onChange={(e) => setCtaHref(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs font-medium">Primary button colors</label>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1">
+                <span className="text-[11px] text-zinc-500">BG</span>
+                <input
+                  type="color"
+                  className="h-8 w-8 cursor-pointer rounded border bg-white p-1"
+                  value={heroPrimaryButtonBgColor || "#ffffff"}
+                  onChange={(e) => setHeroPrimaryButtonBgColor(e.target.value)}
+                />
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-[11px] text-zinc-500">Text</span>
+                <input
+                  type="color"
+                  className="h-8 w-8 cursor-pointer rounded border bg:white p-1"
+                  value={heroPrimaryButtonTextColor || "#000000"}
+                  onChange={(e) => setHeroPrimaryButtonTextColor(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs font-medium">Secondary button colors</label>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1">
+                <span className="text-[11px] text-zinc-500">BG</span>
+                <input
+                  type="color"
+                  className="h-8 w-8 cursor-pointer rounded border bg:white p-1"
+                  value={heroSecondaryButtonBgColor || "#000000"}
+                  onChange={(e) => setHeroSecondaryButtonBgColor(e.target.value)}
+                />
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-[11px] text-zinc-500">Text</span>
+                <input
+                  type="color"
+                  className="h-8 w-8 cursor-pointer rounded border bg:white p-1"
+                  value={heroSecondaryButtonTextColor || "#ffffff"}
+                  onChange={(e) => setHeroSecondaryButtonTextColor(e.target.value)}
+                />
+              </div>
+            </div>
           </div>
           <div className="space-y-2 sm:col-span-2">
             <label className="text-sm font-medium">Promo strip text</label>
-            <input className="h-11 w-full rounded-md border bg-white px-3 text-sm" value={promoText} onChange={(e) => setPromoText(e.target.value)} />
+            <input
+              className="h-11 w-full rounded-md border bg-white px-3 text-sm"
+              value={promoText}
+              onChange={(e) => setPromoText(e.target.value)}
+            />
+          </div>
+        </div>
+        {/* Hero images grouped after hero text/colors */}
+        <div className="mt-6 rounded-xl border bg-zinc-50 p-4">
+          <div className="text-sm font-semibold">Hero banner image (optional)</div>
+          <div className="mt-1 text-xs text-zinc-600">Uploads to the Supabase Storage bucket <span className="font-mono">banners</span>.</div>
+
+          {imageUrl ? (
+            <div className="mt-4 overflow-hidden rounded-lg border bg-white">
+              <div className="aspect-[16/6] bg-zinc-100">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={imageUrl} alt="Hero banner" className="h-full w-full object-cover" />
+              </div>
+              <div className="p-2 text-xs text-zinc-600 break-all">{imageUrl}</div>
+            </div>
+          ) : (
+            <div className="mt-4 text-sm text-zinc-600">No banner uploaded yet.</div>
+          )}
+
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <input
+              id="hero-banner-file"
+              type="file"
+              accept="image/*"
+              className="sr-only"
+              onChange={(e) => setBannerFile(e.target.files?.[0] ?? null)}
+              key={imageUrl}
+            />
+            <label
+              htmlFor="hero-banner-file"
+              className="inline-flex h-10 items-center justify-center rounded-md bg-white px-4 text-sm font-medium text-zinc-900 shadow-sm ring-1 ring-zinc-200 transition hover:bg-zinc-50"
+            >
+              {bannerFile ? "Change file" : "Choose file"}
+            </label>
+            <div className="text-xs text-zinc-600">
+              {bannerFile ? bannerFile.name : "No file selected"}
+            </div>
+            <button
+              type="button"
+              className="h-10 rounded-md bg-black px-4 text-sm text-white disabled:opacity-60"
+              disabled={!bannerFile || saving}
+              onClick={onUploadBanner}
+            >
+              {saving ? "Uploading..." : "Upload banner"}
+            </button>
           </div>
         </div>
 
+        <div className="mt-6 rounded-xl border bg-zinc-50 p-4">
+          <div className="text-sm font-semibold">Hero mobile banner image (optional)</div>
+          <div className="mt-1 text-xs text-zinc-600">
+            Recommended size <span className="font-mono">1080x1920</span>. Shown on mobile only. If not set, the desktop hero image is used.
+          </div>
+
+          {heroMobileImageUrl ? (
+            <div className="mt-4 overflow-hidden rounded-lg border bg-white">
+              <div className="aspect-[9/16] bg-zinc-100">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={heroMobileImageUrl} alt="Hero mobile banner" className="h-full w-full object-cover" />
+              </div>
+              <div className="p-2 text-xs text-zinc-600 break-all">{heroMobileImageUrl}</div>
+            </div>
+          ) : (
+            <div className="mt-4 text-sm text-zinc-600">No mobile banner uploaded yet.</div>
+          )}
+
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <input
+              id="hero-mobile-banner-file"
+              type="file"
+              accept="image/*"
+              className="sr-only"
+              onChange={(e) => setHeroMobileBannerFile(e.target.files?.[0] ?? null)}
+              key={heroMobileImageUrl}
+            />
+            <label
+              htmlFor="hero-mobile-banner-file"
+              className="inline-flex h-10 items-center justify-center rounded-md bg-white px-4 text-sm font-medium text-zinc-900 shadow-sm ring-1 ring-zinc-200 transition hover:bg-zinc-50"
+            >
+              {heroMobileBannerFile ? "Change file" : "Choose file"}
+            </label>
+            <div className="text-xs text-zinc-600">
+              {heroMobileBannerFile ? heroMobileBannerFile.name : "No file selected"}
+            </div>
+            <button
+              type="button"
+              className="h-10 rounded-md bg-black px-4 text-sm text-white disabled:opacity-60"
+              disabled={!heroMobileBannerFile || saving}
+              onClick={onUploadHeroMobileBanner}
+            >
+              {saving ? "Uploading..." : "Upload mobile banner"}
+            </button>
+          </div>
+        </div>
+
+        {/* Homepage category cards grouped after hero */}
         <div className="mt-6 rounded-xl border bg-zinc-50 p-4">
           <div className="text-sm font-semibold">Homepage category cards</div>
           <div className="mt-1 text-xs text-zinc-600">
@@ -628,120 +870,7 @@ export function AdminHomepageContentEditor() {
           </div>
         </div>
 
-        <div className="mt-6 rounded-xl border bg-zinc-50 p-4">
-          <div className="text-sm font-semibold">Branding & footer</div>
-          <div className="mt-1 text-xs text-zinc-600">Logo, footer copy, and legal text.</div>
-
-          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Brand name (optional override)</label>
-              <input className="h-11 w-full rounded-md border bg-white px-3 text-sm" value={brandName} onChange={(e) => setBrandName(e.target.value)} />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">WhatsApp number (optional)</label>
-              <input
-                className="h-11 w-full rounded-md border bg-white px-3 text-sm"
-                value={whatsappNumber}
-                onChange={(e) => setWhatsappNumber(e.target.value)}
-                placeholder="e.g. +27 82 123 4567"
-              />
-            </div>
-
-            <div className="space-y-2 sm:col-span-2">
-              <div className="text-sm font-medium">Logo (optional)</div>
-              {logoUrl ? <div className="mt-1 text-xs text-zinc-600 break-all">{logoUrl}</div> : <div className="mt-1 text-xs text-zinc-600">No logo uploaded yet.</div>}
-
-              <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
-                <input
-                  id="site-logo-file"
-                  type="file"
-                  accept="image/*"
-                  className="sr-only"
-                  onChange={(e) => setLogoFile(e.target.files?.[0] ?? null)}
-                  key={logoUrl}
-                />
-                <label
-                  htmlFor="site-logo-file"
-                  className="inline-flex h-10 items-center justify-center rounded-md bg-white px-4 text-sm font-medium text-zinc-900 shadow-sm ring-1 ring-zinc-200 transition hover:bg-zinc-50"
-                >
-                  {logoFile ? "Change file" : "Choose file"}
-                </label>
-                <div className="text-xs text-zinc-600">{logoFile ? logoFile.name : "No file selected"}</div>
-                <button
-                  type="button"
-                  className="h-10 rounded-md bg-black px-4 text-sm text-white disabled:opacity-60"
-                  disabled={!logoFile || saving}
-                  onClick={onUploadLogo}
-                >
-                  {saving ? "Uploading..." : "Upload logo"}
-                </button>
-              </div>
-            </div>
-
-            <div className="space-y-2 sm:col-span-2">
-              <label className="text-sm font-medium">Footer about text</label>
-              <textarea className="min-h-24 w-full rounded-md border bg-white px-3 py-2 text-sm" value={footerAbout} onChange={(e) => setFooterAbout(e.target.value)} />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Terms link label</label>
-              <input className="h-11 w-full rounded-md border bg-white px-3 text-sm" value={termsLabel} onChange={(e) => setTermsLabel(e.target.value)} />
-            </div>
-
-            <div className="space-y-2 sm:col-span-2">
-              <label className="text-sm font-medium">Terms & Conditions content</label>
-              <textarea className="min-h-48 w-full rounded-md border bg-white px-3 py-2 text-sm" value={termsContent} onChange={(e) => setTermsContent(e.target.value)} />
-              <div className="text-xs text-zinc-600">Displayed on <span className="font-mono">/terms</span>.</div>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-6 rounded-xl border bg-zinc-50 p-4">
-          <div className="text-sm font-semibold">Hero banner image (optional)</div>
-          <div className="mt-1 text-xs text-zinc-600">Uploads to the Supabase Storage bucket <span className="font-mono">banners</span>.</div>
-
-          {imageUrl ? (
-            <div className="mt-4 overflow-hidden rounded-lg border bg-white">
-              <div className="aspect-[16/6] bg-zinc-100">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={imageUrl} alt="Hero banner" className="h-full w-full object-cover" />
-              </div>
-              <div className="p-2 text-xs text-zinc-600 break-all">{imageUrl}</div>
-            </div>
-          ) : (
-            <div className="mt-4 text-sm text-zinc-600">No banner uploaded yet.</div>
-          )}
-
-          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <input
-              id="hero-banner-file"
-              type="file"
-              accept="image/*"
-              className="sr-only"
-              onChange={(e) => setBannerFile(e.target.files?.[0] ?? null)}
-              key={imageUrl}
-            />
-            <label
-              htmlFor="hero-banner-file"
-              className="inline-flex h-10 items-center justify-center rounded-md bg-white px-4 text-sm font-medium text-zinc-900 shadow-sm ring-1 ring-zinc-200 transition hover:bg-zinc-50"
-            >
-              {bannerFile ? "Change file" : "Choose file"}
-            </label>
-            <div className="text-xs text-zinc-600">
-              {bannerFile ? bannerFile.name : "No file selected"}
-            </div>
-            <button
-              type="button"
-              className="h-10 rounded-md bg-black px-4 text-sm text-white disabled:opacity-60"
-              disabled={!bannerFile || saving}
-              onClick={onUploadBanner}
-            >
-              {saving ? "Uploading..." : "Upload banner"}
-            </button>
-          </div>
-        </div>
-
+        {/* Promo cards grouped after homepage sections */}
         <div className="mt-6 rounded-xl border bg-zinc-50 p-4">
           <div className="text-sm font-semibold">Promo cards</div>
           <div className="mt-1 text-xs text-zinc-600">Two cards shown on the homepage (under New Arrivals).</div>

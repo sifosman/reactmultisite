@@ -31,10 +31,25 @@ async function HomeContent() {
     : [];
 
   const heroTitle = typeof hero.title === "string" ? hero.title : "Discover Your Style";
-  const heroSubtitle = typeof hero.subtitle === "string" ? hero.subtitle : "Explore our curated collection of premium products designed for the modern lifestyle.";
+  const heroSubtitle =
+    typeof hero.subtitle === "string"
+      ? hero.subtitle
+      : "Explore our curated collection of premium products designed for the modern lifestyle.";
   const ctaText = typeof hero.ctaText === "string" ? hero.ctaText : "Shop Collection";
   const ctaHref = typeof hero.ctaHref === "string" ? hero.ctaHref : "/products";
   const heroImageUrl = typeof hero.imageUrl === "string" ? hero.imageUrl : null;
+  const heroMobileImageUrl = typeof (hero as any).mobileImageUrl === "string" ? (hero as any).mobileImageUrl : null;
+
+  const heroTitleColor = typeof (hero as any).titleColor === "string" ? (hero as any).titleColor : null;
+  const heroSubtitleColor = typeof (hero as any).subtitleColor === "string" ? (hero as any).subtitleColor : null;
+  const heroPrimaryButtonBgColor =
+    typeof (hero as any).primaryButtonBgColor === "string" ? (hero as any).primaryButtonBgColor : null;
+  const heroPrimaryButtonTextColor =
+    typeof (hero as any).primaryButtonTextColor === "string" ? (hero as any).primaryButtonTextColor : null;
+  const heroSecondaryButtonBgColor =
+    typeof (hero as any).secondaryButtonBgColor === "string" ? (hero as any).secondaryButtonBgColor : null;
+  const heroSecondaryButtonTextColor =
+    typeof (hero as any).secondaryButtonTextColor === "string" ? (hero as any).secondaryButtonTextColor : null;
 
   const leftBadge = typeof promoLeft.badge === "string" ? promoLeft.badge : "Limited Time";
   const leftTitle = typeof promoLeft.title === "string" ? promoLeft.title : "Summer Sale";
@@ -78,66 +93,74 @@ async function HomeContent() {
 
   return (
     <main>
-      {/* Hero Section - Full Width Banner */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900">
-        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
-        <div className="absolute inset-0 bg-gradient-to-t from-zinc-900/80 via-transparent to-transparent" />
-        
-        <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28 lg:px-8 lg:py-36">
-          <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2">
-            <div className="text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm text-white/90 backdrop-blur-sm">
+      {/* Hero Section - Full Width Background Banner */}
+      <section className="relative overflow-hidden bg-zinc-900">
+        {/* Desktop / tablet background image */}
+        {heroImageUrl && (
+          <div
+            className="pointer-events-none absolute inset-0 hidden bg-cover bg-center sm:block"
+            style={{ backgroundImage: `url(${heroImageUrl})` }}
+          />
+        )}
+
+        {/* Mobile background image (falls back to desktop if not set) */}
+        {(heroMobileImageUrl || heroImageUrl) && (
+          <div
+            className="pointer-events-none absolute inset-0 bg-cover bg-center sm:hidden"
+            style={{ backgroundImage: `url(${heroMobileImageUrl || heroImageUrl})` }}
+          />
+        )}
+
+        {/* Subtle grid texture only (no dark overlay) */}
+        <div className="pointer-events-none absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
+
+        <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-24 lg:px-8 lg:py-32">
+          <div className="max-w-2xl">
+            <div className="rounded-3xl border border-white/40 bg-white/10 p-6 shadow-xl backdrop-blur-md sm:p-8">
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/10 px-4 py-2 text-sm text-white">
                 <Sparkles className="h-4 w-4 text-yellow-400" />
                 <span>New Season Collection Available</span>
               </div>
               
-              <h1 className="mt-6 text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
+              <h1
+                className="mt-6 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl"
+                style={heroTitleColor ? { color: heroTitleColor } : { color: "#ffffff" }}
+              >
                 {heroTitle}
               </h1>
               
-              <p className="mt-6 max-w-lg text-lg leading-relaxed text-zinc-300 sm:text-xl">
+              <p
+                className="mt-6 max-w-xl text-lg leading-relaxed sm:text-xl"
+                style={heroSubtitleColor ? { color: heroSubtitleColor } : { color: "#e5e5e5" }}
+              >
                 {heroSubtitle}
               </p>
               
-              <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:justify-center lg:justify-start">
+              <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:justify-start">
                 <Link 
                   href={ctaHref}
-                  className="group inline-flex items-center justify-center gap-2 rounded-full bg-white px-8 py-4 text-sm font-semibold text-zinc-900 transition hover:bg-zinc-100"
+                  className="group inline-flex items-center justify-center gap-2 rounded-full border px-8 py-4 text-sm font-semibold backdrop-blur-sm transition"
+                  style={{
+                    backgroundColor: heroPrimaryButtonBgColor || "rgba(255,255,255,0.1)",
+                    color: heroPrimaryButtonTextColor || "#ffffff",
+                    borderColor: heroPrimaryButtonBgColor || "#ffffff",
+                  }}
                 >
                   {ctaText}
                   <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </Link>
                 <Link 
                   href="/categories"
-                  className="inline-flex items-center justify-center gap-2 rounded-full border border-white/20 bg-white/5 px-8 py-4 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/10"
+                  className="inline-flex items-center justify-center gap-2 rounded-full border px-8 py-4 text-sm font-semibold backdrop-blur-sm transition"
+                  style={{
+                    backgroundColor: heroSecondaryButtonBgColor || "rgba(0,0,0,0.2)",
+                    color: heroSecondaryButtonTextColor || "#ffffff",
+                    borderColor: heroSecondaryButtonBgColor || "rgba(255,255,255,0.7)",
+                  }}
                 >
                   Browse Categories
                 </Link>
               </div>
-            </div>
-            
-            <div className="relative hidden lg:block">
-              {heroImageUrl ? (
-                <div className="relative">
-                  <div className="absolute -inset-4 rounded-3xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 blur-3xl" />
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img 
-                    src={heroImageUrl} 
-                    alt="Hero" 
-                    className="relative rounded-3xl object-cover shadow-2xl"
-                  />
-                </div>
-              ) : (
-                <div className="relative aspect-square">
-                  <div className="absolute -inset-4 rounded-3xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 blur-3xl" />
-                  <div className="relative flex h-full items-center justify-center rounded-3xl border border-white/10 bg-white/5 backdrop-blur-sm">
-                    <div className="text-center p-8">
-                      <div className="text-6xl font-bold text-white/20">{config.name}</div>
-                      <div className="mt-2 text-white/40">Upload a hero image in admin</div>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -213,12 +236,12 @@ async function HomeContent() {
                   <Link
                     key={card.id}
                     href={`/category/${cat.slug}`}
-                    className="group relative overflow-hidden rounded-2xl border bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg"
+                    className="group relative overflow-hidden rounded-2xl border border-white/40 bg-white/5 shadow-sm backdrop-blur-md transition hover:-translate-y-0.5 hover:shadow-lg"
                   >
                     <div
                       className={`relative h-40 w-full ${
                         bgUrl
-                          ? "bg-zinc-100"
+                          ? "bg-zinc-100/40"
                           : `bg-gradient-to-br ${fallbackBg} bg-[radial-gradient(circle_at_1px_1px,rgba(0,0,0,0.03)_1px,transparent_0)] bg-[size:18px_18px]`
                       }`}
                       style={
@@ -231,16 +254,15 @@ async function HomeContent() {
                           : undefined
                       }
                     >
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/20 to-transparent" />
-                      <div className="absolute inset-0 flex flex-col justify-between p-5">
-                        <div className="text-xs font-medium uppercase tracking-wide text-white/80">
+                      <div className="absolute inset-0 flex flex-col justify-between bg-gradient-to-t from-white/70 via-white/40 to-white/10 p-5">
+                        <div className="text-xs font-medium uppercase tracking-wide text-zinc-700">
                           Category
                         </div>
                         <div>
-                          <div className="text-lg font-semibold text-white sm:text-xl">
+                          <div className="text-lg font-semibold text-zinc-900 sm:text-xl">
                             {card.title || cat.name}
                           </div>
-                          <div className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-white/80">
+                          <div className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-zinc-700">
                             Shop now
                             <ChevronRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
                           </div>
