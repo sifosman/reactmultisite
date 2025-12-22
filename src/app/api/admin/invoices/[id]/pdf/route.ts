@@ -137,8 +137,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   page.drawText(`Total: ${formatZar(invoice.total_cents)}`, { x: colUnitX, y, size: 12, font: fontBold });
 
   const bytes = await pdf.save();
+  const blob = new Blob([bytes.buffer as unknown as BlobPart], { type: "application/pdf" });
 
-  return new NextResponse(bytes, {
+  return new NextResponse(blob, {
     status: 200,
     headers: {
       "Content-Type": "application/pdf",
