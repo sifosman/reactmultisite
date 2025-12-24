@@ -177,7 +177,7 @@ export function CartDrawer({
 
         <div className="flex-1 overflow-y-auto px-5 py-4">
           {lines.length === 0 ? (
-            <div className="rounded-xl border bg-zinc-50 p-4 text-sm text-zinc-600">Your cart is empty.</div>
+            <div className="rounded-xl border bg-zinc-50 p-4 text-sm text-zinc-900">Your cart is empty.</div>
           ) : (
             <div className="space-y-3">
               {lines.map((l) => {
@@ -195,16 +195,16 @@ export function CartDrawer({
                           {l.product?.name ?? "(Missing product)"}
                         </div>
                         {l.variant ? (
-                          <div className="mt-1 text-xs text-zinc-600">
+                          <div className="mt-1 text-xs text-zinc-900">
                             {l.variant.name ?? l.variant.sku}
                             {attrText ? ` • ${attrText}` : ""}
                           </div>
                         ) : null}
-                        <div className="mt-2 text-xs text-zinc-600">Qty: {l.item.qty}</div>
+                        <div className="mt-2 text-xs text-zinc-900">Qty: {l.item.qty}</div>
                       </div>
                       <div className="shrink-0 text-right">
                         <div className="text-sm font-semibold text-zinc-900">{formatZar(l.lineTotalCents)}</div>
-                        <div className="mt-1 text-xs text-zinc-600">{formatZar(l.unitPriceCents)} each</div>
+                        <div className="mt-1 text-xs text-zinc-900">{formatZar(l.unitPriceCents)} each</div>
                       </div>
                     </div>
                   </div>
@@ -215,13 +215,13 @@ export function CartDrawer({
         </div>
 
         <div className="border-t px-5 py-4">
-          <div className="space-y-2 text-sm">
+          <div className="space-y-2 text-sm text-zinc-900">
             <div className="flex justify-between">
-              <span className="text-zinc-600">Subtotal</span>
+              <span>Subtotal</span>
               <span className="font-medium">{formatZar(subtotalCents)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-zinc-600">Shipping</span>
+              <span>Shipping</span>
               <span className="font-medium">{lines.length > 0 ? formatZar(SHIPPING_CENTS) : formatZar(0)}</span>
             </div>
             <div className="flex justify-between border-t pt-2 font-semibold">

@@ -125,7 +125,7 @@ export function CheckoutClient() {
       ) : (
         <form onSubmit={onSubmit} className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-6">
-            <section className="rounded-2xl border bg-white p-5 shadow-sm">
+            <section className="rounded-2xl border bg-white p-5 text-zinc-900 shadow-sm">
               <div className="text-sm font-semibold">Contact</div>
               <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 text-zinc-900">
                 <div className="space-y-2 sm:col-span-2">
@@ -291,7 +291,7 @@ export function CheckoutClient() {
               {loading ? "Creating order..." : "Place order"}
             </button>
 
-            <div className="text-xs text-zinc-800">
+            <div className="text-xs text-zinc-900">
               After this step, you’ll either be redirected to Yoco hosted checkout or see bank transfer details
               depending on your selected payment method.
             </div>

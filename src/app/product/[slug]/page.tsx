@@ -69,7 +69,7 @@ export default async function ProductPage({
         </div>
 
         <div className="lg:col-span-5">
-          <div className="rounded-2xl border bg-white p-6 shadow-sm">
+          <div className="rounded-2xl border bg-white p-6 text-zinc-900 shadow-sm">
             <div className="text-xs font-semibold tracking-wide text-zinc-800">Product</div>
             <h1 className="mt-2 text-2xl font-semibold tracking-tight">{product.name}</h1>
 

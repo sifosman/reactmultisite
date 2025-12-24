@@ -113,7 +113,7 @@ export default async function OrderDetailPage({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold">Order details</h1>
-          <div className="mt-1 font-mono text-sm text-zinc-600">{order.id}</div>
+          <div className="mt-1 font-mono text-sm text-zinc-900">{order.id}</div>
         </div>
         <span
           className={`rounded-full px-3 py-1 text-xs font-semibold ${
@@ -138,7 +138,7 @@ export default async function OrderDetailPage({
 
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
-          <section className="rounded-xl border bg-white p-5 shadow-sm">
+          <section className="rounded-xl border bg-white p-5 text-zinc-900 shadow-sm">
             <div className="text-sm font-semibold">Order items</div>
             <div className="mt-4 space-y-3">
               {(items ?? []).map((item) => {
@@ -151,22 +151,22 @@ export default async function OrderDetailPage({
                     <div className="flex-1">
                       <div className="font-medium">{item.title_snapshot}</div>
                       {variantInfo?.name && (
-                        <div className="text-xs text-zinc-600">{variantInfo.name}</div>
+                        <div className="text-xs text-zinc-900">{variantInfo.name}</div>
                       )}
                       {variantInfo?.attributes && (
-                        <div className="text-xs text-zinc-500">
+                        <div className="text-xs text-zinc-900">
                           {Object.entries(variantInfo.attributes)
                             .map(([k, v]) => `${k}: ${v}`)
                             .join(", ")}
                         </div>
                       )}
-                      <div className="mt-1 text-xs text-zinc-600">Qty: {item.qty}</div>
+                      <div className="mt-1 text-xs text-zinc-900">Qty: {item.qty}</div>
                     </div>
                     <div className="text-right">
                       <div className="font-medium">
                         {formatZar(item.unit_price_cents_snapshot * item.qty)}
                       </div>
-                      <div className="text-xs text-zinc-600">
+                      <div className="text-xs text-zinc-900">
                         {formatZar(item.unit_price_cents_snapshot)} each
                       </div>
                     </div>
@@ -178,15 +178,15 @@ export default async function OrderDetailPage({
 
           <section className="rounded-xl border bg-white p-5 shadow-sm">
             <div className="text-sm font-semibold">Shipping address</div>
-            <div className="mt-3 text-sm text-zinc-700">
+            <div className="mt-3 text-sm text-zinc-900">
               {order.customer_name && <div className="font-medium">{order.customer_name}</div>}
               <div>{shippingAddress.line1}</div>
               {shippingAddress.line2 && <div>{shippingAddress.line2}</div>}
               <div>
                 {shippingAddress.city}, {shippingAddress.province} {shippingAddress.postal_code}
               </div>
-              <div className="mt-2 text-zinc-600">{order.customer_email}</div>
-              {order.customer_phone && <div className="text-zinc-600">{order.customer_phone}</div>}
+              <div className="mt-2 text-zinc-900">{order.customer_email}</div>
+              {order.customer_phone && <div className="text-zinc-900">{order.customer_phone}</div>}
             </div>
           </section>
         </div>
@@ -196,11 +196,11 @@ export default async function OrderDetailPage({
             <div className="text-sm font-semibold">Order summary</div>
             <div className="mt-4 space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-zinc-600">Subtotal</span>
+                <span>Subtotal</span>
                 <span>{formatZar(order.subtotal_cents)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-600">Shipping</span>
+                <span>Shipping</span>
                 <span>{formatZar(order.shipping_cents)}</span>
               </div>
               {order.discount_cents > 0 && (
@@ -220,7 +220,7 @@ export default async function OrderDetailPage({
 
           <section className="rounded-xl border bg-white p-5 shadow-sm">
             <div className="text-sm font-semibold">Timeline</div>
-            <div className="mt-4 space-y-2 text-xs text-zinc-600">
+            <div className="mt-4 space-y-2 text-xs text-zinc-900">
               <div>
                 <span className="font-medium">Created:</span>{" "}
                 {new Date(order.created_at).toLocaleString()}
