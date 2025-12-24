@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { X } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
-import { readGuestCart } from "@/lib/cart/storage";
+import { readGuestCart, clearGuestCart, removeFromGuestCart } from "@/lib/cart/storage";
 import type { GuestCartItem } from "@/lib/cart/types";
 import { formatZar, SHIPPING_CENTS } from "@/lib/money/zar";
 
@@ -151,6 +151,16 @@ export function CartDrawer({
   const subtotalCents = lines.reduce((sum, l) => sum + l.lineTotalCents, 0);
   const totalCents = subtotalCents + (lines.length > 0 ? SHIPPING_CENTS : 0);
 
+  function onClear() {
+    clearGuestCart();
+    setItems([]);
+  }
+
+  function onRemove(productId: string, variantId: string | null) {
+    removeFromGuestCart(productId, variantId);
+    setItems(readGuestCart().items);
+  }
+
   if (!open) return null;
 
   return (
@@ -205,6 +215,13 @@ export function CartDrawer({
                       <div className="shrink-0 text-right">
                         <div className="text-sm font-semibold text-zinc-900">{formatZar(l.lineTotalCents)}</div>
                         <div className="mt-1 text-xs text-zinc-900">{formatZar(l.unitPriceCents)} each</div>
+                        <button
+                          type="button"
+                          className="mt-3 text-xs text-red-600 hover:underline"
+                          onClick={() => onRemove(l.item.productId, l.item.variantId)}
+                        >
+                          Delete
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -230,7 +247,14 @@ export function CartDrawer({
             </div>
           </div>
 
-          <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
+            <button
+              type="button"
+              onClick={onClear}
+              className="inline-flex h-11 items-center justify-center rounded-full border bg-white px-4 text-xs font-semibold text-zinc-900 hover:bg-zinc-50"
+            >
+              Clear cart
+            </button>
             <Link
               href="/cart"
               onClick={onClose}
