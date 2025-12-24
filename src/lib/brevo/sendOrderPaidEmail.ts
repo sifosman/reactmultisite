@@ -91,9 +91,41 @@ export async function sendOrderPaidEmail(orderId: string) {
     </div>
   `;
 
+  // Build recipients: customer + all admin users with emails
+  const recipients: { email: string; name?: string }[] = [];
+
+  const customerEmail = (order.customer_email ?? "").trim().toLowerCase();
+  if (customerEmail) {
+    recipients.push({ email: customerEmail, name: order.customer_name ?? undefined });
+  }
+
+  const { data: admins, error: adminsError } = await supabaseAdmin
+    .from("profiles")
+    .select("email,full_name,role")
+    .eq("role", "admin");
+
+  if (adminsError) {
+    throw new Error(adminsError.message);
+  }
+
+  for (const admin of admins ?? []) {
+    const email = (admin.email ?? "").trim().toLowerCase();
+    if (!email) continue;
+    // Avoid sending duplicate email if admin email is same as customer
+    if (email === customerEmail) continue;
+    if (!recipients.some((r) => r.email === email)) {
+      recipients.push({ email, name: (admin as any).full_name ?? undefined });
+    }
+  }
+
+  if (recipients.length === 0) {
+    // No valid recipients; nothing to send.
+    return;
+  }
+
   const payload = {
     sender: { email: senderEmail, name: senderName },
-    to: [{ email: order.customer_email, name: order.customer_name ?? undefined }],
+    to: recipients,
     subject: `Payment received - Order ${order.id}`,
     htmlContent,
   };

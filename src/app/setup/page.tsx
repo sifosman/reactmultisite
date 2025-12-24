@@ -129,7 +129,7 @@ NEXT_PUBLIC_FEATURE_WISHLIST="false"
 
 # Announcement Bar
 NEXT_PUBLIC_ANNOUNCEMENT_ENABLED="true"
-NEXT_PUBLIC_ANNOUNCEMENT_TEXT="Free Express Shipping"
+NEXT_PUBLIC_ANNOUNCEMENT_TEXT="Great products. Great deals. Delivered fast."
 NEXT_PUBLIC_ANNOUNCEMENT_BADGE="HOT"
 
 # ============================================

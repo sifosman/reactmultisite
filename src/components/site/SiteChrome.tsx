@@ -13,10 +13,6 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
 
   const [siteData, setSiteData] = useState<Record<string, unknown> | null>(null);
 
-  if (isAdmin) {
-    return <>{children}</>;
-  }
-
   useEffect(() => {
     let cancelled = false;
 
@@ -67,6 +63,11 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
       },
     };
   }, [siteData]);
+
+  if (isAdmin) {
+    // For admin routes, render children without public site chrome
+    return <>{children}</>;
+  }
 
   return (
     <>

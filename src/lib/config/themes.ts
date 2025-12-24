@@ -150,31 +150,6 @@ export const themes: Record<Theme, ThemeConfig> = {
     borderRadius: "1rem",
     fontFamily: "'Inter', system-ui, sans-serif",
   },
-  
-  natural: {
-    name: "Natural",
-    description: "Earthy and organic for wellness and eco-friendly stores",
-    colors: {
-      primary: "#365314",
-      primaryForeground: "#f7fee7",
-      secondary: "#ecfccb",
-      secondaryForeground: "#365314",
-      accent: "#84cc16",
-      accentForeground: "#1a2e05",
-      background: "#fefce8",
-      foreground: "#1c1917",
-      card: "#fffbeb",
-      cardForeground: "#1c1917",
-      muted: "#f5f5dc",
-      mutedForeground: "#57534e",
-      border: "#d6d3d1",
-      success: "#22c55e",
-      warning: "#f59e0b",
-      error: "#ef4444",
-    },
-    borderRadius: "0.5rem",
-    fontFamily: "'Lora', Georgia, serif",
-  },
 };
 
 /**

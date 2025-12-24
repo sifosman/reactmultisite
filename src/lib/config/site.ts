@@ -5,7 +5,7 @@
  * When setting up for a new client, update the .env.local file with their values.
  */
 
-export type Theme = "default" | "luxury" | "minimal" | "vibrant" | "natural";
+export type Theme = "default" | "luxury" | "minimal" | "vibrant";
 
 export interface SiteConfig {
   // Branding
@@ -90,7 +90,7 @@ const defaultConfig: SiteConfig = {
   
   announcement: {
     enabled: true,
-    text: "Free Express Shipping",
+    text: "Great products. Great deals. Delivered fast.",
     badge: "HOT",
   },
 };

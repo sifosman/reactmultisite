@@ -28,15 +28,13 @@ export default async function AdminPage() {
       .limit(5),
   ]);
 
-  // Calculate mock revenue for demo
+  // Calculate total revenue from recent orders
   const totalRevenue = (recentOrders ?? []).reduce((sum, o) => sum + o.total_cents, 0);
 
   const stats = [
     {
       title: "Total Revenue",
       value: `R${(totalRevenue / 100).toLocaleString("en-ZA", { minimumFractionDigits: 2 })}`,
-      change: "+12.5%",
-      changeType: "positive" as const,
       icon: DollarSign,
       iconBg: "bg-emerald-100",
       iconColor: "text-emerald-600",
@@ -44,8 +42,6 @@ export default async function AdminPage() {
     {
       title: "Total Orders",
       value: ordersCount?.toString() ?? "0",
-      change: "+8.2%",
-      changeType: "positive" as const,
       icon: ShoppingCart,
       iconBg: "bg-blue-100",
       iconColor: "text-blue-600",
@@ -53,20 +49,9 @@ export default async function AdminPage() {
     {
       title: "Products",
       value: productsCount?.toString() ?? "0",
-      change: "+3",
-      changeType: "positive" as const,
       icon: Package,
       iconBg: "bg-purple-100",
       iconColor: "text-purple-600",
-    },
-    {
-      title: "Conversion Rate",
-      value: "3.24%",
-      change: "-0.5%",
-      changeType: "negative" as const,
-      icon: TrendingUp,
-      iconBg: "bg-orange-100",
-      iconColor: "text-orange-600",
     },
   ];
 
@@ -98,16 +83,6 @@ export default async function AdminPage() {
                 <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${stat.iconBg}`}>
                   <Icon className={`h-6 w-6 ${stat.iconColor}`} />
                 </div>
-                <div className={`flex items-center gap-1 text-sm font-medium ${
-                  stat.changeType === "positive" ? "text-emerald-600" : "text-red-600"
-                }`}>
-                  {stat.changeType === "positive" ? (
-                    <ArrowUpRight className="h-4 w-4" />
-                  ) : (
-                    <ArrowDownRight className="h-4 w-4" />
-                  )}
-                  {stat.change}
-                </div>
               </div>
               <div className="mt-4">
                 <h3 className="text-2xl font-bold text-slate-900">{stat.value}</h3>
@@ -116,54 +91,6 @@ export default async function AdminPage() {
             </div>
           );
         })}
-      </div>
-
-      {/* Charts Section Placeholder */}
-      <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Revenue Chart */}
-        <div className="col-span-2 rounded-xl border bg-white p-6 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold text-slate-900">Revenue Overview</h3>
-              <p className="text-sm text-slate-500">Monthly revenue for this year</p>
-            </div>
-            <select className="rounded-lg border bg-slate-50 px-3 py-2 text-sm">
-              <option>This Year</option>
-              <option>Last Year</option>
-            </select>
-          </div>
-          <div className="mt-6 flex h-64 items-center justify-center rounded-lg bg-slate-50">
-            <div className="text-center">
-              <TrendingUp className="mx-auto h-12 w-12 text-slate-300" />
-              <p className="mt-2 text-sm text-slate-500">Revenue chart will display here</p>
-              <p className="text-xs text-slate-400">Connect analytics for real data</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Top Products */}
-        <div className="rounded-xl border bg-white p-6 shadow-sm">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-slate-900">Top Products</h3>
-            <Link href="/admin/products" className="text-sm font-medium text-indigo-600 hover:text-indigo-500">
-              View all
-            </Link>
-          </div>
-          <div className="mt-6 space-y-4">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="flex items-center gap-4">
-                <div className="h-12 w-12 rounded-lg bg-slate-100" />
-                <div className="flex-1 min-w-0">
-                  <p className="truncate text-sm font-medium text-slate-900">Product {i}</p>
-                  <p className="text-xs text-slate-500">{Math.floor(Math.random() * 50) + 10} sales</p>
-                </div>
-                <span className="text-sm font-semibold text-slate-900">
-                  R{(Math.random() * 500 + 100).toFixed(0)}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
 
       {/* Recent Orders */}

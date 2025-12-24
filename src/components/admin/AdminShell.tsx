@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { 
   LayoutDashboard, 
   Package, 
@@ -18,9 +18,11 @@ import {
   X,
   TrendingUp,
   Users,
-  DollarSign
+  DollarSign,
+  Palette
 } from "lucide-react";
 import { useState } from "react";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { getSiteConfig } from "@/lib/config/site";
 
 const navItems = [
@@ -32,6 +34,7 @@ const navItems = [
   { href: "/admin/customers", label: "Customers", icon: Users },
   { href: "/admin/subscribers", label: "Subscribers", icon: Mail },
   { href: "/admin/content", label: "Site Content", icon: FileText },
+  { href: "/admin/themes", label: "Theme Selector", icon: Palette },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
@@ -43,8 +46,23 @@ export function AdminShell({
   title: string;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const config = getSiteConfig();
+
+  async function handleLogout() {
+    try {
+      const supabase = createSupabaseBrowserClient();
+      await supabase.auth.signOut();
+    } catch {
+      // Ignore errors and still redirect
+    }
+
+    setProfileMenuOpen(false);
+    router.push("/login");
+    router.refresh();
+  }
 
   return (
     <div className="flex min-h-screen overflow-x-hidden bg-slate-50">
@@ -103,36 +121,6 @@ export function AdminShell({
               );
             })}
           </div>
-
-          {/* Quick Stats in Sidebar */}
-          <div className="mt-8 rounded-xl bg-slate-800/50 p-4">
-            <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-              Quick Stats
-            </div>
-            <div className="mt-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-sm text-slate-300">
-                  <TrendingUp className="h-4 w-4 text-emerald-400" />
-                  Revenue
-                </div>
-                <span className="text-sm font-semibold text-white">R12,450</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-sm text-slate-300">
-                  <ShoppingCart className="h-4 w-4 text-blue-400" />
-                  Orders
-                </div>
-                <span className="text-sm font-semibold text-white">24</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-sm text-slate-300">
-                  <Users className="h-4 w-4 text-purple-400" />
-                  Customers
-                </div>
-                <span className="text-sm font-semibold text-white">156</span>
-              </div>
-            </div>
-          </div>
         </nav>
 
         {/* Back to Store */}
@@ -178,13 +166,31 @@ export function AdminShell({
             </button>
 
             {/* Profile */}
-            <button className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-slate-100">
-              <div className="h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center">
-                <span className="text-sm font-semibold text-white">A</span>
-              </div>
-              <span className="hidden text-sm font-medium sm:block">Admin</span>
-              <ChevronDown className="h-4 w-4 text-slate-400" />
-            </button>
+            <div className="relative">
+              <button
+                type="button"
+                className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-slate-100"
+                onClick={() => setProfileMenuOpen((open) => !open)}
+              >
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600">
+                  <span className="text-sm font-semibold text-white">A</span>
+                </div>
+                <span className="hidden text-sm font-medium sm:block">Admin</span>
+                <ChevronDown className="h-4 w-4 text-slate-400" />
+              </button>
+
+              {profileMenuOpen ? (
+                <div className="absolute right-0 z-40 mt-2 w-40 rounded-lg border bg-white py-1 text-sm shadow-lg">
+                  <button
+                    type="button"
+                    className="flex w-full items-center px-3 py-2 text-left text-slate-700 hover:bg-slate-50"
+                    onClick={handleLogout}
+                  >
+                    Log out
+                  </button>
+                </div>
+              ) : null}
+            </div>
           </div>
         </header>
 
