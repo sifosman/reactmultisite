@@ -42,36 +42,36 @@ export function ContactForm() {
     <form onSubmit={onSubmit} className="mt-8 space-y-4">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <label className="text-sm font-medium">Name</label>
+          <label className="text-sm font-medium text-zinc-900">Name</label>
           <input
-            className="h-11 w-full rounded-md border bg-white px-3 text-sm"
+            className="h-11 w-full rounded-md border bg-white px-3 text-sm text-zinc-900"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
           />
         </div>
         <div className="space-y-2">
-          <label className="text-sm font-medium">Email</label>
+          <label className="text-sm font-medium text-zinc-900">Email</label>
           <input
             type="email"
-            className="h-11 w-full rounded-md border bg-white px-3 text-sm"
+            className="h-11 w-full rounded-md border bg-white px-3 text-sm text-zinc-900"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
           />
         </div>
         <div className="space-y-2 sm:col-span-2">
-          <label className="text-sm font-medium">Phone (optional)</label>
+          <label className="text-sm font-medium text-zinc-900">Phone (optional)</label>
           <input
-            className="h-11 w-full rounded-md border bg-white px-3 text-sm"
+            className="h-11 w-full rounded-md border bg-white px-3 text-sm text-zinc-900"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
           />
         </div>
         <div className="space-y-2 sm:col-span-2">
-          <label className="text-sm font-medium">Message</label>
+          <label className="text-sm font-medium text-zinc-900">Message</label>
           <textarea
-            className="min-h-32 w-full rounded-md border bg-white px-3 py-2 text-sm"
+            className="min-h-32 w-full rounded-md border bg-white px-3 py-2 text-sm text-zinc-900"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             required
