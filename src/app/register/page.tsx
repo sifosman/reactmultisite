@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const router = useRouter();
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -18,54 +19,63 @@ export default function LoginPage() {
     setError(null);
 
     const supabase = createSupabaseBrowserClient();
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
 
-    setLoading(false);
-
-    if (signInError) {
-      setError(signInError.message);
-      return;
-    }
-
-    // Decide redirect based on profile role
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+      });
 
-      if (!user) {
-        router.refresh();
-        router.push("/account");
+      if (signUpError) {
+        setError(signUpError.message || "Registration failed. Please try again.");
         return;
       }
 
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .maybeSingle();
+      const user = signUpData.user;
 
-      router.refresh();
+      if (user) {
+        // Create a basic customer profile (ignore non-critical errors)
+        const { error: profileError } = await supabase.from("profiles").insert({
+          id: user.id,
+          email,
+          full_name: fullName || null,
+          role: "customer",
+        });
 
-      if (profile?.role === "admin") {
-        router.push("/admin");
-      } else {
-        router.push("/account");
+        if (profileError) {
+          // Soft-fail: keep going, but show a friendly message
+          setError("Account created, but we couldn't save your profile details. You can update them in your account.");
+        }
       }
-    } catch {
-      // Fallback: treat as normal customer
+
+      // After successful registration, send them to their account page
       router.refresh();
       router.push("/account");
+    } catch {
+      setError("Registration failed. Please try again.");
+    } finally {
+      setLoading(false);
     }
   }
 
   return (
     <main className="mx-auto flex min-h-[calc(100vh-0px)] max-w-md flex-col justify-center p-6">
-      <h1 className="text-2xl font-semibold">Sign in</h1>
+      <h1 className="text-2xl font-semibold">Create an account</h1>
+      <p className="mt-2 text-sm text-zinc-600">
+        Register to save your details and track your orders.
+      </p>
+
       <form onSubmit={onSubmit} className="mt-6 space-y-4">
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Full name</label>
+          <input
+            className="h-10 w-full rounded-md border px-3"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            type="text"
+            autoComplete="name"
+          />
+        </div>
         <div className="space-y-2">
           <label className="text-sm font-medium">Email</label>
           <input
@@ -84,7 +94,7 @@ export default function LoginPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             type="password"
-            autoComplete="current-password"
+            autoComplete="new-password"
             required
           />
         </div>
@@ -100,14 +110,14 @@ export default function LoginPage() {
           disabled={loading}
           type="submit"
         >
-          {loading ? "Signing in..." : "Sign in"}
+          {loading ? "Creating account..." : "Create account"}
         </button>
       </form>
 
       <p className="mt-6 text-sm text-zinc-600">
-        Don&apos;t have an account yet?{" "}
-        <Link href="/register" className="font-medium text-zinc-900 underline">
-          Create one now
+        Already have an account?{" "}
+        <Link href="/login" className="font-medium text-zinc-900 underline">
+          Sign in
         </Link>
         .
       </p>
