@@ -1,10 +1,13 @@
+"use client";
+
 import Link from "next/link";
-import { Facebook, Instagram, Twitter, User } from "lucide-react";
+import { Facebook, Instagram, Twitter } from "lucide-react";
 import { useState } from "react";
 import { CartBadgeButton } from "@/components/site/CartBadgeButton";
 import { HeaderSearch } from "@/components/site/HeaderSearch";
 import { getSiteConfig } from "@/lib/config/site";
 import { CartDrawer } from "@/components/cart/CartDrawer";
+import { UserMenu } from "@/components/site/UserMenu";
 
 export function SiteHeader({
   site,
@@ -80,13 +83,7 @@ export function SiteHeader({
           <HeaderSearch />
 
           <div className="ml-auto flex items-center gap-2">
-            <Link
-              href="/account"
-              className="hidden h-10 w-10 items-center justify-center rounded-full border bg-white hover:bg-zinc-50 sm:inline-flex"
-              aria-label="Account"
-            >
-              <User className="h-4 w-4" />
-            </Link>
+            <UserMenu />
             <CartBadgeButton onClick={() => setCartOpen(true)} />
           </div>
         </div>

@@ -23,6 +23,8 @@ export function CheckoutClient() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [paymentMethod, setPaymentMethod] = useState<"yoco" | "bank_transfer">("yoco");
+
   const canSubmit = cart.items.length > 0 && email.length > 3 && line1 && city && province && postalCode;
 
   async function onSubmit(e: React.FormEvent) {
@@ -57,22 +59,49 @@ export function CheckoutClient() {
     }
 
     setLoading(true);
-    const res = await fetch("/api/orders/create", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(parsed.data),
-    });
 
-    const json = await res.json().catch(() => null);
-    setLoading(false);
+    if (paymentMethod === "yoco") {
+      const res = await fetch("/api/payments/yoco/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(parsed.data),
+      });
 
-    if (!res.ok) {
-      setError(json?.error ?? "Checkout failed");
-      return;
+      const json = await res.json().catch(() => null);
+      setLoading(false);
+
+      if (!res.ok) {
+        setError(json?.error ?? "Yoco checkout failed");
+        return;
+      }
+
+      if (!json.redirectUrl) {
+        setError("Invalid response from payment gateway");
+        return;
+      }
+
+      clearGuestCart();
+      window.location.href = json.redirectUrl;
+    } else {
+      const res = await fetch("/api/orders/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(parsed.data),
+      });
+
+      const json = await res.json().catch(() => null);
+      setLoading(false);
+
+      if (!res.ok) {
+        setError(json?.error ?? "Checkout failed");
+        return;
+      }
+
+      clearGuestCart();
+      router.push(
+        `/checkout/success?orderId=${encodeURIComponent(json.orderId)}&method=bank_transfer`
+      );
     }
-
-    clearGuestCart();
-    router.push(`/checkout/success?orderId=${encodeURIComponent(json.orderId)}`);
   }
 
   return (
@@ -127,6 +156,74 @@ export function CheckoutClient() {
                     type="tel"
                   />
                 </div>
+              </div>
+            </section>
+
+            <section className="rounded-2xl border bg-white p-5 shadow-sm">
+              <div className="text-sm font-semibold">Payment method</div>
+              <div className="mt-4 space-y-3 text-sm">
+                <label className="flex cursor-pointer items-center justify-between rounded-xl border px-3 py-3 hover:border-zinc-400">
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="radio"
+                      name="payment-method"
+                      className="h-4 w-4 border-zinc-400 text-black focus:ring-black"
+                      checked={paymentMethod === "yoco"}
+                      onChange={() => setPaymentMethod("yoco")}
+                    />
+                    <div>
+                      <div className="font-medium">Card payment (Yoco)</div>
+                      <div className="text-xs text-zinc-600">Secure card checkout powered by Yoco.</div>
+                    </div>
+                  </div>
+                  <div className="rounded-md bg-black px-2 py-1 text-xs font-semibold text-white">Yoco</div>
+                </label>
+
+                <label className="flex cursor-pointer items-center justify-between rounded-xl border px-3 py-3 hover:border-zinc-400">
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="radio"
+                      name="payment-method"
+                      className="h-4 w-4 border-zinc-400 text-black focus:ring-black"
+                      checked={paymentMethod === "bank_transfer"}
+                      onChange={() => setPaymentMethod("bank_transfer")}
+                    />
+                    <div>
+                      <div className="font-medium">Bank transfer (EFT)</div>
+                      <div className="text-xs text-zinc-600">
+                        Place your order now and pay via EFT using the bank details on the next step.
+                      </div>
+                    </div>
+                  </div>
+                </label>
+
+                {paymentMethod === "bank_transfer" ? (
+                  <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+                    <div>
+                      Your order will be created with status <span className="font-semibold">pending_payment</span>.
+                      Please pay via bank transfer using the bank details below and use your order ID as the
+                      reference.
+                    </div>
+                    <div className="mt-3 space-y-1 text-xs text-amber-900">
+                      <div>
+                        <span className="font-semibold">Account holder: </span>
+                        <span>S Kadwa</span>
+                      </div>
+                      <div>
+                        <span className="font-semibold">Account number: </span>
+                        <span>9285283250</span>
+                      </div>
+                      <div>
+                        <span className="font-semibold">Bank: </span>
+                        <span>Absa</span>
+                      </div>
+                      <div>
+                        <span className="font-semibold">Account type: </span>
+                        <span>Savings</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
               </div>
             </section>
 
@@ -191,11 +288,12 @@ export function CheckoutClient() {
               disabled={!canSubmit || loading}
               type="submit"
             >
-              {loading ? "Creating order..." : "Proceed to payment"}
+              {loading ? "Creating order..." : "Place order"}
             </button>
 
             <div className="text-xs text-zinc-600">
-              After this step, you’ll be redirected to Yoco hosted checkout.
+              After this step, you’ll either be redirected to Yoco hosted checkout or see bank transfer details
+              depending on your selected payment method.
             </div>
           </div>
 

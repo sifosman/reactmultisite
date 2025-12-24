@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { verifyYocoWebhook } from "@/lib/yoco/webhookVerify";
 import { sendOrderPaidEmail } from "@/lib/brevo/sendOrderPaidEmail";
-import { upsertCustomerFromOrder } from "@/lib/customers/upsertCustomerFromOrder";
+import { createOrderFromData } from "@/lib/checkout/createOrderFromData";
 
 export async function POST(req: Request) {
   const rawBody = await req.text();
@@ -26,8 +26,9 @@ export async function POST(req: Request) {
     id: string;
     type: string;
     payload?: {
+      id?: string;
       status?: string;
-      metadata?: { checkoutId?: string };
+      metadata?: { pendingCheckoutId?: string; existingOrderId?: string };
       amount?: number;
       currency?: string;
     };
@@ -55,114 +56,199 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: insertEventError.message }, { status: 500 });
   }
 
-  const checkoutId = event?.payload?.metadata?.checkoutId;
+  const pendingCheckoutId = event?.payload?.metadata?.pendingCheckoutId;
+  const existingOrderId = event?.payload?.metadata?.existingOrderId;
+  const yocoCheckoutId = event?.payload?.id;
 
-  if (!checkoutId) {
+  // Handle payment for existing pending_payment order
+  if (existingOrderId && event.type === "payment.succeeded") {
+    const { data: order } = await supabaseAdmin
+      .from("orders")
+      .select("id,status,user_id,customer_email,customer_name,customer_phone,total_cents,created_at")
+      .eq("id", existingOrderId)
+      .maybeSingle();
+
+    if (order && order.status === "pending_payment") {
+      await supabaseAdmin
+        .from("orders")
+        .update({ status: "paid" })
+        .eq("id", existingOrderId);
+
+      await supabaseAdmin
+        .from("payments")
+        .update({ status: "succeeded", raw_payload: eventJson })
+        .eq("provider_payment_id", yocoCheckoutId);
+
+      const { data: orderItems } = await supabaseAdmin
+        .from("order_items")
+        .select("product_id,variant_id,qty")
+        .eq("order_id", existingOrderId);
+
+      for (const item of (orderItems ?? []) as Array<{
+        product_id: string;
+        variant_id: string | null;
+        qty: number;
+      }>) {
+        if (item.variant_id) {
+          const { data: v } = await supabaseAdmin
+            .from("product_variants")
+            .select("id,stock_qty")
+            .eq("id", item.variant_id)
+            .maybeSingle();
+
+          if (v) {
+            await supabaseAdmin
+              .from("product_variants")
+              .update({ stock_qty: Math.max(0, (v.stock_qty ?? 0) - item.qty) })
+              .eq("id", item.variant_id);
+          }
+        } else {
+          const { data: p } = await supabaseAdmin
+            .from("products")
+            .select("id,stock_qty")
+            .eq("id", item.product_id)
+            .maybeSingle();
+
+          if (p) {
+            await supabaseAdmin
+              .from("products")
+              .update({ stock_qty: Math.max(0, (p.stock_qty ?? 0) - item.qty) })
+              .eq("id", item.product_id);
+          }
+        }
+      }
+
+      try {
+        await sendOrderPaidEmail(existingOrderId);
+      } catch {
+        // Don't fail webhook if email fails
+      }
+    }
+
     return NextResponse.json({ ok: true });
   }
 
-  // Find payment by checkout id
-  const { data: payment, error: paymentLookupError } = await supabaseAdmin
-    .from("payments")
-    .select("id,order_id,status")
-    .eq("provider", "yoco")
-    .eq("provider_payment_id", checkoutId)
-    .maybeSingle();
-
-  if (paymentLookupError) {
-    return NextResponse.json({ error: paymentLookupError.message }, { status: 500 });
+  if (!pendingCheckoutId) {
+    return NextResponse.json({ ok: true });
   }
 
-  if (!payment) {
+  // Find pending checkout
+  const { data: pendingCheckout, error: pendingCheckoutError } = await supabaseAdmin
+    .from("pending_checkouts")
+    .select("*")
+    .eq("id", pendingCheckoutId)
+    .eq("status", "initiated")
+    .maybeSingle();
+
+  if (pendingCheckoutError) {
+    return NextResponse.json({ error: pendingCheckoutError.message }, { status: 500 });
+  }
+
+  if (!pendingCheckout) {
     return NextResponse.json({ ok: true });
   }
 
   if (event.type === "payment.succeeded") {
-    await supabaseAdmin
-      .from("payments")
-      .update({
-        status: "succeeded",
-        raw_payload: eventJson,
-      })
-      .eq("id", payment.id);
+    const items = pendingCheckout.items as Array<{
+      productId: string;
+      variantId: string | null;
+      qty: number;
+    }>;
 
-    await supabaseAdmin
-      .from("orders")
-      .update({ status: "paid" })
-      .eq("id", payment.order_id);
-
-    const { data: items } = await supabaseAdmin
-      .from("order_items")
-      .select("product_id,variant_id,qty")
-      .eq("order_id", payment.order_id);
-
-    for (const item of (items ?? []) as Array<{ product_id: string; variant_id: string | null; qty: number }>) {
-      if (item.variant_id) {
-        const { data: v } = await supabaseAdmin
-          .from("product_variants")
-          .select("id,stock_qty")
-          .eq("id", item.variant_id)
-          .maybeSingle();
-
-        if (v) {
-          await supabaseAdmin
-            .from("product_variants")
-            .update({ stock_qty: Math.max(0, (v.stock_qty ?? 0) - item.qty) })
-            .eq("id", item.variant_id);
-        }
-      } else {
-        const { data: p } = await supabaseAdmin
-          .from("products")
-          .select("id,stock_qty")
-          .eq("id", item.product_id)
-          .maybeSingle();
-
-        if (p) {
-          await supabaseAdmin
-            .from("products")
-            .update({ stock_qty: Math.max(0, (p.stock_qty ?? 0) - item.qty) })
-            .eq("id", item.product_id);
-        }
-      }
-    }
-
-    const { data: order } = await supabaseAdmin
-      .from("orders")
-      .select("user_id,customer_email,customer_name,customer_phone,total_cents,created_at")
-      .eq("id", payment.order_id)
-      .maybeSingle();
-
-    if (order) {
-      try {
-        await upsertCustomerFromOrder({
-          user_id: order.user_id,
-          customer_email: order.customer_email,
-          customer_name: order.customer_name,
-          customer_phone: order.customer_phone,
-          total_cents: order.total_cents,
-          created_at: order.created_at,
-          isPaid: true,
-        });
-      } catch {
-        // Don't fail webhook if customer upsert fails.
-      }
-    }
+    const shippingAddress = pendingCheckout.shipping_address_snapshot as {
+      line1: string;
+      line2?: string;
+      city: string;
+      province: string;
+      postal_code: string;
+      country: string;
+    };
 
     try {
-      await sendOrderPaidEmail(payment.order_id);
-    } catch {
-      // Don't fail webhook delivery if email sending fails.
+      const { orderId, totalCents } = await createOrderFromData({
+        userId: pendingCheckout.user_id,
+        customer: {
+          email: pendingCheckout.customer_email,
+          name: pendingCheckout.customer_name,
+          phone: pendingCheckout.customer_phone,
+        },
+        shippingAddress,
+        items,
+        status: "paid",
+      });
+
+      await supabaseAdmin.from("payments").insert({
+        order_id: orderId,
+        provider: "yoco",
+        provider_payment_id: yocoCheckoutId ?? pendingCheckout.checkout_id,
+        amount_cents: totalCents,
+        currency: pendingCheckout.currency,
+        status: "succeeded",
+        raw_payload: eventJson,
+      });
+
+      await supabaseAdmin
+        .from("pending_checkouts")
+        .update({ status: "completed" })
+        .eq("id", pendingCheckout.id);
+
+      const { data: orderItems } = await supabaseAdmin
+        .from("order_items")
+        .select("product_id,variant_id,qty")
+        .eq("order_id", orderId);
+
+      for (const item of (orderItems ?? []) as Array<{
+        product_id: string;
+        variant_id: string | null;
+        qty: number;
+      }>) {
+        if (item.variant_id) {
+          const { data: v } = await supabaseAdmin
+            .from("product_variants")
+            .select("id,stock_qty")
+            .eq("id", item.variant_id)
+            .maybeSingle();
+
+          if (v) {
+            await supabaseAdmin
+              .from("product_variants")
+              .update({ stock_qty: Math.max(0, (v.stock_qty ?? 0) - item.qty) })
+              .eq("id", item.variant_id);
+          }
+        } else {
+          const { data: p } = await supabaseAdmin
+            .from("products")
+            .select("id,stock_qty")
+            .eq("id", item.product_id)
+            .maybeSingle();
+
+          if (p) {
+            await supabaseAdmin
+              .from("products")
+              .update({ stock_qty: Math.max(0, (p.stock_qty ?? 0) - item.qty) })
+              .eq("id", item.product_id);
+          }
+        }
+      }
+
+      try {
+        await sendOrderPaidEmail(orderId);
+      } catch {
+        // Don't fail webhook delivery if email sending fails.
+      }
+    } catch (err) {
+      return NextResponse.json(
+        { error: err instanceof Error ? err.message : "order_creation_failed" },
+        { status: 500 }
+      );
     }
   }
 
   if (event.type === "payment.failed") {
     await supabaseAdmin
-      .from("payments")
-      .update({
-        status: "failed",
-        raw_payload: eventJson,
-      })
-      .eq("id", payment.id);
+      .from("pending_checkouts")
+      .update({ status: "cancelled" })
+      .eq("id", pendingCheckout.id);
   }
 
   return NextResponse.json({ ok: true });

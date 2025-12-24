@@ -78,7 +78,7 @@ const defaultConfig: SiteConfig = {
   },
   
   shipping: {
-    flatRateCents: 9900,
+    flatRateCents: 6000,
     freeShippingThresholdCents: undefined,
   },
   

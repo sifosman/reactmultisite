@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { AccountDetailsForm } from "@/components/account/AccountDetailsForm";
+import { LogoutButton } from "@/components/account/LogoutButton";
 
 export default async function AccountPage() {
   const supabase = await createSupabaseServerClient();
@@ -31,10 +32,15 @@ export default async function AccountPage() {
 
   return (
     <main className="mx-auto max-w-5xl p-6">
-      <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">My account</h1>
-      <p className="mt-1 text-sm text-zinc-600">
-        Signed in as <span className="font-medium">{user.email}</span>
-      </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">My account</h1>
+          <p className="mt-1 text-sm text-zinc-600">
+            Signed in as <span className="font-medium">{user.email}</span>
+          </p>
+        </div>
+        <LogoutButton />
+      </div>
 
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Account details */}
@@ -87,22 +93,32 @@ export default async function AccountPage() {
                 </thead>
                 <tbody className="divide-y divide-zinc-100">
                   {(orders ?? []).map((o) => (
-                    <tr key={o.id} className="hover:bg-zinc-50">
+                    <tr key={o.id} className="group cursor-pointer hover:bg-zinc-50">
                       <td className="px-3 py-2 align-middle">
-                        <div className="font-mono text-xs font-semibold text-zinc-900">#{String(o.id).slice(0, 8)}</div>
+                        <Link href={`/account/orders/${o.id}`} className="block">
+                          <div className="font-mono text-xs font-semibold text-zinc-900 group-hover:text-blue-600">
+                            #{String(o.id).slice(0, 8)}
+                          </div>
+                        </Link>
                       </td>
                       <td className="px-3 py-2 align-middle text-xs text-zinc-600">
-                        {new Date(o.created_at as string).toLocaleDateString("en-ZA", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        })}
+                        <Link href={`/account/orders/${o.id}`} className="block">
+                          {new Date(o.created_at as string).toLocaleDateString("en-ZA", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })}
+                        </Link>
                       </td>
                       <td className="px-3 py-2 align-middle text-xs text-zinc-700">
-                        {String(o.status || "").replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                        <Link href={`/account/orders/${o.id}`} className="block">
+                          {String(o.status || "").replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                        </Link>
                       </td>
                       <td className="px-3 py-2 align-middle text-right text-sm font-semibold text-zinc-900">
-                        R{(((o as any).total_cents ?? 0) / 100).toFixed(2)}
+                        <Link href={`/account/orders/${o.id}`} className="block">
+                          R{(((o as any).total_cents ?? 0) / 100).toFixed(2)}
+                        </Link>
                       </td>
                     </tr>
                   ))}

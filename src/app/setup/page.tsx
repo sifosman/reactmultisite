@@ -62,7 +62,7 @@ const defaultValues: ConfigValues = {
   currencyCode: "ZAR",
   currencySymbol: "R",
   currencyLocale: "en-ZA",
-  shippingFlatRate: "99.00",
+  shippingFlatRate: "60.00",
   freeShippingThreshold: "",
   supabaseUrl: "",
   supabaseAnonKey: "",
