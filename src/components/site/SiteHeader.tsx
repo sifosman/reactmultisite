@@ -109,16 +109,16 @@ export function SiteHeader({
             className="absolute inset-0 bg-black/40"
             onClick={() => setMobileNavOpen(false)}
           />
-          <aside className="absolute left-0 top-0 flex h-full w-full max-w-[320px] flex-col bg-white shadow-2xl">
+          <aside className="absolute left-0 top-0 flex h-full w-full max-w-[320px] flex-col bg-white text-zinc-900 shadow-2xl">
             <div className="flex items-center justify-between border-b px-5 py-4">
-              <span className="text-sm font-semibold">Menu</span>
+              <span className="text-sm font-semibold text-zinc-900">Menu</span>
               <button
                 type="button"
                 aria-label="Close navigation menu"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-full border bg-white hover:bg-zinc-50"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full border bg-white text-zinc-900 hover:bg-zinc-50"
                 onClick={() => setMobileNavOpen(false)}
               >
-                <X className="h-4 w-4" />
+                <X className="h-4 w-4 text-zinc-900" />
               </button>
             </div>
             <nav className="flex-1 overflow-y-auto px-5 py-4 text-sm">

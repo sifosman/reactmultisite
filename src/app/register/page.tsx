@@ -59,7 +59,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-[calc(100vh-0px)] max-w-md flex-col justify-center p-6">
+    <main className="mx-auto flex min-h-[calc(100vh-64px)] max-w-md flex-col justify-center p-6">
       <h1 className="text-2xl font-semibold">Create an account</h1>
       <p className="mt-2 text-sm text-zinc-600">
         Register to save your details and track your orders.
@@ -114,9 +114,9 @@ export default function RegisterPage() {
         </button>
       </form>
 
-      <p className="mt-6 text-sm text-zinc-600">
+      <p className="mt-6 text-sm text-zinc-300">
         Already have an account?{" "}
-        <Link href="/login" className="font-medium text-zinc-900 underline">
+        <Link href="/login" className="font-medium text-white underline">
           Sign in
         </Link>
         .

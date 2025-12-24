@@ -44,10 +44,10 @@ export function SiteFooter({
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center justify-between gap-6 lg:flex-row">
             <div className="text-center lg:text-left">
-              <h3 className="text-2xl font-bold">Join Our Newsletter</h3>
-              <p className="mt-2 text-zinc-400">Subscribe to get special offers, free giveaways, and updates.</p>
+              <h3 className="text-2xl font-bold">Join our WhatsApp group</h3>
+              <p className="mt-2 text-zinc-400">Share your WhatsApp number to get special offers, updates, and news.</p>
             </div>
-            <NewsletterSignup variant="dark" source="footer" />
+            <NewsletterSignup variant="dark" source="footer_whatsapp" />
           </div>
         </div>
       </div>

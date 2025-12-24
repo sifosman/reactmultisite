@@ -4,12 +4,12 @@ import { useState } from "react";
 
 export function NewsletterSignup({
   variant = "dark",
-  source = "newsletter",
+  source = "whatsapp",
 }: {
   variant?: "dark" | "light";
   source?: string;
 }) {
-  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState<string | null>(null);
 
@@ -23,7 +23,7 @@ export function NewsletterSignup({
     const res = await fetch("/api/subscribers", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, source }),
+      body: JSON.stringify({ phone, source }),
     });
 
     if (!res.ok) {
@@ -32,9 +32,9 @@ export function NewsletterSignup({
       return;
     }
 
-    setEmail("");
+    setPhone("");
     setStatus("success");
-    setMessage("Subscribed! Check your inbox for future offers.");
+    setMessage("Thanks! We'll keep you updated via WhatsApp.");
     setTimeout(() => setStatus("idle"), 2000);
     setTimeout(() => setMessage(null), 2500);
   }
@@ -43,10 +43,10 @@ export function NewsletterSignup({
     <div className="w-full max-w-md">
       <form onSubmit={onSubmit} className="flex w-full flex-col gap-3 sm:flex-row">
         <input
-          type="email"
-          placeholder="Enter your email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          type="tel"
+          placeholder="Enter your WhatsApp number"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
           required
           className={
             isDark
@@ -63,7 +63,7 @@ export function NewsletterSignup({
               : "w-full shrink-0 rounded-full bg-zinc-900 px-6 py-3 font-semibold text-white transition hover:bg-zinc-800 disabled:opacity-70 sm:w-auto"
           }
         >
-          {status === "loading" ? "..." : status === "success" ? "Done" : "Subscribe"}
+          {status === "loading" ? "..." : status === "success" ? "Done" : "Join"}
         </button>
       </form>
 

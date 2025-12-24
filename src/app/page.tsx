@@ -337,13 +337,13 @@ async function HomeContent() {
           <div className="flex flex-col items-center justify-between gap-6 text-center sm:flex-row sm:text-left">
             <div>
               <h2 className="text-2xl font-bold text-white sm:text-3xl">
-                Get 15% Off Your First Order
+                Get the latest deals
               </h2>
               <p className="mt-2 text-zinc-400">
-                Sign up for our newsletter and receive exclusive offers
+                Share your WhatsApp number and never miss an offer.
               </p>
             </div>
-            <NewsletterSignup variant="dark" source="homepage" />
+            <NewsletterSignup variant="dark" source="homepage_whatsapp" />
           </div>
         </div>
       </section>

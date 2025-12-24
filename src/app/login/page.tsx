@@ -63,7 +63,7 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-[calc(100vh-0px)] max-w-md flex-col justify-center p-6">
+    <main className="mx-auto flex min-h-[calc(100vh-64px)] max-w-md flex-col justify-start p-6 pt-10">
       <h1 className="text-2xl font-semibold">Sign in</h1>
       <form onSubmit={onSubmit} className="mt-6 space-y-4">
         <div className="space-y-2">
@@ -104,9 +104,9 @@ export default function LoginPage() {
         </button>
       </form>
 
-      <p className="mt-6 text-sm text-zinc-600">
+      <p className="mt-6 text-sm text-zinc-300">
         Don&apos;t have an account yet?{" "}
-        <Link href="/register" className="font-medium text-zinc-900 underline">
+        <Link href="/register" className="font-medium text-white underline">
           Create one now
         </Link>
         .

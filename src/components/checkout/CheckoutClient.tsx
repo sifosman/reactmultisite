@@ -129,9 +129,9 @@ export function CheckoutClient() {
               <div className="text-sm font-semibold">Contact</div>
               <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 text-zinc-900">
                 <div className="space-y-2 sm:col-span-2">
-                  <label className="text-sm font-medium">Email</label>
+                  <label className="text-sm font-medium text-zinc-900">Email</label>
                   <input
-                    className="h-11 w-full rounded-md border bg-white px-3 text-sm"
+                    className="h-11 w-full rounded-md border bg-white px-3 text-sm text-zinc-900"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     type="email"
@@ -139,18 +139,18 @@ export function CheckoutClient() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Full name (optional)</label>
+                  <label className="text-sm font-medium text-zinc-900">Full name (optional)</label>
                   <input
-                    className="h-11 w-full rounded-md border bg-white px-3 text-sm"
+                    className="h-11 w-full rounded-md border bg-white px-3 text-sm text-zinc-900"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     type="text"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Phone (optional)</label>
+                  <label className="text-sm font-medium text-zinc-900">Phone (optional)</label>
                   <input
-                    className="h-11 w-full rounded-md border bg-white px-3 text-sm"
+                    className="h-11 w-full rounded-md border bg-white px-3 text-sm text-zinc-900"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     type="tel"
@@ -227,48 +227,48 @@ export function CheckoutClient() {
               </div>
             </section>
 
-            <section className="rounded-2xl border bg-white p-5 shadow-sm">
-              <div className="text-sm font-semibold">Shipping address</div>
-              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <section className="rounded-2xl border bg-white p-5 text-zinc-900 shadow-sm">
+              <div className="text-sm font-semibold text-zinc-900">Shipping address</div>
+              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 text-zinc-900">
                 <div className="space-y-2 sm:col-span-2">
-                  <label className="text-sm font-medium">Address line 1</label>
+                  <label className="text-sm font-medium text-zinc-900">Address line 1</label>
                   <input
-                    className="h-11 w-full rounded-md border bg-white px-3 text-sm"
+                    className="h-11 w-full rounded-md border bg-white px-3 text-sm text-zinc-900"
                     value={line1}
                     onChange={(e) => setLine1(e.target.value)}
                     required
                   />
                 </div>
                 <div className="space-y-2 sm:col-span-2">
-                  <label className="text-sm font-medium">Address line 2 (optional)</label>
+                  <label className="text-sm font-medium text-zinc-900">Address line 2 (optional)</label>
                   <input
-                    className="h-11 w-full rounded-md border bg-white px-3 text-sm"
+                    className="h-11 w-full rounded-md border bg-white px-3 text-sm text-zinc-900"
                     value={line2}
                     onChange={(e) => setLine2(e.target.value)}
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">City</label>
+                  <label className="text-sm font-medium text-zinc-900">City</label>
                   <input
-                    className="h-11 w-full rounded-md border bg-white px-3 text-sm"
+                    className="h-11 w-full rounded-md border bg-white px-3 text-sm text-zinc-900"
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Province</label>
+                  <label className="text-sm font-medium text-zinc-900">Province</label>
                   <input
-                    className="h-11 w-full rounded-md border bg-white px-3 text-sm"
+                    className="h-11 w-full rounded-md border bg-white px-3 text-sm text-zinc-900"
                     value={province}
                     onChange={(e) => setProvince(e.target.value)}
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Postal code</label>
+                  <label className="text-sm font-medium text-zinc-900">Postal code</label>
                   <input
-                    className="h-11 w-full rounded-md border bg-white px-3 text-sm"
+                    className="h-11 w-full rounded-md border bg-white px-3 text-sm text-zinc-900"
                     value={postalCode}
                     onChange={(e) => setPostalCode(e.target.value)}
                     required
