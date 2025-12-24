@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Affordable React Ecomm",
-  description: "Affordable Finds. ZAR pricing. Flat shipping R99.",
+  description: "Affordable Finds. ZAR pricing. Flat shipping R60.",
 };
 
 export default async function RootLayout({

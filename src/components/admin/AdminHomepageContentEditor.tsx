@@ -77,7 +77,7 @@ export function AdminHomepageContentEditor() {
   const [subtitle, setSubtitle] = useState("Shop the latest deals");
   const [ctaText, setCtaText] = useState("Shop Now");
   const [ctaHref, setCtaHref] = useState("/products");
-  const [promoText, setPromoText] = useState("Flat shipping R99");
+  const [promoText, setPromoText] = useState("Flat shipping R60");
   const [imageUrl, setImageUrl] = useState<string>("");
   const [heroMobileImageUrl, setHeroMobileImageUrl] = useState<string>("");
 
@@ -167,7 +167,7 @@ export function AdminHomepageContentEditor() {
       setSubtitle(hero.subtitle ?? "Shop the latest deals");
       setCtaText(hero.ctaText ?? "Shop Now");
       setCtaHref(hero.ctaHref ?? "/products");
-      setPromoText(promo.text ?? "Flat shipping R99");
+      setPromoText(promo.text ?? "Flat shipping R60");
       setImageUrl(hero.imageUrl ?? "");
       setHeroMobileImageUrl(hero.mobileImageUrl ?? "");
 

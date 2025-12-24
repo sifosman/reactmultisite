@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createOrderSchema } from "@/lib/checkout/schemas";
-import { SHIPPING_CENTS } from "@/lib/money/zar";
+import { getEffectiveShippingCents } from "@/lib/shipping/getEffectiveShippingCents";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { upsertCustomerFromOrder } from "@/lib/customers/upsertCustomerFromOrder";
@@ -139,7 +139,8 @@ export async function POST(req: Request) {
     0
   );
   const discountCents = 0;
-  const totalCents = subtotalCents + SHIPPING_CENTS - discountCents;
+  const shippingCents = await getEffectiveShippingCents(input.shippingAddress.province);
+  const totalCents = subtotalCents + shippingCents - discountCents;
 
   const { data: order, error: orderError } = await supabaseAdmin
     .from("orders")
@@ -150,7 +151,7 @@ export async function POST(req: Request) {
       customer_name: input.customer.name ?? null,
       status: "pending_payment",
       subtotal_cents: subtotalCents,
-      shipping_cents: SHIPPING_CENTS,
+      shipping_cents: shippingCents,
       discount_cents: discountCents,
       total_cents: totalCents,
       currency: "ZAR",

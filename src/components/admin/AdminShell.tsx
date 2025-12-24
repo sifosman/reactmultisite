@@ -36,6 +36,7 @@ const navItems = [
   { href: "/admin/content", label: "Site Content", icon: FileText },
   { href: "/admin/themes", label: "Theme Selector", icon: Palette },
   { href: "/admin/settings", label: "Settings", icon: Settings },
+  { href: "/admin/delivery-settings", label: "Delivery settings", icon: Settings },
 ];
 
 export function AdminShell({

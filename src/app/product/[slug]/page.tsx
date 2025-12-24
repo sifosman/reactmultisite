@@ -103,7 +103,7 @@ export default async function ProductPage({
             <div className="mt-6 rounded-xl border bg-zinc-50 p-4 text-sm">
               <div className="flex items-center justify-between">
                 <span className="text-zinc-600">Shipping</span>
-                <span className="font-semibold">Flat R99</span>
+                <span className="font-semibold">Flat R60</span>
               </div>
               <div className="mt-2 text-xs text-zinc-600">
                 Secure checkout. Totals are recalculated server-side.

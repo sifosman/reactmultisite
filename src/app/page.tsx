@@ -91,6 +91,11 @@ async function HomeContent() {
     })
     .filter((s) => s.categorySlug);
 
+  const featuredProducts = (products ?? [])
+    .slice()
+    .sort(() => 0.5 - Math.random())
+    .slice(0, 4);
+
   return (
     <main>
       {/* Hero Section - Full Width Background Banner */}
@@ -165,6 +170,55 @@ async function HomeContent() {
           </div>
         </div>
       </section>
+
+      {/* Featured Products (random selection) */}
+      {featuredProducts.length > 0 ? (
+        <section className="bg-white py-16 sm:py-20">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col items-center text-center sm:flex-row sm:items-end sm:justify-between sm:text-left">
+              <div>
+                <div className="inline-flex items-center gap-2 rounded-full bg-zinc-900 px-3 py-1 text-xs font-semibold text-white">
+                  <Sparkles className="h-3 w-3" />
+                  Featured products
+                </div>
+                <h2 className="mt-4 text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">
+                  Handpicked for you
+                </h2>
+                <p className="mt-2 text-lg text-zinc-600">
+                  A rotating selection of popular items from the store.
+                </p>
+              </div>
+              <Link
+                href="/products"
+                className="mt-4 inline-flex items-center gap-1 rounded-full bg-zinc-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800 sm:mt-0"
+              >
+                Browse all products
+                <ChevronRight className="h-4 w-4" />
+              </Link>
+            </div>
+
+            <div className="mt-10 grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
+              {featuredProducts.map((p) => {
+                const imgs = (p.product_images ?? []) as Array<{ url: string; sort_order: number | null }>;
+                const first = imgs
+                  .slice()
+                  .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))[0]?.url ?? null;
+
+                return (
+                  <ProductCard
+                    key={p.id}
+                    slug={p.slug}
+                    name={p.name}
+                    priceCents={p.price_cents}
+                    compareAtCents={p.compare_at_price_cents}
+                    imageUrl={first}
+                  />
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       {/* Trust Badges */}
       <section className="border-b bg-white">

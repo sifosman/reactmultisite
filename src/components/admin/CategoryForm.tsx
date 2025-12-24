@@ -64,6 +64,33 @@ export function CategoryForm({
     router.push("/admin/categories");
   }
 
+  async function onDelete() {
+    if (mode !== "edit" || !categoryId) return;
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this category? This will unlink it from any products."
+    );
+    if (!confirmed) return;
+
+    setError(null);
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/admin/categories/${categoryId}`, {
+        method: "DELETE",
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok) {
+        setError(json?.error ?? "Delete failed");
+        setLoading(false);
+        return;
+      }
+      router.refresh();
+      router.push("/admin/categories");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Delete failed");
+      setLoading(false);
+    }
+  }
+
   return (
     <form onSubmit={onSubmit} className="mt-6 space-y-6">
       <section className="rounded-xl border bg-white p-4">
@@ -105,13 +132,25 @@ export function CategoryForm({
         </div>
       ) : null}
 
-      <button
-        className="h-11 rounded-md bg-black px-5 text-sm text-white disabled:opacity-60"
-        disabled={!canSubmit || loading}
-        type="submit"
-      >
-        {loading ? "Saving..." : mode === "create" ? "Create category" : "Save changes"}
-      </button>
+      <div className="flex items-center gap-3">
+        <button
+          className="h-11 rounded-md bg-black px-5 text-sm text-white disabled:opacity-60"
+          disabled={!canSubmit || loading}
+          type="submit"
+        >
+          {loading ? "Saving..." : mode === "create" ? "Create category" : "Save changes"}
+        </button>
+        {mode === "edit" && categoryId ? (
+          <button
+            type="button"
+            onClick={onDelete}
+            disabled={loading}
+            className="h-11 rounded-md border border-red-300 bg-white px-4 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-60"
+          >
+            Delete category
+          </button>
+        ) : null}
+      </div>
     </form>
   );
 }

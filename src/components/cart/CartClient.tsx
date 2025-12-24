@@ -37,7 +37,7 @@ type CartLine = {
   lineTotalCents: number;
 };
 
-const SHIPPING_CENTS = 9900;
+const SHIPPING_CENTS = 6000;
 
 export function CartClient() {
   const [items, setItems] = useState<GuestCartItem[]>(() => readGuestCart().items);

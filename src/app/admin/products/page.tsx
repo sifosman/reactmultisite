@@ -1,8 +1,10 @@
 import Link from "next/link";
-import { Plus, Search, Filter, MoreHorizontal, Edit, Trash2, Eye, Package } from "lucide-react";
+import { Plus, Search, Filter, MoreHorizontal, Edit, Eye, Package } from "lucide-react";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { DeleteProductButton } from "@/components/admin/DeleteProductButton";
+import { DeleteAllProductsButton } from "@/components/admin/DeleteAllProductsButton";
 
 export const revalidate = 0;
 
@@ -24,6 +26,7 @@ export default async function AdminProductsPage() {
           Manage your product catalog ({(products ?? []).length} products)
         </p>
         <div className="flex items-center gap-3">
+          <DeleteAllProductsButton />
           <Link
             href="/admin/products/bulk"
             className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-white px-4 py-2.5 text-sm font-medium text-indigo-700 hover:bg-indigo-50"
@@ -161,9 +164,7 @@ export default async function AdminProductsPage() {
                         >
                           <Edit className="h-4 w-4" />
                         </Link>
-                        <button className="rounded-lg p-2 text-slate-400 hover:bg-red-50 hover:text-red-600">
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                        <DeleteProductButton productId={p.id} productName={p.name} />
                       </div>
                     </td>
                   </tr>

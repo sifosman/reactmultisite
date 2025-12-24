@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createOrderSchema } from "@/lib/checkout/schemas";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { SHIPPING_CENTS } from "@/lib/money/zar";
+import { getEffectiveShippingCents } from "@/lib/shipping/getEffectiveShippingCents";
 
 /**
  * Start a Yoco checkout WITHOUT creating an order first.
@@ -85,7 +85,8 @@ export async function POST(req: Request) {
     subtotalCents += unitPrice * item.qty;
   }
 
-  const totalCents = subtotalCents + SHIPPING_CENTS;
+  const shippingCents = await getEffectiveShippingCents(input.shippingAddress.province);
+  const totalCents = subtotalCents + shippingCents;
 
   // Create pending checkout record
   const { data: pendingCheckout, error: pendingError } = await supabaseAdmin
