@@ -53,6 +53,15 @@ export default async function ProductPage({
     ? (product.compare_at_price_cents / 100).toFixed(2)
     : null;
 
+  const variantList = (variants ?? []) as Array<{ stock_qty: number }>;
+  const anyVariantInStock = variantList.some((v) => v.stock_qty > 0);
+  const allVariantsOutOfStock = variantList.length > 0 && !anyVariantInStock;
+
+  // For simple products (no variants), treat a single variant row with stock_qty <= 0 as out of stock.
+  const simpleVariantOutOfStock = !product.has_variants && variantList.length === 1 && variantList[0].stock_qty <= 0;
+
+  const isOutOfStock = product.has_variants ? allVariantsOutOfStock : simpleVariantOutOfStock;
+
   return (
     <main className="mx-auto max-w-6xl p-6">
       <nav className="text-sm text-zinc-800" aria-label="Breadcrumb">
@@ -91,14 +100,20 @@ export default async function ProductPage({
               <p className="mt-4 whitespace-pre-wrap text-sm leading-6 text-zinc-700">{product.description}</p>
             ) : null}
 
-            <div className="mt-6">
-              <AddToCart
-                productId={product.id}
-                productHasVariants={product.has_variants}
-                basePriceCents={product.price_cents}
-                variants={(variants ?? []) as unknown as AddToCartVariant[]}
-              />
-            </div>
+            {isOutOfStock ? (
+              <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+                This item is currently out of stock and cannot be added to your cart.
+              </div>
+            ) : (
+              <div className="mt-6">
+                <AddToCart
+                  productId={product.id}
+                  productHasVariants={product.has_variants}
+                  basePriceCents={product.price_cents}
+                  variants={(variants ?? []) as unknown as AddToCartVariant[]}
+                />
+              </div>
+            )}
 
             <div className="mt-6 rounded-xl border bg-zinc-50 p-4 text-sm text-zinc-800">
               <div className="flex items-center justify-between">

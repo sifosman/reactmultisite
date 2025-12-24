@@ -92,7 +92,7 @@ export function AddToCart({
     const nextSelected: Record<string, string> = { ...selectedAttrs, [name]: value };
     return allVariants.some((v) => {
       const attrs = v.attributes as Record<string, string>;
-      return Object.keys(nextSelected).every((k) => attrs[k] === nextSelected[k]);
+      return v.stock_qty > 0 && Object.keys(nextSelected).every((k) => attrs[k] === nextSelected[k]);
     });
   }
 
