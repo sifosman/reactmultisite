@@ -17,7 +17,7 @@ export default async function ProductPage({
 
   const { data: product, error } = await supabase
     .from("products")
-    .select("id,name,slug,description,price_cents,compare_at_price_cents,has_variants")
+    .select("id,name,slug,description,price_cents,compare_at_price_cents,has_variants,stock_qty")
     .eq("slug", slug)
     .eq("active", true)
     .maybeSingle();
@@ -54,13 +54,11 @@ export default async function ProductPage({
     : null;
 
   const variantList = (variants ?? []) as Array<{ stock_qty: number }>;
-  const anyVariantInStock = variantList.some((v) => v.stock_qty > 0);
-  const allVariantsOutOfStock = variantList.length > 0 && !anyVariantInStock;
+  const allVariantsOutOfStock =
+    product.has_variants && variantList.length > 0 && variantList.every((v) => v.stock_qty <= 0);
 
-  // For simple products (no variants), treat a single variant row with stock_qty <= 0 as out of stock.
-  const simpleVariantOutOfStock = !product.has_variants && variantList.length === 1 && variantList[0].stock_qty <= 0;
-
-  const isOutOfStock = product.has_variants ? allVariantsOutOfStock : simpleVariantOutOfStock;
+  // For simple products (no variants), rely on the product-level stock quantity used by checkout.
+  const isOutOfStock = product.has_variants ? allVariantsOutOfStock : product.stock_qty <= 0;
 
   return (
     <main className="mx-auto max-w-6xl p-6">
@@ -82,10 +80,15 @@ export default async function ProductPage({
             <div className="text-xs font-semibold tracking-wide text-zinc-800">Product</div>
             <h1 className="mt-2 text-2xl font-semibold tracking-tight">{product.name}</h1>
 
-            <div className="mt-4 flex items-center gap-3">
+            <div className="mt-4 flex flex-wrap items-center gap-3">
               {isOnSale ? (
                 <div className="inline-flex rounded-full bg-red-500 px-3 py-1 text-xs font-bold uppercase tracking-wide text-white">
                   Sale
+                </div>
+              ) : null}
+              {isOutOfStock ? (
+                <div className="inline-flex rounded-full bg-zinc-800 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white">
+                  Out of stock
                 </div>
               ) : null}
               <div className="flex items-baseline gap-3">
