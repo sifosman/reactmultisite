@@ -284,7 +284,7 @@ export function CheckoutClient() {
             ) : null}
 
             <button
-              className="h-11 w-full rounded-full bg-black px-4 text-sm font-semibold text-white disabled:opacity-60"
+              className="h-12 w-full rounded-full bg-emerald-600 px-4 text-base font-semibold text-white shadow-md transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2 disabled:opacity-60 disabled:shadow-none"
               disabled={!canSubmit || loading}
               type="submit"
             >

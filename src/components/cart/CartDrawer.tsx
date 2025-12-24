@@ -241,7 +241,7 @@ export function CartDrawer({
             <Link
               href="/checkout"
               onClick={onClose}
-              className="inline-flex h-11 items-center justify-center rounded-full bg-black px-4 text-sm font-semibold text-white"
+              className="inline-flex h-11 items-center justify-center rounded-full bg-orange-500 px-4 text-base font-semibold text-white shadow-md transition hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2"
             >
               Checkout
             </Link>

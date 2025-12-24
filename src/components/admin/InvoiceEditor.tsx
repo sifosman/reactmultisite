@@ -265,6 +265,27 @@ export function InvoiceEditor({
     return { subtotal, discount, total };
   }, [invoice]);
 
+  function shareInvoiceOnWhatsApp() {
+    if (typeof window === "undefined") return;
+    if (!invoice?.id) return;
+
+    const number = invoice.invoice_number;
+    const total = centsToRandsString(totals.total);
+    const url = `${window.location.origin}/invoice/${encodeURIComponent(number)}`;
+
+    const parts: string[] = [];
+    if (customerName.trim()) {
+      parts.push(customerName.trim());
+    }
+    parts.push(`Invoice ${number}`);
+    parts.push(`Total: R${total}`);
+    parts.push(url);
+
+    const text = parts.join(" • ");
+    const waUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(waUrl, "_blank");
+  }
+
   async function createInvoice() {
     setError(null);
     setSaving(true);
@@ -552,6 +573,15 @@ export function InvoiceEditor({
                 >
                   Download PDF
                 </a>
+
+                <button
+                  type="button"
+                  className="h-10 rounded-lg border bg-white px-4 text-sm font-medium text-emerald-700 hover:bg-emerald-50 disabled:opacity-60"
+                  disabled={!invoice}
+                  onClick={shareInvoiceOnWhatsApp}
+                >
+                  Share on WhatsApp
+                </button>
 
                 <button
                   type="button"

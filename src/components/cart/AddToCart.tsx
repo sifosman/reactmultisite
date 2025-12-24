@@ -182,7 +182,7 @@ export function AddToCart({
         </div>
         <div className="col-span-2 flex items-end">
           <button
-            className="h-10 w-full rounded-md bg-black px-4 text-sm text-white disabled:opacity-60"
+            className="h-11 w-full rounded-full bg-orange-500 px-4 text-base font-semibold text-white shadow-md transition hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2 disabled:opacity-60 disabled:shadow-none"
             disabled={!canAdd}
             type="button"
             onClick={onAdd}
