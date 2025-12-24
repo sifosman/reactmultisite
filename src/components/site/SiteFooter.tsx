@@ -13,6 +13,15 @@ export function SiteFooter({
     footerAbout?: string;
     termsHref?: string;
     termsLabel?: string;
+    contactEmail?: string;
+    contactPhone?: string;
+    contactAddress?: string;
+    social?: {
+      facebook?: string;
+      instagram?: string;
+      twitter?: string;
+      tiktok?: string;
+    };
   };
 }) {
   const config = getSiteConfig();
@@ -21,6 +30,12 @@ export function SiteFooter({
   const footerAbout = site?.footerAbout ?? site?.tagline ?? config.tagline;
   const termsHref = site?.termsHref;
   const termsLabel = site?.termsLabel ?? "Terms";
+
+  const contactEmail = site?.contactEmail ?? config.email;
+  const contactPhone = site?.contactPhone ?? config.phone;
+  const contactAddress = site?.contactAddress ?? config.address;
+
+  const social = site?.social ?? config.social;
   
   return (
     <footer className="bg-zinc-900 text-white">
@@ -55,22 +70,22 @@ export function SiteFooter({
             
             {/* Social Links */}
             <div className="mt-6 flex gap-3">
-              {config.social.facebook && (
-                <a href={config.social.facebook} target="_blank" rel="noreferrer" className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 transition hover:bg-white/20">
+              {social.facebook && (
+                <a href={social.facebook} target="_blank" rel="noreferrer" className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 transition hover:bg-white/20">
                   <Facebook className="h-5 w-5" />
                 </a>
               )}
-              {config.social.instagram && (
-                <a href={config.social.instagram} target="_blank" rel="noreferrer" className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 transition hover:bg-white/20">
+              {social.instagram && (
+                <a href={social.instagram} target="_blank" rel="noreferrer" className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 transition hover:bg-white/20">
                   <Instagram className="h-5 w-5" />
                 </a>
               )}
-              {config.social.twitter && (
-                <a href={config.social.twitter} target="_blank" rel="noreferrer" className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 transition hover:bg-white/20">
+              {social.twitter && (
+                <a href={social.twitter} target="_blank" rel="noreferrer" className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 transition hover:bg-white/20">
                   <Twitter className="h-5 w-5" />
                 </a>
               )}
-              {!config.social.facebook && !config.social.instagram && !config.social.twitter && (
+              {!social.facebook && !social.instagram && !social.twitter && (
                 <>
                   <a href="#" className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 transition hover:bg-white/20">
                     <Facebook className="h-5 w-5" />
@@ -114,25 +129,25 @@ export function SiteFooter({
           <div>
             <h4 className="text-sm font-semibold uppercase tracking-wider">Contact Us</h4>
             <ul className="mt-6 space-y-4">
-              {config.email && (
+              {contactEmail && (
                 <li className="flex items-start gap-3">
                   <Mail className="mt-0.5 h-5 w-5 shrink-0 text-zinc-400" />
-                  <a href={`mailto:${config.email}`} className="text-zinc-400 transition hover:text-white">{config.email}</a>
+                  <a href={`mailto:${contactEmail}`} className="text-zinc-400 transition hover:text:white">{contactEmail}</a>
                 </li>
               )}
-              {config.phone && (
+              {contactPhone && (
                 <li className="flex items-start gap-3">
                   <Phone className="mt-0.5 h-5 w-5 shrink-0 text-zinc-400" />
-                  <a href={`tel:${config.phone}`} className="text-zinc-400 transition hover:text-white">{config.phone}</a>
+                  <a href={`tel:${contactPhone}`} className="text-zinc-400 transition hover:text-white">{contactPhone}</a>
                 </li>
               )}
-              {config.address && (
+              {contactAddress && (
                 <li className="flex items-start gap-3">
                   <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-zinc-400" />
-                  <span className="text-zinc-400">{config.address}</span>
+                  <span className="text-zinc-400 whitespace-pre-wrap">{contactAddress}</span>
                 </li>
               )}
-              {!config.email && !config.phone && !config.address && (
+              {!contactEmail && !contactPhone && !contactAddress && (
                 <li className="flex items-start gap-3">
                   <Mail className="mt-0.5 h-5 w-5 shrink-0 text-zinc-400" />
                   <span className="text-zinc-400">hello@example.com</span>

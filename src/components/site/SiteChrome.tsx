@@ -38,6 +38,7 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
     const footer = (siteData?.footer ?? {}) as Record<string, unknown>;
     const legal = (siteData?.legal ?? {}) as Record<string, unknown>;
     const contact = (siteData?.contact ?? {}) as Record<string, unknown>;
+    const social = (contact?.social ?? {}) as Record<string, unknown>;
 
     const name = typeof branding.name === "string" ? branding.name : undefined;
     const logoUrl = typeof branding.logoUrl === "string" ? branding.logoUrl : undefined;
@@ -45,6 +46,13 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
     const termsLabel = typeof footer.termsLabel === "string" ? footer.termsLabel : undefined;
     const hasTerms = typeof legal.termsContent === "string" && legal.termsContent.trim().length > 0;
     const whatsappNumber = typeof contact.whatsappNumber === "string" ? contact.whatsappNumber : undefined;
+    const contactEmail = typeof contact.email === "string" ? contact.email : undefined;
+    const contactPhone = typeof contact.phone === "string" ? contact.phone : undefined;
+    const contactAddress = typeof contact.address === "string" ? contact.address : undefined;
+    const facebook = typeof social.facebook === "string" ? social.facebook : undefined;
+    const instagram = typeof social.instagram === "string" ? social.instagram : undefined;
+    const twitter = typeof social.twitter === "string" ? social.twitter : undefined;
+    const tiktok = typeof social.tiktok === "string" ? social.tiktok : undefined;
 
     return {
       header: {
@@ -57,6 +65,10 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
         footerAbout,
         termsLabel,
         termsHref: hasTerms ? "/terms" : undefined,
+        contactEmail,
+        contactPhone,
+        contactAddress,
+        social: { facebook, instagram, twitter, tiktok },
       },
       contact: {
         whatsappNumber,

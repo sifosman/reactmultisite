@@ -63,6 +63,15 @@ type SiteData = {
   };
   contact?: {
     whatsappNumber?: string;
+    email?: string;
+    phone?: string;
+    address?: string;
+    social?: {
+      facebook?: string;
+      instagram?: string;
+      twitter?: string;
+      tiktok?: string;
+    };
   };
 };
 
@@ -110,6 +119,13 @@ export function AdminHomepageContentEditor() {
   const [termsLabel, setTermsLabel] = useState<string>("Terms & Conditions");
   const [termsContent, setTermsContent] = useState<string>("");
   const [whatsappNumber, setWhatsappNumber] = useState<string>("");
+  const [contactEmail, setContactEmail] = useState<string>("");
+  const [contactPhone, setContactPhone] = useState<string>("");
+  const [contactAddress, setContactAddress] = useState<string>("");
+  const [facebookUrl, setFacebookUrl] = useState<string>("");
+  const [instagramUrl, setInstagramUrl] = useState<string>("");
+  const [twitterUrl, setTwitterUrl] = useState<string>("");
+  const [tiktokUrl, setTiktokUrl] = useState<string>("");
 
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [heroMobileBannerFile, setHeroMobileBannerFile] = useState<File | null>(null);
@@ -162,6 +178,7 @@ export function AdminHomepageContentEditor() {
       const footer = site.footer ?? {};
       const legal = site.legal ?? {};
       const contact = site.contact ?? {};
+      const social = contact.social ?? {};
 
       setTitle(hero.title ?? "Affordable Finds");
       setSubtitle(hero.subtitle ?? "Shop the latest deals");
@@ -214,6 +231,14 @@ export function AdminHomepageContentEditor() {
       setTermsLabel(footer.termsLabel ?? "Terms & Conditions");
       setTermsContent(legal.termsContent ?? "");
       setWhatsappNumber(contact.whatsappNumber ?? "");
+
+      setContactEmail(contact.email ?? "");
+      setContactPhone(contact.phone ?? "");
+      setContactAddress(contact.address ?? "");
+      setFacebookUrl(social.facebook ?? "");
+      setInstagramUrl(social.instagram ?? "");
+      setTwitterUrl(social.twitter ?? "");
+      setTiktokUrl(social.tiktok ?? "");
     }
 
     void load();
@@ -326,9 +351,32 @@ export function AdminHomepageContentEditor() {
       },
       contact: {
         whatsappNumber: whatsappNumber || undefined,
+        email: contactEmail || undefined,
+        phone: contactPhone || undefined,
+        address: contactAddress || undefined,
+        social: {
+          facebook: facebookUrl || undefined,
+          instagram: instagramUrl || undefined,
+          twitter: twitterUrl || undefined,
+          tiktok: tiktokUrl || undefined,
+        },
       },
     };
-  }, [brandName, logoUrl, footerAbout, termsLabel, termsContent, whatsappNumber]);
+  }, [
+    brandName,
+    logoUrl,
+    footerAbout,
+    termsLabel,
+    termsContent,
+    whatsappNumber,
+    contactEmail,
+    contactPhone,
+    contactAddress,
+    facebookUrl,
+    instagramUrl,
+    twitterUrl,
+    tiktokUrl,
+  ]);
 
   async function onSave() {
     setError(null);
