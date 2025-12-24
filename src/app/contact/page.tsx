@@ -37,7 +37,9 @@ export default async function ContactPage() {
             </p>
           )}
 
-          <ContactForm />
+          <div className="mt-6 rounded-2xl border bg-white p-4 text-zinc-900 shadow-sm sm:p-6">
+            <ContactForm />
+          </div>
         </section>
 
         <aside className="space-y-4 rounded-xl border bg-white p-4 text-sm text-zinc-700">
