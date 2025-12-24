@@ -108,9 +108,9 @@ export function CheckoutClient() {
     <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <div className="text-xs font-semibold tracking-wide text-zinc-500">Checkout</div>
+          <div className="text-xs font-semibold tracking-wide text-zinc-800">Checkout</div>
           <h1 className="mt-1 text-3xl font-semibold tracking-tight">Details</h1>
-          <div className="mt-2 text-sm text-zinc-600">Shipping is always {formatZar(SHIPPING_CENTS)}.</div>
+          <div className="mt-2 text-sm text-zinc-800">Shipping is always {formatZar(SHIPPING_CENTS)}.</div>
         </div>
         <div className="flex items-center gap-2 text-sm">
           <div className="rounded-full bg-black px-3 py-1.5 font-semibold text-white">1. Details</div>
@@ -127,7 +127,7 @@ export function CheckoutClient() {
           <div className="lg:col-span-2 space-y-6">
             <section className="rounded-2xl border bg-white p-5 shadow-sm">
               <div className="text-sm font-semibold">Contact</div>
-              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 text-zinc-900">
                 <div className="space-y-2 sm:col-span-2">
                   <label className="text-sm font-medium">Email</label>
                   <input
@@ -162,7 +162,7 @@ export function CheckoutClient() {
             <section className="rounded-2xl border bg-white p-5 shadow-sm">
               <div className="text-sm font-semibold">Payment method</div>
               <div className="mt-4 space-y-3 text-sm">
-                <label className="flex cursor-pointer items-center justify-between rounded-xl border px-3 py-3 hover:border-zinc-400">
+                <label className="flex cursor-pointer items-center justify-between rounded-xl border px-3 py-3 hover:border-zinc-400 text-zinc-900">
                   <div className="flex items-center gap-3">
                     <input
                       type="radio"
@@ -291,17 +291,17 @@ export function CheckoutClient() {
               {loading ? "Creating order..." : "Place order"}
             </button>
 
-            <div className="text-xs text-zinc-600">
+            <div className="text-xs text-zinc-800">
               After this step, you’ll either be redirected to Yoco hosted checkout or see bank transfer details
               depending on your selected payment method.
             </div>
           </div>
 
           <aside className="rounded-2xl border bg-white p-5 shadow-sm lg:sticky lg:top-24">
-            <div className="text-sm font-semibold">Order summary</div>
-            <div className="mt-4 space-y-2 text-sm">
+            <div className="text-sm font-semibold text-zinc-900">Order summary</div>
+            <div className="mt-4 space-y-2 text-sm text-zinc-900">
               <div className="flex justify-between">
-                <span className="text-zinc-600">Shipping</span>
+                <span>Shipping</span>
                 <span>{formatZar(SHIPPING_CENTS)}</span>
               </div>
             </div>

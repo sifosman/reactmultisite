@@ -129,9 +129,9 @@ export function CartClient() {
     <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <div className="text-xs font-semibold tracking-wide text-zinc-500">Checkout</div>
+          <div className="text-xs font-semibold tracking-wide text-zinc-800">Checkout</div>
           <h1 className="mt-1 text-3xl font-semibold tracking-tight">Cart</h1>
-          <div className="mt-2 text-sm text-zinc-600">Premium checkout. ZAR only.</div>
+          <div className="mt-2 text-sm text-zinc-800">Premium checkout. ZAR only.</div>
         </div>
         <div className="flex gap-2">
           <Link className="rounded-full border bg-white px-4 py-2 text-sm hover:bg-zinc-50" href="/products">
@@ -168,15 +168,15 @@ export function CartClient() {
                 <div key={l.key} className="rounded-2xl border bg-white p-5 shadow-sm">
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <div className="text-xs text-zinc-500">Item</div>
+                      <div className="text-xs text-zinc-800">Item</div>
                       <div className="mt-1 text-sm font-semibold">{l.product?.name ?? "(Missing product)"}</div>
                       {l.variant ? (
-                        <div className="mt-1 text-xs text-zinc-600">
+                        <div className="mt-1 text-xs text-zinc-800">
                           {l.variant.name ?? l.variant.sku}
                           {attrText ? ` • ${attrText}` : ""}
                         </div>
                       ) : null}
-                      <div className="mt-2 text-xs text-zinc-600">Unit: R{unit}</div>
+                      <div className="mt-2 text-xs text-zinc-800">Unit: R{unit}</div>
                     </div>
                     <div className="text-right">
                       <div className="text-sm font-semibold">R{total}</div>
@@ -204,14 +204,14 @@ export function CartClient() {
           </section>
 
           <aside className="rounded-2xl border bg-white p-5 shadow-sm lg:sticky lg:top-24">
-            <div className="text-sm font-semibold">Summary</div>
-            <div className="mt-4 space-y-2 text-sm">
+            <div className="text-sm font-semibold text-zinc-900">Summary</div>
+            <div className="mt-4 space-y-2 text-sm text-zinc-900">
               <div className="flex justify-between">
-                <span className="text-zinc-600">Subtotal</span>
+                <span>Subtotal</span>
                 <span>R{(subtotalCents / 100).toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-600">Shipping</span>
+                <span>Shipping</span>
                 <span>R{(SHIPPING_CENTS / 100).toFixed(2)}</span>
               </div>
               <div className="flex justify-between border-t pt-2 font-semibold">

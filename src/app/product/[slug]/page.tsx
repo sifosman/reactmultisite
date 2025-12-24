@@ -55,7 +55,7 @@ export default async function ProductPage({
 
   return (
     <main className="mx-auto max-w-6xl p-6">
-      <nav className="text-sm text-zinc-600" aria-label="Breadcrumb">
+      <nav className="text-sm text-zinc-800" aria-label="Breadcrumb">
         <Link className="hover:underline" href="/products">
           Products
         </Link>
@@ -70,7 +70,7 @@ export default async function ProductPage({
 
         <div className="lg:col-span-5">
           <div className="rounded-2xl border bg-white p-6 shadow-sm">
-            <div className="text-xs font-semibold tracking-wide text-zinc-500">Product</div>
+            <div className="text-xs font-semibold tracking-wide text-zinc-800">Product</div>
             <h1 className="mt-2 text-2xl font-semibold tracking-tight">{product.name}</h1>
 
             <div className="mt-4 flex items-center gap-3">
@@ -82,7 +82,7 @@ export default async function ProductPage({
               <div className="flex items-baseline gap-3">
                 <div className="text-2xl font-semibold">R{(product.price_cents / 100).toFixed(2)}</div>
                 {product.compare_at_price_cents ? (
-                  <div className="text-sm text-zinc-500 line-through">R{(product.compare_at_price_cents / 100).toFixed(2)}</div>
+                  <div className="text-sm text-zinc-700 line-through">R{(product.compare_at_price_cents / 100).toFixed(2)}</div>
                 ) : null}
               </div>
             </div>
@@ -100,12 +100,12 @@ export default async function ProductPage({
               />
             </div>
 
-            <div className="mt-6 rounded-xl border bg-zinc-50 p-4 text-sm">
+            <div className="mt-6 rounded-xl border bg-zinc-50 p-4 text-sm text-zinc-800">
               <div className="flex items-center justify-between">
-                <span className="text-zinc-600">Shipping</span>
+                <span className="text-zinc-900">Shipping</span>
                 <span className="font-semibold">Flat R60</span>
               </div>
-              <div className="mt-2 text-xs text-zinc-600">
+              <div className="mt-2 text-xs text-zinc-800">
                 Secure checkout. Totals are recalculated server-side.
               </div>
             </div>
