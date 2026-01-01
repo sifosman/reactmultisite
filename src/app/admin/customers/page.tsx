@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { Plus, UserPlus } from "lucide-react";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -16,6 +18,19 @@ export default async function AdminCustomersPage() {
 
   return (
     <AdminShell title="Customers">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm text-slate-500">
+          Manage your customers ({(customers ?? []).length} total)
+        </p>
+        <Link
+          href="/admin/customers/new"
+          className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-indigo-700"
+        >
+          <UserPlus className="h-4 w-4" />
+          Add Customer
+        </Link>
+      </div>
+
       {error ? (
         <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error.message}</div>
       ) : null}
@@ -33,7 +48,7 @@ export default async function AdminCustomersPage() {
           </thead>
           <tbody className="divide-y divide-slate-100">
             {(customers ?? []).map((c) => (
-              <tr key={c.id} className="hover:bg-slate-50">
+              <tr key={c.id} className="cursor-pointer hover:bg-slate-50" onClick={() => window.location.href = `/admin/customers/${c.id}`}>
                 <td className="px-6 py-4">
                   <div className="min-w-0">
                     <div className="truncate text-sm font-medium text-slate-900">{c.full_name ?? c.email}</div>

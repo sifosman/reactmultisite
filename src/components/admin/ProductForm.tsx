@@ -153,9 +153,9 @@ export function ProductForm({
               className="h-10 w-full rounded-md border px-3 text-sm"
               value={regularPriceRands}
               onChange={(e) => setRegularPriceRands(e.target.value)}
-              type="number"
-              step="0.01"
-              min={0}
+              type="text"
+              inputMode="decimal"
+              placeholder="0.00"
               required
             />
           </div>
@@ -165,9 +165,9 @@ export function ProductForm({
               className="h-10 w-full rounded-md border px-3 text-sm"
               value={salePriceRands}
               onChange={(e) => setSalePriceRands(e.target.value)}
-              type="number"
-              step="0.01"
-              min={0}
+              type="text"
+              inputMode="decimal"
+              placeholder="0.00"
             />
           </div>
 

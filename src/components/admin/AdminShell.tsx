@@ -19,7 +19,8 @@ import {
   TrendingUp,
   Users,
   DollarSign,
-  Palette
+  Palette,
+  Tag
 } from "lucide-react";
 import { useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
@@ -32,6 +33,7 @@ const navItems = [
   { href: "/admin/orders", label: "Orders", icon: ShoppingCart },
   { href: "/admin/invoices", label: "Invoices", icon: DollarSign },
   { href: "/admin/customers", label: "Customers", icon: Users },
+  { href: "/admin/coupons", label: "Coupons", icon: Tag },
   { href: "/admin/subscribers", label: "Subscribers", icon: Mail },
   { href: "/admin/content", label: "Site Content", icon: FileText },
   { href: "/admin/themes", label: "Theme Selector", icon: Palette },

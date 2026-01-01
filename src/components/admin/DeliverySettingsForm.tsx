@@ -30,6 +30,7 @@ type SettingsResponse = {
 export function DeliverySettingsForm() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mode, setMode] = useState<DeliveryMode>("flat");
   const [flatRate, setFlatRate] = useState<string>("60.00");
@@ -67,6 +68,7 @@ export function DeliverySettingsForm() {
   async function onSave(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setSaved(false);
     setSaving(true);
     try {
       const flatRateCents = Math.round(parseFloat(flatRate || "0") * 100);
@@ -86,6 +88,9 @@ export function DeliverySettingsForm() {
         const json = await res.json().catch(() => null);
         throw new Error(json?.error ?? "Failed to save delivery settings");
       }
+
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to save delivery settings");
     } finally {
@@ -197,6 +202,12 @@ export function DeliverySettingsForm() {
       >
         {saving ? "Saving…" : "Save delivery settings"}
       </button>
+
+      {saved && (
+        <div className="fixed bottom-6 right-6 z-50 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800 shadow-lg">
+          Settings saved successfully
+        </div>
+      )}
     </form>
   );
 }
