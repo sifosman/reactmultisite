@@ -90,7 +90,7 @@ export default async function AdminCustomerDetailPage({
             <h2 className="text-lg font-semibold text-slate-900">Order History</h2>
             {(orders ?? []).length > 0 ? (
               <div className="mt-4 space-y-3">
-                {orders.map((order) => (
+                {(orders ?? []).map((order) => (
                   <Link
                     key={order.id}
                     href={`/admin/orders/${order.id}`}
