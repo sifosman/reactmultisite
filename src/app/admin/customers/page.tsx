@@ -56,13 +56,13 @@ export default async function AdminCustomersPage() {
           </thead>
           <tbody className="divide-y divide-slate-100">
             {(customers ?? []).map((c) => (
-              <tr key={c.id} className="cursor-pointer hover:bg-slate-50" onClick={() => window.location.href = `/admin/customers/${c.id}`}>
+              <tr key={c.id} className="hover:bg-slate-50">
                 <td className="px-6 py-4">
-                  <div className="min-w-0">
+                  <Link href={`/admin/customers/${c.id}`} className="block min-w-0">
                     <div className="truncate text-sm font-medium text-slate-900">{c.full_name ?? c.email}</div>
                     <div className="truncate text-sm text-slate-500">{c.email}</div>
-                  {c.phone ? <div className="text-xs text-slate-400">{c.phone}</div> : null}
-                  </div>
+                    {c.phone ? <div className="text-xs text-slate-400">{c.phone}</div> : null}
+                  </Link>
                 </td>
                 <td className="px-6 py-4 text-sm text-slate-700">{c.total_orders}</td>
                 <td className="px-6 py-4 text-sm font-semibold text-slate-900">
