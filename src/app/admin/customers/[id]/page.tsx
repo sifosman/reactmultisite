@@ -1,7 +1,6 @@
 import { AdminShell } from "@/components/admin/AdminShell";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Mail, Phone, MapPin, ShoppingBag, Calendar } from "lucide-react";
 
@@ -22,7 +21,21 @@ export default async function AdminCustomerDetailPage({
     .single();
 
   if (!customer) {
-    notFound();
+    return (
+      <AdminShell title="Customer not found">
+        <Link
+          href="/admin/customers"
+          className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Customers
+        </Link>
+
+        <div className="mt-6 rounded-xl border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800">
+          No customer was found with ID <code className="font-mono text-xs">{params.id}</code>.
+        </div>
+      </AdminShell>
+    );
   }
 
   const { data: orders } = await supabase
