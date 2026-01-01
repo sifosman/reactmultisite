@@ -34,9 +34,14 @@ export function CouponForm({
     initial?.min_order_value_cents ? (initial.min_order_value_cents / 100).toFixed(2) : ""
   );
   const [maxUses, setMaxUses] = useState(initial?.max_uses?.toString() ?? "");
-  const [expiresAt, setExpiresAt] = useState(
-    initial?.expires_at ? initial.expires_at.split("T")[0] : ""
-  );
+  let initialExpires = "";
+  if (initial?.expires_at) {
+    const d = new Date(initial.expires_at);
+    if (!isNaN(d.getTime())) {
+      initialExpires = d.toISOString().split("T")[0];
+    }
+  }
+  const [expiresAt, setExpiresAt] = useState(initialExpires);
   const [active, setActive] = useState(initial?.active ?? true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -88,8 +93,8 @@ export function CouponForm({
       }
 
       if (expiresAt) {
-        // Append end of day time to avoid timezone issues with date-only strings
-        payload.expires_at = new Date(`${expiresAt}T23:59:59Z`).toISOString();
+        // Send raw date string; API/DB will handle casting to timestamptz or date
+        payload.expires_at = expiresAt;
       }
 
       const res = await fetch(

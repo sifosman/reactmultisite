@@ -76,7 +76,7 @@ export function ProductForm({
 
     const parsed = productUpsertSchema.safeParse(payload);
     if (!parsed.success) {
-      setError("Please fix validation errors (slug must be kebab-case). ");
+      setError("Please fix validation errors. Slug must be lowercase kebab-case (e.g. 'my-product').");
       return;
     }
 
@@ -94,7 +94,12 @@ export function ProductForm({
     setLoading(false);
 
     if (!res.ok) {
-      setError(json?.error ?? "Save failed");
+      const rawError = json?.error as string | undefined;
+      if (rawError && rawError.includes("duplicate key") && rawError.includes("products_slug_key")) {
+        setError("Slug is already in use. Please choose a unique slug.");
+      } else {
+        setError(rawError ?? "Save failed");
+      }
       return;
     }
 
@@ -124,7 +129,20 @@ export function ProductForm({
             <input
               className="h-10 w-full rounded-md border px-3 text-sm"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => {
+                const nextName = e.target.value;
+                setName(nextName);
+                // Auto-generate slug from name if slug is empty
+                if (!slug) {
+                  const generated = nextName
+                    .toLowerCase()
+                    .trim()
+                    .replace(/[^a-z0-9\s-]/g, "")
+                    .replace(/\s+/g, "-")
+                    .replace(/-+/g, "-");
+                  setSlug(generated);
+                }
+              }}
               required
             />
           </div>
@@ -137,6 +155,7 @@ export function ProductForm({
               placeholder="kebab-case-slug"
               required
             />
+            <p className="text-xs text-slate-500">Used in URLs (must be unique and lowercase, e.g. "my-product").</p>
           </div>
           <div className="space-y-2 sm:col-span-2">
             <label className="text-sm font-medium">Description</label>

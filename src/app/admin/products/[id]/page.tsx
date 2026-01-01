@@ -25,7 +25,14 @@ export default async function AdminEditProductPage({
   ]);
 
   if (error) {
-    throw new Error(error.message);
+    return (
+      <AdminShell title="Error loading product">
+        <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          <div className="font-semibold">Database error</div>
+          <div className="mt-1 break-all text-xs">{error.message}</div>
+        </div>
+      </AdminShell>
+    );
   }
 
   if (!product) {
