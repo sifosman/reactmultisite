@@ -3,7 +3,12 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export function DeleteCouponButton({ id }: { id: string }) {
+type Props = {
+  id: string;
+  compact?: boolean;
+};
+
+export function DeleteCouponButton({ id, compact }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,6 +40,26 @@ export function DeleteCouponButton({ id }: { id: string }) {
       setError("Failed to delete coupon");
       setLoading(false);
     }
+  }
+
+  if (compact) {
+    return (
+      <>
+        {error && (
+          <div className="mb-1 rounded-md border border-red-200 bg-red-50 p-1 text-xs text-red-700">
+            {error}
+          </div>
+        )}
+        <button
+          type="button"
+          onClick={onDelete}
+          disabled={loading}
+          className="inline-flex items-center justify-center rounded-md border border-red-200 px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-60"
+        >
+          {loading ? "Deleting..." : "Delete"}
+        </button>
+      </>
+    );
   }
 
   return (

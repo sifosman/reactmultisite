@@ -16,11 +16,30 @@ export default async function AdminEditCouponPage({
   await requireAdmin();
   const supabase = await createSupabaseServerClient();
 
-  const { data: coupon } = await supabase
+  const { data: coupon, error } = await supabase
     .from("coupons")
     .select("*")
     .eq("id", params.id)
     .single();
+
+  if (error) {
+    return (
+      <AdminShell title="Error loading coupon">
+        <Link
+          href="/admin/coupons"
+          className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Coupons
+        </Link>
+
+        <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          <div className="font-semibold">Database error</div>
+          <div className="mt-1 break-all text-xs">{error.message}</div>
+        </div>
+      </AdminShell>
+    );
+  }
 
   if (!coupon) {
     return (

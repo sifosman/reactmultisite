@@ -3,6 +3,7 @@ import { Plus, Tag, Percent, Calendar } from "lucide-react";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { DeleteCouponButton } from "@/components/admin/DeleteCouponButton";
 
 export const revalidate = 0;
 
@@ -113,12 +114,15 @@ export default async function AdminCouponsPage() {
                         </span>
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-right">
-                        <Link
-                          href={`/admin/coupons/${coupon.id}`}
-                          className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
-                        >
-                          Edit
-                        </Link>
+                        <div className="flex items-center justify-end gap-3">
+                          <Link
+                            href={`/admin/coupons/${coupon.id}`}
+                            className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                          >
+                            Edit
+                          </Link>
+                          <DeleteCouponButton id={coupon.id} compact />
+                        </div>
                       </td>
                     </tr>
                   );
