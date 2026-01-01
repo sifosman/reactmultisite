@@ -13,7 +13,7 @@ export default async function AdminCustomersPage() {
   const { data: customers, error } = await supabase
     .from("customers")
     .select("id,email,full_name,phone,total_orders,total_spent_cents,last_order_at,created_at")
-    .order("updated_at", { ascending: false })
+    .order("created_at", { ascending: false })
     .limit(500);
 
   return (
