@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { PROVINCES } from "@/lib/shipping/provinces";
 import { useRouter } from "next/navigation";
 import { createOrderSchema } from "@/lib/checkout/schemas";
 import { readGuestCart, clearGuestCart } from "@/lib/cart/storage";
@@ -258,12 +259,21 @@ export function CheckoutClient() {
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-zinc-900">Province</label>
-                  <input
+                  <select
                     className="h-11 w-full rounded-md border bg-white px-3 text-sm text-zinc-900"
                     value={province}
                     onChange={(e) => setProvince(e.target.value)}
                     required
-                  />
+                  >
+                    <option value="" disabled>
+                      Select a province
+                    </option>
+                    {PROVINCES.map((p) => (
+                      <option key={p} value={p}>
+                        {p}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-zinc-900">Postal code</label>

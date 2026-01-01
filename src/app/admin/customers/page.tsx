@@ -32,7 +32,15 @@ export default async function AdminCustomersPage() {
       </div>
 
       {error ? (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error.message}</div>
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          <div className="font-semibold">Database Error</div>
+          <div className="mt-1">{error.message}</div>
+          {error.message.includes("does not exist") || error.message.includes("relation") ? (
+            <div className="mt-2 text-xs">
+              The customers table may not exist. Please apply database migrations from supabase/migrations/.
+            </div>
+          ) : null}
+        </div>
       ) : null}
 
       <div className="mt-6 overflow-hidden rounded-xl border bg-white shadow-sm">

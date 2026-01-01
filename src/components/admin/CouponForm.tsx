@@ -88,7 +88,8 @@ export function CouponForm({
       }
 
       if (expiresAt) {
-        payload.expires_at = new Date(expiresAt).toISOString();
+        // Append end of day time to avoid timezone issues with date-only strings
+        payload.expires_at = new Date(`${expiresAt}T23:59:59Z`).toISOString();
       }
 
       const res = await fetch(

@@ -1,18 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-const PROVINCES = [
-  "Western Cape",
-  "Eastern Cape",
-  "Northern Cape",
-  "Gauteng",
-  "KwaZulu-Natal",
-  "Limpopo",
-  "Mpumalanga",
-  "North West",
-  "Free State",
-] as const;
+import { PROVINCES } from "@/lib/shipping/provinces";
 
 export type DeliveryMode = "flat" | "per_province";
 
