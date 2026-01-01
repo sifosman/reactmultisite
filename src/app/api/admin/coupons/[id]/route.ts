@@ -4,12 +4,13 @@ import { requireAdmin } from "@/lib/auth/requireAdmin";
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await requireAdmin();
     const supabase = await createSupabaseServerClient();
     const body = await req.json();
+    const { id } = await params;
 
     const {
       code,
@@ -33,7 +34,7 @@ export async function PATCH(
     const { data, error } = await supabase
       .from("coupons")
       .update(updateData)
-      .eq("id", params.id)
+      .eq("id", id)
       .select()
       .single();
 
@@ -52,13 +53,14 @@ export async function PATCH(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await requireAdmin();
     const supabase = await createSupabaseServerClient();
+    const { id } = await params;
 
-    const { error } = await supabase.from("coupons").delete().eq("id", params.id);
+    const { error } = await supabase.from("coupons").delete().eq("id", id);
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });
