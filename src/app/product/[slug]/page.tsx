@@ -4,6 +4,7 @@ import { createPublicSupabaseServerClient } from "@/lib/storefront/publicClient"
 import { AddToCart } from "@/components/cart/AddToCart";
 import type { AddToCartVariant } from "@/components/cart/AddToCart";
 import { ProductGallery } from "@/components/storefront/ProductGallery";
+import { getSimpleProductStockMessage } from "../stockMessage";
 
 export const revalidate = 60;
 
@@ -60,6 +61,10 @@ export default async function ProductPage({
   // For simple products (no variants), rely on the product-level stock quantity used by checkout.
   const isOutOfStock = product.has_variants ? allVariantsOutOfStock : product.stock_qty <= 0;
 
+  const simpleStockMessage = !product.has_variants
+    ? getSimpleProductStockMessage((product as any).stock_qty ?? null)
+    : null;
+
   return (
     <main className="mx-auto max-w-6xl p-6">
       <nav className="text-sm text-zinc-800" aria-label="Breadcrumb">
@@ -97,6 +102,9 @@ export default async function ProductPage({
                   <div className="text-sm text-zinc-700 line-through">R{(product.compare_at_price_cents / 100).toFixed(2)}</div>
                 ) : null}
               </div>
+              {!product.has_variants && simpleStockMessage && !isOutOfStock ? (
+                <div className="mt-1 text-sm text-zinc-700">{simpleStockMessage}</div>
+              ) : null}
             </div>
 
             {product.description ? (
@@ -114,6 +122,7 @@ export default async function ProductPage({
                   productHasVariants={product.has_variants}
                   basePriceCents={product.price_cents}
                   variants={(variants ?? []) as unknown as AddToCartVariant[]}
+                  simpleProductStockQty={product.has_variants ? undefined : (product as any).stock_qty ?? null}
                 />
               </div>
             )}

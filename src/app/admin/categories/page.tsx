@@ -12,7 +12,8 @@ export default async function AdminCategoriesPage() {
 
   const { data: categories, error } = await supabase
     .from("categories")
-    .select("id,name,slug,image_url,created_at")
+    .select("id,name,slug,image_url,created_at,sort_index")
+    .order("sort_index", { ascending: true, nullsFirst: false })
     .order("created_at", { ascending: false })
     .limit(200);
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { getInvoiceStatusBadges } from "./invoiceStatusDisplay";
 
 type CatalogItem =
   | {
@@ -50,6 +51,10 @@ type InvoiceDetail = {
   created_at: string;
   issued_at: string | null;
   cancelled_at: string | null;
+  payment_status?: "unpaid" | "paid" | null;
+  payment_status_updated_at?: string | null;
+  fulfilment_status?: "pending" | "dispatched" | null;
+  fulfilment_status_updated_at?: string | null;
   lines: InvoiceLine[];
 };
 
@@ -111,6 +116,8 @@ export function InvoiceEditor({
   const [catalogLoading, setCatalogLoading] = useState(false);
 
   const status = invoice?.status ?? "draft";
+  const paymentStatus = (invoice?.payment_status as "unpaid" | "paid" | null | undefined) ?? "unpaid";
+  const fulfilmentStatus = (invoice?.fulfilment_status as "pending" | "dispatched" | null | undefined) ?? "pending";
 
   useEffect(() => {
     if (mode !== "create") return;
@@ -381,6 +388,48 @@ export function InvoiceEditor({
     setInvoice(json?.invoice as InvoiceDetail);
   }
 
+  async function markPaid() {
+    if (!invoice?.id) return;
+    setError(null);
+    setSaving(true);
+
+    const res = await fetch(`/api/admin/invoices/${invoice.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ payment_status: "paid" }),
+    });
+    const json = await res.json().catch(() => null);
+    setSaving(false);
+
+    if (!res.ok) {
+      setError(json?.error ?? "Failed to update payment status");
+      return;
+    }
+
+    setInvoice(json?.invoice as InvoiceDetail);
+  }
+
+  async function markDispatched() {
+    if (!invoice?.id) return;
+    setError(null);
+    setSaving(true);
+
+    const res = await fetch(`/api/admin/invoices/${invoice.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fulfilment_status: "dispatched" }),
+    });
+    const json = await res.json().catch(() => null);
+    setSaving(false);
+
+    if (!res.ok) {
+      setError(json?.error ?? "Failed to update fulfilment status");
+      return;
+    }
+
+    setInvoice(json?.invoice as InvoiceDetail);
+  }
+
   async function removeLine(lineId: string) {
     if (!invoice?.id) return;
     if (status !== "draft") return;
@@ -552,7 +601,20 @@ export function InvoiceEditor({
             <div className="mt-1 font-mono text-sm">
               {invoice?.invoice_number ?? "(new)"}
             </div>
-            <div className="mt-1 text-xs text-zinc-500">Status: {status}</div>
+            <div className="mt-1 flex flex-wrap gap-1 text-xs">
+              {getInvoiceStatusBadges({
+                status,
+                payment_status: paymentStatus,
+                fulfilment_status: fulfilmentStatus,
+              }).map((b) => (
+                <span
+                  key={b}
+                  className="inline-flex items-center rounded-full bg-zinc-100 px-2 py-0.5 text-[11px] font-medium text-zinc-700"
+                >
+                  {b}
+                </span>
+              ))}
+            </div>
           </div>
 
           <div className="flex flex-wrap gap-2">
@@ -608,6 +670,28 @@ export function InvoiceEditor({
                   onClick={() => void cancelInvoice()}
                 >
                   {saving ? "Cancelling…" : "Cancel (restore stock)"}
+                </button>
+
+                <button
+                  type="button"
+                  className="h-10 rounded-lg border bg-white px-4 text-sm font-medium text-emerald-700 hover:bg-emerald-50 disabled:opacity-60"
+                  disabled={saving || status !== "issued" || paymentStatus === "paid"}
+                  onClick={() => void markPaid()}
+                >
+                  {saving ? "Saving…" : paymentStatus === "paid" ? "Marked as paid" : "Mark as paid"}
+                </button>
+
+                <button
+                  type="button"
+                  className="h-10 rounded-lg border bg-white px-4 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+                  disabled={saving || status !== "issued" || fulfilmentStatus === "dispatched"}
+                  onClick={() => void markDispatched()}
+                >
+                  {saving
+                    ? "Saving…"
+                    : fulfilmentStatus === "dispatched"
+                    ? "Marked as dispatched"
+                    : "Mark as dispatched"}
                 </button>
               </>
             )}

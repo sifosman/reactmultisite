@@ -23,6 +23,7 @@ export const createOrderSchema = z.object({
       })
     )
     .min(1),
+  couponCode: z.string().trim().min(1).max(64).optional(),
 });
 
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;

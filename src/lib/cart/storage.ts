@@ -10,6 +10,14 @@ function normalizeItem(item: GuestCartItem): GuestCartItem {
   };
 }
 
+function clampQty(qty: number, maxQty?: number): number {
+  const base = Math.max(1, Math.floor(qty));
+  if (typeof maxQty === "number" && Number.isFinite(maxQty) && maxQty > 0) {
+    return Math.min(base, Math.floor(maxQty));
+  }
+  return base;
+}
+
 export function readGuestCart(): GuestCart {
   if (typeof window === "undefined") {
     return { version: 1, items: [] };
@@ -41,7 +49,7 @@ export function writeGuestCart(cart: GuestCart) {
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(cart));
 }
 
-export function addToGuestCart(next: GuestCartItem) {
+export function addToGuestCart(next: GuestCartItem, maxQty?: number) {
   const cart = readGuestCart();
   const item = normalizeItem(next);
 
@@ -53,10 +61,10 @@ export function addToGuestCart(next: GuestCartItem) {
   if (existingIdx >= 0) {
     nextItems[existingIdx] = {
       ...nextItems[existingIdx],
-      qty: nextItems[existingIdx].qty + item.qty,
+      qty: clampQty(nextItems[existingIdx].qty + item.qty, maxQty),
     };
   } else {
-    nextItems.push(item);
+    nextItems.push({ ...item, qty: clampQty(item.qty, maxQty) });
   }
 
   writeGuestCart({ version: 1, items: nextItems });

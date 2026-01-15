@@ -13,6 +13,7 @@ type BulkRow = {
   active: boolean;
   imageFile: File | null;
   galleryImageUrl: string | null;
+  categorySlug: string;
 };
 
 function randsStringToCents(value: string) {
@@ -40,6 +41,7 @@ function createEmptyRow(): BulkRow {
     active: true,
     imageFile: null,
     galleryImageUrl: null,
+    categorySlug: "",
   };
 }
 
@@ -94,6 +96,23 @@ export function BulkProductUpload() {
     let imageUploadedCount = 0;
     const rowErrors: { index: number; message: string }[] = [];
 
+    // Load categories once to resolve category slugs to IDs
+    let categoryBySlug = new Map<string, string>();
+    try {
+      const res = await fetch("/api/admin/categories");
+      const json = await res.json().catch(() => null);
+      if (res.ok && Array.isArray(json?.categories)) {
+        for (const c of json.categories as Array<{ id: string; slug: string }>) {
+          if (c.slug) {
+            categoryBySlug.set(String(c.slug).toLowerCase(), c.id);
+          }
+        }
+      }
+    } catch {
+      // If categories cannot be loaded, we'll still try to create products, but category assignment will fail per-row.
+      categoryBySlug = new Map();
+    }
+
     for (const index of nonEmptyRowIndexes) {
       const row = rows[index];
       const name = row.name.trim();
@@ -145,6 +164,32 @@ export function BulkProductUpload() {
         createdCount += 1;
 
         if (productId) {
+          // Assign category if a slug was provided and resolved
+          const slug = row.categorySlug.trim().toLowerCase();
+          if (slug) {
+            const categoryId = categoryBySlug.get(slug);
+            if (categoryId) {
+              try {
+                const catRes = await fetch(`/api/admin/products/${productId}/categories`, {
+                  method: "PUT",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ categoryIds: [categoryId] }),
+                });
+                if (!catRes.ok) {
+                  const catJson = await catRes.json().catch(() => null);
+                  rowErrors.push({
+                    index,
+                    message: catJson?.error || "Category assign failed",
+                  });
+                }
+              } catch {
+                rowErrors.push({ index, message: "Category assign failed" });
+              }
+            } else {
+              rowErrors.push({ index, message: `Unknown category slug \"${row.categorySlug}\"` });
+            }
+          }
+
           if (row.imageFile) {
             const form = new FormData();
             form.set("file", row.imageFile);
@@ -165,21 +210,27 @@ export function BulkProductUpload() {
               });
             }
           } else if (row.galleryImageUrl) {
-            // Attach existing gallery image by URL via dedicated API
-            const resAttach = await fetch(`/api/admin/products/${productId}/images-from-url`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ url: row.galleryImageUrl }),
-            });
-
-            if (resAttach.ok) {
-              imageUploadedCount += 1;
-            } else {
-              const attachJson = await resAttach.json().catch(() => null);
-              rowErrors.push({
-                index,
-                message: attachJson?.error || "Gallery image attach failed",
+            // Support multiple URLs separated by | in the galleryImageUrl field
+            const urls = row.galleryImageUrl
+              .split("|")
+              .map((v) => v.trim())
+              .filter(Boolean);
+            for (const url of urls) {
+              const resAttach = await fetch(`/api/admin/products/${productId}/images-from-url`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ url }),
               });
+
+              if (resAttach.ok) {
+                imageUploadedCount += 1;
+              } else {
+                const attachJson = await resAttach.json().catch(() => null);
+                rowErrors.push({
+                  index,
+                  message: attachJson?.error || "Gallery image attach failed",
+                });
+              }
             }
           }
         }
@@ -235,7 +286,8 @@ export function BulkProductUpload() {
       "sale_price_zar",
       "stock_qty",
       "active",
-      "image_url (optional)",
+      "image_urls (optional, pipe-separated)",
+      "category_slug (optional)",
     ];
 
     const lines = [header.join(",")];
@@ -260,6 +312,7 @@ export function BulkProductUpload() {
         row.stockQty,
         row.active ? "true" : "false",
         row.galleryImageUrl ?? "",
+        row.categorySlug ?? "",
       ];
 
       lines.push(
@@ -306,6 +359,7 @@ export function BulkProductUpload() {
     const idxStock = getIndex("stock_qty");
     const idxActive = getIndex("active");
     const idxImageUrl = headers.findIndex((h) => h.startsWith("image_url"));
+    const idxCategorySlug = getIndex("category_slug");
 
     const nextRows: BulkRow[] = Array.from({ length: ROW_COUNT }, () => createEmptyRow());
 
@@ -325,6 +379,9 @@ export function BulkProductUpload() {
       if (idxImageUrl >= 0) {
         const v = (parts[idxImageUrl] ?? "").trim();
         row.galleryImageUrl = v || null;
+      }
+      if (idxCategorySlug >= 0) {
+        row.categorySlug = (parts[idxCategorySlug] ?? "").trim();
       }
     });
 
@@ -490,6 +547,9 @@ export function BulkProductUpload() {
                 <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
                   Image
                 </th>
+                <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Category slug
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -579,6 +639,14 @@ export function BulkProductUpload() {
                         </div>
                       ) : null}
                     </div>
+                  </td>
+                  <td className="px-3 py-2">
+                    <input
+                      className="h-9 w-full rounded-md border px-2 text-xs"
+                      value={row.categorySlug}
+                      onChange={(e) => updateRow(index, "categorySlug", e.target.value)}
+                      placeholder="e.g. bags"
+                    />
                   </td>
                 </tr>
               ))}

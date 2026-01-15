@@ -9,7 +9,8 @@ export default async function CategoriesPage() {
 
   const { data: categories, error } = await supabase
     .from("categories")
-    .select("id,name,slug,image_url")
+    .select("id,name,slug,image_url,sort_index")
+    .order("sort_index", { ascending: true, nullsFirst: false })
     .order("created_at", { ascending: false })
     .limit(200);
 

@@ -68,7 +68,12 @@ async function HomeContent() {
   const rightImageUrl = typeof promoRight.imageUrl === "string" ? promoRight.imageUrl : null;
 
   const [{ data: categories }, { data: products }] = await Promise.all([
-    supabase.from("categories").select("id,name,slug,image_url").order("created_at", { ascending: false }).limit(6),
+    supabase
+      .from("categories")
+      .select("id,name,slug,image_url,sort_index")
+      .order("sort_index", { ascending: true, nullsFirst: false })
+      .order("created_at", { ascending: false })
+      .limit(6),
     supabase
       .from("products")
       .select("id,name,slug,price_cents,compare_at_price_cents,product_images(url,sort_order)")

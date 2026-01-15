@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createOrderSchema } from "@/lib/checkout/schemas";
+import { calculateCouponDiscount, type CouponRecord } from "@/lib/checkout/coupons";
 import { getEffectiveShippingCents } from "@/lib/shipping/getEffectiveShippingCents";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -138,7 +139,39 @@ export async function POST(req: Request) {
     (sum, i) => sum + i.unit_price_cents_snapshot * i.qty,
     0
   );
-  const discountCents = 0;
+  // Optional coupon discount
+  let discountCents = 0;
+  if (input.couponCode && input.couponCode.trim()) {
+    const { data: coupon, error: couponError } = await supabaseAdmin
+      .from("coupons")
+      .select("code,discount_type,discount_value,min_order_value_cents,active,expires_at,usage_count,max_uses")
+      .eq("code", input.couponCode.trim().toUpperCase())
+      .maybeSingle();
+
+    if (couponError) {
+      return NextResponse.json({ error: "coupon_error" }, { status: 400 });
+    }
+
+    const now = new Date();
+    const isExpired = coupon?.expires_at && new Date(coupon.expires_at) < now;
+    const maxUsesReached =
+      typeof coupon?.max_uses === "number" && coupon.max_uses > 0
+        ? (coupon.usage_count ?? 0) >= coupon.max_uses
+        : false;
+
+    if (!coupon || !coupon.active || isExpired || maxUsesReached) {
+      return NextResponse.json({ error: "invalid_coupon" }, { status: 400 });
+    }
+
+    const couponRecord: CouponRecord = {
+      code: coupon.code,
+      discount_type: coupon.discount_type,
+      discount_value: coupon.discount_value,
+      min_order_value_cents: coupon.min_order_value_cents ?? null,
+    };
+
+    discountCents = calculateCouponDiscount(couponRecord, subtotalCents);
+  }
   const shippingCents = await getEffectiveShippingCents(input.shippingAddress.province);
   const totalCents = subtotalCents + shippingCents - discountCents;
 

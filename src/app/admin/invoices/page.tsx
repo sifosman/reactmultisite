@@ -3,6 +3,7 @@ import { Plus } from "lucide-react";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getInvoiceCustomerDisplay } from "./customerDisplay";
 
 export const revalidate = 0;
 
@@ -12,7 +13,7 @@ export default async function AdminInvoicesPage() {
 
   const { data: invoices, error } = await supabase
     .from("invoices")
-    .select("id,invoice_number,status,total_cents,currency,created_at")
+    .select("id,invoice_number,status,total_cents,currency,created_at,customer_snapshot")
     .order("created_at", { ascending: false })
     .limit(200);
 
@@ -45,6 +46,9 @@ export default async function AdminInvoicesPage() {
                     Invoice
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    Customer
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                     Status
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
@@ -59,13 +63,26 @@ export default async function AdminInvoicesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {(invoices ?? []).map((inv) => (
+                {(invoices ?? []).map((inv: any) => (
                   <tr key={inv.id} className="hover:bg-slate-50">
                     <td className="px-6 py-4">
                       <div className="font-mono text-sm text-slate-900">{inv.invoice_number}</div>
                       <div className="mt-1 text-xs text-slate-500">
                         {new Date(inv.created_at).toLocaleString("en-ZA")}
                       </div>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-slate-700">
+                      {(() => {
+                        const display = getInvoiceCustomerDisplay((inv as any).customer_snapshot ?? null);
+                        return (
+                          <>
+                            <div className="text-slate-900">{display.primary}</div>
+                            {display.secondary ? (
+                              <div className="mt-1 text-xs text-slate-500">{display.secondary}</div>
+                            ) : null}
+                          </>
+                        );
+                      })()}
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-700">{inv.status}</td>
                     <td className="px-6 py-4 text-sm font-semibold text-slate-900">

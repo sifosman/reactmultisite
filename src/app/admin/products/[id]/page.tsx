@@ -19,7 +19,11 @@ export default async function AdminEditProductPage({
       .select("id,name,slug,description,price_cents,compare_at_price_cents,active,has_variants,stock_qty")
       .eq("id", id)
       .maybeSingle(),
-    supabase.from("categories").select("id,name,slug").order("name", { ascending: true }),
+    supabase
+      .from("categories")
+      .select("id,name,slug,sort_index")
+      .order("sort_index", { ascending: true, nullsFirst: false })
+      .order("name", { ascending: true }),
     supabase.from("product_categories").select("category_id").eq("product_id", id),
     supabase.from("product_images").select("id,url,sort_order").eq("product_id", id).order("sort_order", { ascending: true }),
   ]);
@@ -53,7 +57,7 @@ export default async function AdminEditProductPage({
           has_variants: product.has_variants,
           stock_qty: (product as any).stock_qty,
         }}
-        categories={(categories ?? []) as { id: string; name: string; slug: string }[]}
+        categories={(categories ?? []) as { id: string; name: string; slug: string; sort_index?: number | null }[]}
         initialCategoryIds={(joins ?? []).map((j) => j.category_id)}
         initialImages={(images ?? []) as Array<{ id: string; url: string; sort_order: number }>}
       />

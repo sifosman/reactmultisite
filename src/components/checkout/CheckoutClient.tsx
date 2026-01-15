@@ -25,6 +25,7 @@ export function CheckoutClient() {
   const [error, setError] = useState<string | null>(null);
 
   const [paymentMethod, setPaymentMethod] = useState<"yoco" | "bank_transfer">("yoco");
+  const [couponCode, setCouponCode] = useState("");
 
   const canSubmit = cart.items.length > 0 && email.length > 3 && line1 && city && province && postalCode;
 
@@ -51,6 +52,7 @@ export function CheckoutClient() {
         variantId: i.variantId,
         qty: i.qty,
       })),
+      couponCode: couponCode.trim() || undefined,
     };
 
     const parsed = createOrderSchema.safeParse(payload);
@@ -314,6 +316,16 @@ export function CheckoutClient() {
                 <span>Shipping</span>
                 <span>{formatZar(SHIPPING_CENTS)}</span>
               </div>
+            </div>
+            <div className="mt-4 space-y-2 text-sm text-zinc-900">
+              <label className="text-sm font-medium">Coupon code (optional)</label>
+              <input
+                className="h-10 w-full rounded-md border bg-white px-3 text-sm"
+                value={couponCode}
+                onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                placeholder="SAVE10"
+              />
+              <p className="text-xs text-zinc-600">Discount will be applied server-side if the code is valid.</p>
             </div>
             <div className="mt-4 rounded-xl border bg-zinc-50 p-4 text-xs text-zinc-600">
               Totals are calculated server-side on order creation.

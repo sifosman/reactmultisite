@@ -7,6 +7,7 @@ type Category = {
   id: string;
   name: string;
   slug: string;
+  sort_index?: number | null;
 };
 
 export function ProductCategoriesEditor({
@@ -29,7 +30,13 @@ export function ProductCategoriesEditor({
   const [createLoading, setCreateLoading] = useState(false);
 
   const sortedCategories = useMemo(() => {
-    return [...categories].sort((a, b) => a.name.localeCompare(b.name));
+    return [...categories].sort((a, b) => {
+      const aIndex = typeof a.sort_index === "number" ? a.sort_index : Number.MAX_SAFE_INTEGER;
+      const bIndex = typeof b.sort_index === "number" ? b.sort_index : Number.MAX_SAFE_INTEGER;
+
+      if (aIndex !== bIndex) return aIndex - bIndex;
+      return a.name.localeCompare(b.name);
+    });
   }, [categories]);
 
   function slugify(name: string) {

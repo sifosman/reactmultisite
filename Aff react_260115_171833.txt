@@ -1,0 +1,12 @@
+Rough list or certain things noticed
+
+1. Category i would like to be able to sort the order, example if I want bags first. Like a option to number
+2. The theme display we discussed on the previous notes, about product display, cart, category when inside how the products are showing to be similar to levions.co.za (I know like now certain things are like not even showing images etc) but just a point
+3. Stock levels to show in front end
+4. Not to be able to order more than whats in stock front end , but back end able to do negative order
+5. I done a test invoice and noticed the stock level did not minus (it must minus simply by invoice even prior to any marking as complete, as its kept aside for that client
+6. When you click to see all invoices customers name to show up so you can see who invoice is for
+7. To be able to mark a invoice as paid or complete, so I know its dispatched 
+8. Reminder we discussed coupon option 
+9. Love the bulk upload function, if can also choose category there and upload multiple images, if possible 
+10. To be able to select multiple images when uploading, now need to upload single press upload, then next

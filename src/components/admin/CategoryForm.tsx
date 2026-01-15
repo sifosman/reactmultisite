@@ -18,6 +18,11 @@ export function CategoryForm({
   const [name, setName] = useState(initial?.name ?? "");
   const [slug, setSlug] = useState(initial?.slug ?? "");
   const [imageUrl, setImageUrl] = useState<string>(initial?.image_url ?? "");
+  const [sortIndex, setSortIndex] = useState<number>(
+    typeof (initial as any)?.sort_index === "number" && (initial as any).sort_index >= 0
+      ? (initial as any).sort_index
+      : 0
+  );
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,8 +32,9 @@ export function CategoryForm({
       name,
       slug,
       image_url: imageUrl ? imageUrl : null,
+      sort_index: sortIndex,
     };
-  }, [name, slug, imageUrl]);
+  }, [name, slug, imageUrl, sortIndex]);
 
   const canSubmit = categoryUpsertSchema.safeParse(payload).success;
 
@@ -121,6 +127,19 @@ export function CategoryForm({
               value={imageUrl}
               onChange={(e) => setImageUrl(e.target.value)}
               placeholder="https://..."
+            />
+          </div>
+          <div className="space-y-2 sm:col-span-2">
+            <label className="text-sm font-medium">Sort order</label>
+            <input
+              className="h-10 w-full rounded-md border px-3 text-sm"
+              type="number"
+              min={0}
+              value={sortIndex}
+              onChange={(e) => {
+                const next = Number(e.target.value);
+                setSortIndex(Number.isFinite(next) && next >= 0 ? next : 0);
+              }}
             />
           </div>
         </div>

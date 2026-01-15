@@ -29,7 +29,8 @@ export async function GET() {
   const supabaseAdmin = createSupabaseAdminClient();
   const { data, error } = await supabaseAdmin
     .from("categories")
-    .select("id,name,slug")
+    .select("id,name,slug,sort_index")
+    .order("sort_index", { ascending: true, nullsFirst: false })
     .order("name", { ascending: true });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

@@ -18,11 +18,14 @@ export function AddToCart({
   productHasVariants,
   basePriceCents,
   variants,
+  simpleProductStockQty,
 }: {
   productId: string;
   productHasVariants: boolean;
   basePriceCents: number;
   variants: AddToCartVariant[];
+  // For simple products (no variants), optional stock quantity to enforce a max qty on the frontend
+  simpleProductStockQty?: number | null;
 }) {
   const [selectedAttrs, setSelectedAttrs] = useState<Record<string, string>>({});
   const [qty, setQty] = useState(1);
@@ -74,7 +77,20 @@ export function AddToCart({
 
   const isSelectedVariantInStock = selectedVariant ? selectedVariant.stock_qty > 0 : false;
 
-  const canAdd = isVariantRequired ? Boolean(selectedVariant && isSelectedVariantInStock) : true;
+  const maxSelectableQty = useMemo(() => {
+    if (isVariantRequired) {
+      return selectedVariant ? Math.max(0, Math.floor(selectedVariant.stock_qty)) : 0;
+    }
+    if (typeof simpleProductStockQty === "number") {
+      return Math.max(0, Math.floor(simpleProductStockQty));
+    }
+    // If stock not provided for simple products, do not cap client-side
+    return Number.POSITIVE_INFINITY;
+  }, [isVariantRequired, selectedVariant, simpleProductStockQty]);
+
+  const canAdd = isVariantRequired
+    ? Boolean(selectedVariant && maxSelectableQty > 0)
+    : maxSelectableQty > 0;
 
   const effectivePriceCents = (selectedVariant?.price_cents_override ?? basePriceCents) as number;
 
@@ -82,7 +98,10 @@ export function AddToCart({
     setAdded(false);
 
     const variantId = selectedVariant ? selectedVariant.id : null;
-    addToGuestCart({ productId, variantId, qty });
+    const cappedQty = maxSelectableQty === Number.POSITIVE_INFINITY
+      ? qty
+      : Math.max(1, Math.min(qty, maxSelectableQty));
+    addToGuestCart({ productId, variantId, qty: cappedQty }, maxSelectableQty);
 
     setAdded(true);
     window.setTimeout(() => setAdded(false), 1500);
@@ -175,7 +194,13 @@ export function AddToCart({
           <input
             className="h-10 w-full rounded-md border px-3 text-sm"
             value={qty}
-            onChange={(e) => setQty(Math.max(1, Math.floor(Number(e.target.value) || 1)))}
+            onChange={(e) => {
+              const next = Math.max(1, Math.floor(Number(e.target.value) || 1));
+              const capped = maxSelectableQty === Number.POSITIVE_INFINITY
+                ? next
+                : Math.min(next, maxSelectableQty || 1);
+              setQty(capped);
+            }}
             type="number"
             min={1}
           />

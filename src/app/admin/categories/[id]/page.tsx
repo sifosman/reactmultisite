@@ -15,7 +15,7 @@ export default async function AdminEditCategoryPage({
   const supabase = await createSupabaseServerClient();
   const { data: category, error } = await supabase
     .from("categories")
-    .select("id,name,slug,image_url")
+    .select("id,name,slug,image_url,sort_index")
     .eq("id", id)
     .maybeSingle();
 
@@ -36,6 +36,7 @@ export default async function AdminEditCategoryPage({
           name: category.name,
           slug: category.slug,
           image_url: category.image_url,
+          sort_index: (category as any).sort_index ?? 0,
         }}
       />
     </AdminShell>
