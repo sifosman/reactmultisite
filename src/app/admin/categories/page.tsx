@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Plus, Search, Edit, Trash2, Eye, FolderOpen, ExternalLink } from "lucide-react";
 import { AdminShell } from "@/components/admin/AdminShell";
+import { CategorySortManager } from "@/components/admin/CategorySortManager";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -112,6 +113,8 @@ export default async function AdminCategoriesPage() {
           </Link>
         </div>
       )}
+
+      <CategorySortManager categories={(categories ?? []) as Array<{ id: string; name: string; slug: string; sort_index: number | null; created_at?: string | null }>} />
     </AdminShell>
   );
 }

@@ -4,15 +4,33 @@ import { createPublicSupabaseServerClient } from "@/lib/storefront/publicClient"
 
 export const revalidate = 60;
 
-export default async function CategoriesPage() {
+export default async function CategoriesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ sort?: string }>;
+}) {
+  const params = await searchParams;
+  const sort = typeof params.sort === "string" ? params.sort : "featured";
   const supabase = await createPublicSupabaseServerClient();
 
-  const { data: categories, error } = await supabase
+  let builder = supabase
     .from("categories")
-    .select("id,name,slug,image_url,sort_index")
-    .order("sort_index", { ascending: true, nullsFirst: false })
-    .order("created_at", { ascending: false })
+    .select("id,name,slug,image_url,sort_index,created_at")
     .limit(200);
+
+  if (sort === "name-asc") {
+    builder = builder.order("name", { ascending: true });
+  } else if (sort === "name-desc") {
+    builder = builder.order("name", { ascending: false });
+  } else if (sort === "newest") {
+    builder = builder.order("created_at", { ascending: false });
+  } else {
+    builder = builder
+      .order("sort_index", { ascending: true, nullsFirst: false })
+      .order("created_at", { ascending: false });
+  }
+
+  const { data: categories, error } = await builder;
 
   return (
     <main className="min-h-screen bg-zinc-50">
@@ -47,6 +65,31 @@ export default async function CategoriesPage() {
 
       {/* Categories Grid */}
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-zinc-600">{(categories ?? []).length} categories</p>
+          <form className="flex items-center gap-2" action="/categories" method="get">
+            <label className="text-sm font-medium text-zinc-700" htmlFor="category-sort">
+              Sort by
+            </label>
+            <select
+              id="category-sort"
+              name="sort"
+              defaultValue={sort}
+              className="h-10 rounded-full border bg-white px-3 text-sm text-zinc-700"
+            >
+              <option value="featured">Featured</option>
+              <option value="name-asc">Name (A-Z)</option>
+              <option value="name-desc">Name (Z-A)</option>
+              <option value="newest">Newest</option>
+            </select>
+            <button
+              type="submit"
+              className="h-10 rounded-full bg-zinc-900 px-4 text-sm font-medium text-white"
+            >
+              Apply
+            </button>
+          </form>
+        </div>
         {(categories ?? []).length > 0 ? (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {(categories ?? []).map((c, idx) => (
