@@ -53,11 +53,11 @@ export function UserMenu() {
   if (loading) {
     return (
       <button
-        className="hidden h-10 w-10 items-center justify-center rounded-full border bg-white sm:inline-flex"
+        className="hidden h-10 w-10 items-center justify-center rounded-full border bg-white text-zinc-900 sm:inline-flex"
         aria-label="Account"
         disabled
       >
-        <User className="h-4 w-4 text-zinc-400" />
+        <User className="h-4 w-4 text-zinc-900" />
       </button>
     );
   }
@@ -66,11 +66,11 @@ export function UserMenu() {
     <div ref={menuRef} className="relative hidden sm:block">
       <button
         onClick={() => setOpen(!open)}
-        className="flex h-10 items-center gap-1.5 rounded-full border bg-white px-3 hover:bg-zinc-50"
+        className="flex h-10 items-center gap-1.5 rounded-full border bg-white px-3 text-zinc-900 hover:bg-zinc-50"
         aria-label="Account menu"
       >
-        <User className="h-4 w-4" />
-        <ChevronDown className="h-3 w-3 text-zinc-600" />
+        <User className="h-4 w-4 text-zinc-900" />
+        <ChevronDown className="h-3 w-3 text-zinc-900" />
       </button>
 
       {open && (
@@ -104,7 +104,7 @@ export function UserMenu() {
               <Link
                 href="/login"
                 onClick={() => setOpen(false)}
-                className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-zinc-100"
+                className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-zinc-900 hover:bg-zinc-100"
               >
                 <User className="h-4 w-4" />
                 Log in
@@ -112,7 +112,7 @@ export function UserMenu() {
               <Link
                 href="/register"
                 onClick={() => setOpen(false)}
-                className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-zinc-100"
+                className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-zinc-900 hover:bg-zinc-100"
               >
                 <User className="h-4 w-4" />
                 Register

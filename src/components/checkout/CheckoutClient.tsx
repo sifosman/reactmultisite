@@ -108,25 +108,26 @@ export function CheckoutClient() {
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <div className="text-xs font-semibold tracking-wide text-zinc-800">Checkout</div>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight">Details</h1>
-          <div className="mt-2 text-sm text-zinc-800">Shipping is always {formatZar(SHIPPING_CENTS)}.</div>
+    <main className="min-h-screen bg-white">
+      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <div className="text-xs font-semibold tracking-wide text-black">Checkout</div>
+            <h1 className="mt-1 text-3xl font-semibold tracking-tight text-black">Details</h1>
+            <div className="mt-2 text-sm text-black">Shipping is always {formatZar(SHIPPING_CENTS)}.</div>
+          </div>
+          <div className="flex items-center gap-2 text-sm">
+            <div className="rounded-full bg-black px-3 py-1.5 font-semibold text-white">1. Details</div>
+            <div className="rounded-full border bg-white px-3 py-1.5 text-zinc-600">2. Payment</div>
+          </div>
         </div>
-        <div className="flex items-center gap-2 text-sm">
-          <div className="rounded-full bg-black px-3 py-1.5 font-semibold text-white">1. Details</div>
-          <div className="rounded-full border bg-white px-3 py-1.5 text-zinc-600">2. Payment</div>
-        </div>
-      </div>
 
-      {cart.items.length === 0 ? (
-        <div className="mt-10 rounded-2xl border bg-white p-6 text-sm text-zinc-600 shadow-sm">
-          Your cart is empty.
-        </div>
-      ) : (
-        <form onSubmit={onSubmit} className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {cart.items.length === 0 ? (
+          <div className="mt-10 rounded-2xl border bg-white p-6 text-sm text-zinc-600 shadow-sm">
+            Your cart is empty.
+          </div>
+        ) : (
+          <form onSubmit={onSubmit} className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-6">
             <section className="rounded-2xl border bg-white p-5 text-zinc-900 shadow-sm">
               <div className="text-sm font-semibold">Contact</div>
@@ -331,8 +332,9 @@ export function CheckoutClient() {
               Totals are calculated server-side on order creation.
             </div>
           </aside>
-        </form>
-      )}
+          </form>
+        )}
+      </div>
     </main>
   );
 }

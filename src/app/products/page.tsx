@@ -5,13 +5,63 @@ import { ProductCard } from "@/components/storefront/ProductCard";
 
 export const revalidate = 60;
 
+function normalizeAttrKey(name: string) {
+  const normalized = name.trim().toLowerCase().replace(/\s+/g, "-");
+  return normalized === "colour" ? "color" : normalized;
+}
+
+function toNumber(input: string | undefined) {
+  if (!input) return null;
+  const value = Number(input);
+  return Number.isFinite(value) ? value : null;
+}
+
+function normalizeAttributeValues(value: unknown) {
+  if (Array.isArray(value)) {
+    return value
+      .map((entry) => (typeof entry === "string" ? entry.trim() : String(entry)))
+      .filter((entry) => entry.length > 0);
+  }
+
+  if (typeof value === "string") {
+    return value
+      .split(",")
+      .map((entry) => entry.trim())
+      .filter((entry) => entry.length > 0);
+  }
+
+  if (typeof value === "number" || typeof value === "boolean") {
+    return [String(value)];
+  }
+
+  return [];
+}
+
 export default async function ProductsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{
+    q?: string;
+    size?: string;
+    color?: string;
+    minPrice?: string;
+    maxPrice?: string;
+    [key: string]: string | undefined;
+  }>;
 }) {
-  const { q } = await searchParams;
+  const params = await searchParams;
+  const { q, size, color, minPrice, maxPrice } = params;
   const query = typeof q === "string" ? q.trim() : "";
+  const sizeFilter = typeof size === "string" ? size : "";
+  const colorFilter = typeof color === "string" ? color : "";
+  const minPriceValue = toNumber(typeof minPrice === "string" ? minPrice : undefined);
+  const maxPriceValue = toNumber(typeof maxPrice === "string" ? maxPrice : undefined);
+  const otherFilters = Object.entries(params)
+    .filter(([key, value]) => key.startsWith("attr_") && typeof value === "string" && value.trim())
+    .reduce<Record<string, string>>((acc, [key, value]) => {
+      acc[key.replace("attr_", "")] = value as string;
+      return acc;
+    }, {});
 
   const supabase = await createPublicSupabaseServerClient();
 
@@ -38,6 +88,83 @@ export default async function ProductsPage({
       </main>
     );
   }
+
+  const productIds = (products ?? []).map((p) => p.id);
+  const { data: variants, error: variantError } = productIds.length
+    ? await supabase
+        .from("product_variants")
+        .select("product_id,attributes")
+        .in("product_id", productIds)
+        .eq("active", true)
+    : { data: [], error: null };
+
+  if (variantError) {
+    return (
+      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <h1 className="text-2xl font-semibold">Products</h1>
+        <div className="mt-6 rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          {variantError.message}
+        </div>
+      </main>
+    );
+  }
+
+  const attributesMap = new Map<string, { label: string; values: Set<string> }>();
+  const variantsByProduct = new Map<string, Array<Record<string, string[]>>>();
+
+  (variants ?? []).forEach((variant) => {
+    const rawAttributes = (variant.attributes ?? {}) as Record<string, unknown>;
+    const normalizedAttributes: Record<string, string[]> = {};
+
+    Object.entries(rawAttributes).forEach(([key, value]) => {
+      const normalizedValues = normalizeAttributeValues(value);
+      if (normalizedValues.length === 0) return;
+      const normalizedKey = normalizeAttrKey(key);
+      normalizedAttributes[normalizedKey] = normalizedValues;
+
+      const existing = attributesMap.get(normalizedKey) ?? {
+        label: key.trim(),
+        values: new Set<string>(),
+      };
+      normalizedValues.forEach((entry) => existing.values.add(entry));
+      attributesMap.set(normalizedKey, existing);
+    });
+
+    if (Object.keys(normalizedAttributes).length > 0) {
+      const list = variantsByProduct.get(variant.product_id) ?? [];
+      list.push(normalizedAttributes);
+      variantsByProduct.set(variant.product_id, list);
+    }
+  });
+
+  const sizeAttribute = attributesMap.get("size");
+  const colorAttribute = attributesMap.get("color");
+  const otherAttributes = Array.from(attributesMap.entries())
+    .filter(([key]) => key !== "size" && key !== "color")
+    .map(([key, value]) => ({ key, ...value }))
+    .sort((a, b) => a.label.localeCompare(b.label));
+
+  const filteredProducts = (products ?? []).filter((product) => {
+    if (minPriceValue !== null && product.price_cents < minPriceValue * 100) return false;
+    if (maxPriceValue !== null && product.price_cents > maxPriceValue * 100) return false;
+
+    const variantsForProduct = variantsByProduct.get(product.id) ?? [];
+    if (sizeFilter && !variantsForProduct.some((attrs) => attrs.size?.includes(sizeFilter))) return false;
+    if (colorFilter && !variantsForProduct.some((attrs) => attrs.color?.includes(colorFilter))) return false;
+
+    for (const [key, value] of Object.entries(otherFilters)) {
+      if (!variantsForProduct.some((attrs) => attrs[key]?.includes(value))) return false;
+    }
+
+    return true;
+  });
+
+  const hasFilters =
+    Boolean(sizeFilter || colorFilter) ||
+    minPriceValue !== null ||
+    maxPriceValue !== null ||
+    Object.keys(otherFilters).length > 0;
+  const clearFiltersHref = query ? `/products?q=${encodeURIComponent(query)}` : "/products";
 
   return (
     <main className="min-h-screen bg-zinc-50">
@@ -85,10 +212,132 @@ export default async function ProductsPage({
 
       {/* Products Section */}
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+        {/* Filters */}
+        <div className="mb-8 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-zinc-900">Filter products</h2>
+              <p className="mt-1 text-sm text-zinc-600">
+                Narrow results by size, color, price, and product attributes.
+              </p>
+            </div>
+            {hasFilters ? (
+              <Link
+                href={clearFiltersHref}
+                className="rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50"
+              >
+                Clear filters
+              </Link>
+            ) : null}
+          </div>
+
+          <form method="get" className="mt-6 grid gap-4 lg:grid-cols-5">
+            {query ? <input type="hidden" name="q" value={query} /> : null}
+
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Size</label>
+              <select
+                name="size"
+                defaultValue={sizeFilter}
+                className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-700"
+              >
+                <option value="">All sizes</option>
+                {Array.from(sizeAttribute?.values ?? [])
+                  .sort((a, b) => a.localeCompare(b))
+                  .map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Color</label>
+              <select
+                name="color"
+                defaultValue={colorFilter}
+                className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-700"
+              >
+                <option value="">All colors</option>
+                {Array.from(colorAttribute?.values ?? [])
+                  .sort((a, b) => a.localeCompare(b))
+                  .map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Min price</label>
+              <input
+                name="minPrice"
+                type="number"
+                min="0"
+                step="1"
+                defaultValue={minPriceValue ?? undefined}
+                placeholder="0"
+                className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-700"
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Max price</label>
+              <input
+                name="maxPrice"
+                type="number"
+                min="0"
+                step="1"
+                defaultValue={maxPriceValue ?? undefined}
+                placeholder="5000"
+                className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-700"
+              />
+            </div>
+
+            <div className="flex items-end">
+              <button
+                type="submit"
+                className="w-full rounded-full bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-zinc-800"
+              >
+                Apply filters
+              </button>
+            </div>
+
+            {otherAttributes.length > 0 ? (
+              <div className="lg:col-span-5">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {otherAttributes.map((attr) => (
+                    <div key={attr.key} className="flex flex-col gap-2">
+                      <label className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+                        {attr.label}
+                      </label>
+                      <select
+                        name={`attr_${attr.key}`}
+                        defaultValue={otherFilters[attr.key] ?? ""}
+                        className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-700"
+                      >
+                        <option value="">All {attr.label}</option>
+                        {Array.from(attr.values)
+                          .sort((a, b) => a.localeCompare(b))
+                          .map((value) => (
+                            <option key={value} value={value}>
+                              {value}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </form>
+        </div>
         {/* Toolbar */}
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-zinc-600">
-            Showing <span className="font-medium text-zinc-900">{(products ?? []).length}</span> products
+            Showing <span className="font-medium text-zinc-900">{filteredProducts.length}</span> products
           </p>
           
           <div className="flex items-center gap-4">
@@ -116,9 +365,9 @@ export default async function ProductsPage({
         </div>
 
         {/* Products Grid */}
-        {(products ?? []).length > 0 ? (
+        {filteredProducts.length > 0 ? (
           <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
-            {(products ?? []).map((p) => {
+            {filteredProducts.map((p) => {
               const imgs = (p.product_images ?? []) as Array<{ url: string; sort_order: number | null }>;
               const first = imgs
                 .slice()
@@ -143,19 +392,21 @@ export default async function ProductsPage({
             </div>
             <h3 className="mt-4 text-lg font-semibold text-zinc-900">No products found</h3>
             <p className="mt-2 text-sm text-zinc-600">
-              {query ? "Try a different search term" : "Products will appear here once added"}
+              {query || hasFilters
+              ? "Try adjusting your filters or search term"
+              : "Products will appear here once added"}
             </p>
             <Link 
-              href="/categories"
+              href={clearFiltersHref}
               className="mt-6 rounded-full bg-zinc-900 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-zinc-800"
             >
-              Browse categories
+              Reset filters
             </Link>
           </div>
         )}
 
         {/* Load More placeholder */}
-        {(products ?? []).length >= 24 && (
+        {filteredProducts.length >= 24 && (
           <div className="mt-12 text-center">
             <button className="rounded-full border-2 border-zinc-200 bg-white px-8 py-3 text-sm font-semibold text-zinc-900 transition hover:border-zinc-300 hover:bg-zinc-50">
               Load more products

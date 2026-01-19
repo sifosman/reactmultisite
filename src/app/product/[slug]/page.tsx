@@ -4,6 +4,7 @@ import { createPublicSupabaseServerClient } from "@/lib/storefront/publicClient"
 import { AddToCart } from "@/components/cart/AddToCart";
 import type { AddToCartVariant } from "@/components/cart/AddToCart";
 import { ProductGallery } from "@/components/storefront/ProductGallery";
+import { ScrollToTop } from "@/components/site/ScrollToTop";
 import { getSimpleProductStockMessage } from "../stockMessage";
 
 export const revalidate = 60;
@@ -18,13 +19,16 @@ export default async function ProductPage({
 
   const { data: product, error } = await supabase
     .from("products")
-    .select("id,name,slug,description,price_cents,compare_at_price_cents,has_variants,stock_qty")
+    .select(
+      "id,name,slug,description,price_cents,compare_at_price_cents,has_variants,stock_qty,product_images(id,url,sort_order)"
+    )
     .eq("slug", slug)
     .eq("active", true)
     .maybeSingle();
 
   if (error) {
-    throw new Error(error.message);
+    console.error("Error fetching product:", error);
+    notFound();
   }
 
   if (!product) {
@@ -35,19 +39,22 @@ export default async function ProductPage({
     product.compare_at_price_cents != null &&
     product.compare_at_price_cents > product.price_cents;
 
-  const [{ data: images }, { data: variants }] = await Promise.all([
-    supabase
-      .from("product_images")
-      .select("id,url,sort_order")
-      .eq("product_id", product.id)
-      .order("sort_order", { ascending: true }),
-    supabase
-      .from("product_variants")
-      .select("id,sku,name,price_cents_override,stock_qty,attributes")
-      .eq("product_id", product.id)
-      .eq("active", true)
-      .order("sku", { ascending: true }),
-  ]);
+  const { data: variants } = await supabase
+    .from("product_variants")
+    .select("id,sku,name,price_cents_override,stock_qty,attributes")
+    .eq("product_id", product.id)
+    .eq("active", true)
+    .order("sku", { ascending: true });
+
+  const galleryImages = ((product as any).product_images ?? []) as Array<{
+    id: string;
+    url: string;
+    sort_order: number | null;
+  }>;
+  const orderedGalleryImages = galleryImages
+    .slice()
+    .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+    .map(({ id, url }) => ({ id, url }));
 
   const price = (product.price_cents / 100).toFixed(2);
   const compareAt = product.compare_at_price_cents
@@ -66,24 +73,26 @@ export default async function ProductPage({
     : null;
 
   return (
-    <main className="mx-auto max-w-6xl p-6">
-      <nav className="text-sm text-zinc-800" aria-label="Breadcrumb">
-        <Link className="hover:underline" href="/products">
-          Products
-        </Link>
-        <span className="mx-2">/</span>
-        <span className="font-medium text-zinc-900">{product.name}</span>
-      </nav>
+    <main className="min-h-screen bg-white">
+      <div className="mx-auto max-w-6xl p-6">
+        <ScrollToTop />
+        <nav className="text-sm text-zinc-800" aria-label="Breadcrumb">
+          <Link className="hover:underline" href="/products">
+            Products
+          </Link>
+          <span className="mx-2">/</span>
+          <span className="font-medium text-zinc-900">{product.name}</span>
+        </nav>
 
-      <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-12">
-        <div className="lg:col-span-7">
-          <ProductGallery images={(images ?? []) as Array<{ id: string; url: string }>} alt={product.name} />
-        </div>
+        <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-12">
+          <div className="lg:col-span-7">
+            <ProductGallery images={orderedGalleryImages} alt={product.name} />
+          </div>
 
-        <div className="lg:col-span-5">
-          <div className="rounded-2xl border bg-white p-6 text-zinc-900 shadow-sm">
-            <div className="text-xs font-semibold tracking-wide text-zinc-800">Product</div>
-            <h1 className="mt-2 text-2xl font-semibold tracking-tight">{product.name}</h1>
+          <div className="lg:col-span-5">
+            <div className="rounded-2xl border bg-white p-6 text-zinc-900 shadow-sm">
+              <div className="text-xs font-semibold tracking-wide text-zinc-800">Product</div>
+              <h1 className="mt-2 text-2xl font-semibold tracking-tight">{product.name}</h1>
 
             <div className="mt-4 flex flex-wrap items-center gap-3">
               {isOnSale ? (
@@ -145,6 +154,7 @@ export default async function ProductPage({
             <Link className="flex-1 rounded-full bg-black px-4 py-2 text-center text-sm text-white" href="/cart">
               View cart
             </Link>
+          </div>
           </div>
         </div>
       </div>

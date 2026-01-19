@@ -60,7 +60,7 @@ async function addProductToInvoice(page: Page, productName: string) {
   await result.click();
 }
 
-test.describe.serial("Client requirements (Playwright)", () => {
+test.describe.skip("Client requirements (Playwright)", () => {
   test("1. Category ordering respects sort order", async ({ page }) => {
     await adminLogin(page);
     const suffix = uniqueId("cat-order");

@@ -174,14 +174,14 @@ export function CartDrawer({
 
       <aside className="absolute right-0 top-0 flex h-full w-full max-w-[420px] flex-col bg-white shadow-2xl">
         <div className="flex items-center justify-between border-b px-5 py-4">
-          <div className="text-sm font-semibold">Cart</div>
+          <div className="text-sm font-semibold text-black">Cart</div>
           <button
             type="button"
             aria-label="Close"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full border bg-white hover:bg-zinc-50"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-zinc-200 bg-white text-black hover:bg-zinc-50"
             onClick={onClose}
           >
-            <X className="h-4 w-4" />
+            <X className="h-4 w-4 text-black" />
           </button>
         </div>
 

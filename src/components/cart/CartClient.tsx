@@ -126,33 +126,34 @@ export function CartClient() {
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <div className="text-xs font-semibold tracking-wide text-zinc-800">Checkout</div>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight">Cart</h1>
-          <div className="mt-2 text-sm text-zinc-800">Premium checkout. ZAR only.</div>
+    <main className="min-h-screen bg-white">
+      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <div className="text-xs font-semibold tracking-wide text-black">Checkout</div>
+            <h1 className="mt-1 text-3xl font-semibold tracking-tight text-black">Cart</h1>
+            <div className="mt-2 text-sm text-black">Premium checkout. ZAR only.</div>
+          </div>
+          <div className="flex gap-2">
+            <Link className="rounded-full border bg-white px-4 py-2 text-sm text-zinc-900 hover:bg-zinc-50" href="/products">
+              Continue shopping
+            </Link>
+            <button
+              className="rounded-full border bg-white px-4 py-2 text-sm text-zinc-900 hover:bg-zinc-50"
+              type="button"
+              onClick={onClear}
+            >
+              Clear
+            </button>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Link className="rounded-full border bg-white px-4 py-2 text-sm text-zinc-900 hover:bg-zinc-50" href="/products">
-            Continue shopping
-          </Link>
-          <button
-            className="rounded-full border bg-white px-4 py-2 text-sm text-zinc-900 hover:bg-zinc-50"
-            type="button"
-            onClick={onClear}
-          >
-            Clear
-          </button>
-        </div>
-      </div>
 
-      {lines.length === 0 ? (
-        <div className="mt-10 rounded-2xl border bg-white p-6 text-sm text-zinc-900 shadow-sm">
-          Your cart is empty.
-        </div>
-      ) : (
-        <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {lines.length === 0 ? (
+          <div className="mt-10 rounded-2xl border bg-white p-6 text-sm text-zinc-900 shadow-sm">
+            Your cart is empty.
+          </div>
+        ) : (
+          <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
           <section className="lg:col-span-2 space-y-3">
             {lines.map((l) => {
               const unit = (l.unitPriceCents / 100).toFixed(2);
@@ -229,8 +230,9 @@ export function CartClient() {
               Checkout
             </Link>
           </aside>
-        </div>
-      )}
+          </div>
+        )}
+      </div>
     </main>
   );
 }

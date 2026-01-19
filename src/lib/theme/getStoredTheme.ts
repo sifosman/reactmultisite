@@ -12,7 +12,7 @@ export async function getStoredTheme(): Promise<Theme> {
       .maybeSingle();
 
     if (error) {
-      console.error("Error fetching theme:", error);
+      console.warn("Error fetching theme:", error);
       return "default";
     }
 
@@ -24,7 +24,7 @@ export async function getStoredTheme(): Promise<Theme> {
 
     return "default";
   } catch (error) {
-    console.error("Error in getStoredTheme:", error);
+    console.warn("Error in getStoredTheme:", error);
     return "default";
   }
 }
