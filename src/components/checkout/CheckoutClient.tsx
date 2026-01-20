@@ -1,11 +1,27 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PROVINCES } from "@/lib/shipping/provinces";
 import { useRouter } from "next/navigation";
 import { createOrderSchema } from "@/lib/checkout/schemas";
 import { readGuestCart, clearGuestCart } from "@/lib/cart/storage";
 import { SHIPPING_CENTS, formatZar } from "@/lib/money/zar";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+
+type ProductRow = {
+  id: string;
+  name: string;
+  price_cents: number;
+};
+
+type VariantRow = {
+  id: string;
+  product_id: string;
+  sku: string;
+  name: string | null;
+  price_cents_override: number | null;
+  attributes: unknown;
+};
 
 export function CheckoutClient() {
   const router = useRouter();
@@ -26,8 +42,79 @@ export function CheckoutClient() {
 
   const [paymentMethod, setPaymentMethod] = useState<"yoco" | "bank_transfer">("yoco");
   const [couponCode, setCouponCode] = useState("");
+  const [productsById, setProductsById] = useState<Record<string, ProductRow>>({});
+  const [variantsById, setVariantsById] = useState<Record<string, VariantRow>>({});
 
-  const canSubmit = cart.items.length > 0 && email.length > 3 && line1 && city && province && postalCode;
+  useEffect(() => {
+    async function load() {
+      const supabase = createSupabaseBrowserClient();
+
+      const productIds = Array.from(new Set(cart.items.map((i) => i.productId)));
+      const variantIds = Array.from(new Set(cart.items.map((i) => i.variantId).filter(Boolean))) as string[];
+
+      if (productIds.length > 0) {
+        const { data: products } = await supabase
+          .from("products")
+          .select("id,name,price_cents")
+          .in("id", productIds)
+          .eq("active", true);
+
+        const next: Record<string, ProductRow> = {};
+        (products ?? []).forEach((p) => {
+          next[p.id] = p;
+        });
+        setProductsById(next);
+      }
+
+      if (variantIds.length > 0) {
+        const { data: variants } = await supabase
+          .from("product_variants")
+          .select("id,product_id,sku,name,price_cents_override,attributes")
+          .in("id", variantIds)
+          .eq("active", true);
+
+        const next: Record<string, VariantRow> = {};
+        (variants ?? []).forEach((v) => {
+          next[v.id] = v;
+        });
+        setVariantsById(next);
+      }
+    }
+
+    if (cart.items.length > 0) {
+      void load();
+    }
+  }, [cart.items]);
+
+  const cartLines = useMemo(() => {
+    return cart.items.map((item) => {
+      const product = productsById[item.productId] ?? null;
+      const variant = item.variantId ? variantsById[item.variantId] ?? null : null;
+      const unitPriceCents = variant?.price_cents_override ?? product?.price_cents ?? 0;
+      const lineTotalCents = unitPriceCents * item.qty;
+      return {
+        key: `${item.productId}:${item.variantId ?? "_"}`,
+        item,
+        product,
+        variant,
+        unitPriceCents,
+        lineTotalCents,
+      };
+    });
+  }, [cart.items, productsById, variantsById]);
+
+  const subtotalCents = cartLines.reduce((sum, l) => sum + l.lineTotalCents, 0);
+  const totalCents = subtotalCents + (cartLines.length > 0 ? SHIPPING_CENTS : 0);
+
+  const canSubmit =
+    cart.items.length > 0 &&
+    email.length > 3 &&
+    fullName.trim().length > 0 &&
+    phone.trim().length > 4 &&
+    line1 &&
+    city &&
+    province &&
+    postalCode;
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -36,8 +123,8 @@ export function CheckoutClient() {
     const payload = {
       customer: {
         email,
-        name: fullName || undefined,
-        phone: phone || undefined,
+        name: fullName,
+        phone,
       },
       shippingAddress: {
         line1,
@@ -131,9 +218,12 @@ export function CheckoutClient() {
           <div className="lg:col-span-2 space-y-6">
             <section className="rounded-2xl border bg-white p-5 text-zinc-900 shadow-sm">
               <div className="text-sm font-semibold">Contact</div>
+              <div className="mt-1 text-xs text-zinc-500">Fields marked with * are required.</div>
               <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 text-zinc-900">
                 <div className="space-y-2 sm:col-span-2">
-                  <label className="text-sm font-medium text-zinc-900">Email</label>
+                  <label className="text-sm font-medium text-zinc-900">
+                    Email <span className="text-red-500">*</span>
+                  </label>
                   <input
                     className="h-11 w-full rounded-md border bg-white px-3 text-sm text-zinc-900"
                     value={email}
@@ -143,21 +233,27 @@ export function CheckoutClient() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-zinc-900">Full name (optional)</label>
+                  <label className="text-sm font-medium text-zinc-900">
+                    Full name <span className="text-red-500">*</span>
+                  </label>
                   <input
                     className="h-11 w-full rounded-md border bg-white px-3 text-sm text-zinc-900"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     type="text"
+                    required
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-zinc-900">Phone (optional)</label>
+                  <label className="text-sm font-medium text-zinc-900">
+                    Phone <span className="text-red-500">*</span>
+                  </label>
                   <input
                     className="h-11 w-full rounded-md border bg-white px-3 text-sm text-zinc-900"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     type="tel"
+                    required
                   />
                 </div>
               </div>
@@ -233,9 +329,12 @@ export function CheckoutClient() {
 
             <section className="rounded-2xl border bg-white p-5 text-zinc-900 shadow-sm">
               <div className="text-sm font-semibold text-zinc-900">Shipping address</div>
+              <div className="mt-1 text-xs text-zinc-500">Fields marked with * are required.</div>
               <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 text-zinc-900">
                 <div className="space-y-2 sm:col-span-2">
-                  <label className="text-sm font-medium text-zinc-900">Address line 1</label>
+                  <label className="text-sm font-medium text-zinc-900">
+                    Address line 1 <span className="text-red-500">*</span>
+                  </label>
                   <input
                     className="h-11 w-full rounded-md border bg-white px-3 text-sm text-zinc-900"
                     value={line1}
@@ -252,7 +351,9 @@ export function CheckoutClient() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-zinc-900">City</label>
+                  <label className="text-sm font-medium text-zinc-900">
+                    City <span className="text-red-500">*</span>
+                  </label>
                   <input
                     className="h-11 w-full rounded-md border bg-white px-3 text-sm text-zinc-900"
                     value={city}
@@ -261,7 +362,9 @@ export function CheckoutClient() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-zinc-900">Province</label>
+                  <label className="text-sm font-medium text-zinc-900">
+                    Province <span className="text-red-500">*</span>
+                  </label>
                   <select
                     className="h-11 w-full rounded-md border bg-white px-3 text-sm text-zinc-900"
                     value={province}
@@ -279,7 +382,9 @@ export function CheckoutClient() {
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-zinc-900">Postal code</label>
+                  <label className="text-sm font-medium text-zinc-900">
+                    Postal code <span className="text-red-500">*</span>
+                  </label>
                   <input
                     className="h-11 w-full rounded-md border bg-white px-3 text-sm text-zinc-900"
                     value={postalCode}
@@ -312,10 +417,53 @@ export function CheckoutClient() {
 
           <aside className="rounded-2xl border bg-white p-5 shadow-sm lg:sticky lg:top-24">
             <div className="text-sm font-semibold text-zinc-900">Order summary</div>
-            <div className="mt-4 space-y-2 text-sm text-zinc-900">
+            <div className="mt-4 space-y-3 text-sm text-zinc-900">
+              {cartLines.length === 0 ? (
+                <div className="text-xs text-zinc-500">Your cart is empty.</div>
+              ) : (
+                cartLines.map((line) => {
+                  const variantName = line.variant?.name ?? line.variant?.sku ?? "";
+                  const attrs = (line.variant?.attributes ?? {}) as Record<string, unknown>;
+                  const attrText = Object.keys(attrs)
+                    .sort()
+                    .map((k) => `${k}: ${String(attrs[k])}`)
+                    .join(" • ");
+
+                  return (
+                    <div key={line.key} className="space-y-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="text-sm font-medium text-zinc-900">
+                            {line.product?.name ?? "Product"}
+                          </div>
+                          {variantName || attrText ? (
+                            <div className="text-xs text-zinc-500">
+                              {[variantName, attrText].filter(Boolean).join(" • ")}
+                            </div>
+                          ) : null}
+                        </div>
+                        <div className="text-sm font-semibold text-zinc-900">
+                          {formatZar(line.lineTotalCents)}
+                        </div>
+                      </div>
+                      <div className="text-xs text-zinc-500">Qty {line.item.qty}</div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+            <div className="mt-5 space-y-2 text-sm text-zinc-900">
+              <div className="flex justify-between">
+                <span>Subtotal</span>
+                <span>{formatZar(subtotalCents)}</span>
+              </div>
               <div className="flex justify-between">
                 <span>Shipping</span>
-                <span>{formatZar(SHIPPING_CENTS)}</span>
+                <span>{formatZar(cartLines.length > 0 ? SHIPPING_CENTS : 0)}</span>
+              </div>
+              <div className="flex justify-between font-semibold text-zinc-900">
+                <span>Total</span>
+                <span>{formatZar(totalCents)}</span>
               </div>
             </div>
             <div className="mt-4 space-y-2 text-sm text-zinc-900">

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ChevronRight, Grid3X3, LayoutGrid, SlidersHorizontal } from "lucide-react";
 import { createPublicSupabaseServerClient } from "@/lib/storefront/publicClient";
 import { ProductCard } from "@/components/storefront/ProductCard";
+import { FiltersPanel } from "@/components/storefront/FiltersPanel";
 
 export const revalidate = 60;
 
@@ -100,7 +101,7 @@ export default async function CategoryPage({
   const { data: products, error: productsError } = productIds.length
     ? await supabase
         .from("products")
-        .select("id,name,slug,price_cents,compare_at_price_cents,product_images(url,sort_order)")
+        .select("id,name,slug,price_cents,compare_at_price_cents,stock_qty,has_variants,product_images(url,sort_order)")
         .in("id", productIds)
         .eq("active", true)
         .order("created_at", { ascending: false })
@@ -111,7 +112,7 @@ export default async function CategoryPage({
   const { data: variants, error: variantError } = productIds.length
     ? await supabase
         .from("product_variants")
-        .select("product_id,attributes")
+        .select("product_id,attributes,stock_qty")
         .in("product_id", productIds)
         .eq("active", true)
     : { data: [], error: null };
@@ -119,7 +120,10 @@ export default async function CategoryPage({
   if (variantError) return renderError(variantError.message);
 
   const attributesMap = new Map<string, { label: string; values: Set<string> }>();
-  const variantsByProduct = new Map<string, Array<Record<string, string[]>>>();
+  const variantsByProduct = new Map<
+    string,
+    Array<{ attributes: Record<string, string[]>; stockQty: number }>
+  >();
 
   (variants ?? []).forEach((variant) => {
     const rawAttributes = (variant.attributes ?? {}) as Record<string, unknown>;
@@ -139,11 +143,12 @@ export default async function CategoryPage({
       attributesMap.set(normalizedKey, existing);
     });
 
-    if (Object.keys(normalizedAttributes).length > 0) {
-      const list = variantsByProduct.get(variant.product_id) ?? [];
-      list.push(normalizedAttributes);
-      variantsByProduct.set(variant.product_id, list);
-    }
+    const list = variantsByProduct.get(variant.product_id) ?? [];
+    list.push({
+      attributes: normalizedAttributes,
+      stockQty: typeof variant.stock_qty === "number" ? variant.stock_qty : 0,
+    });
+    variantsByProduct.set(variant.product_id, list);
   });
 
   const sizeAttribute = attributesMap.get("size");
@@ -158,11 +163,27 @@ export default async function CategoryPage({
     if (maxPriceValue !== null && product.price_cents > maxPriceValue * 100) return false;
 
     const variantsForProduct = variantsByProduct.get(product.id) ?? [];
-    if (sizeFilter && !variantsForProduct.some((attrs) => attrs.size?.includes(sizeFilter))) return false;
-    if (colorFilter && !variantsForProduct.some((attrs) => attrs.color?.includes(colorFilter))) return false;
+    const hasVariantStock = variantsForProduct.some((entry) => entry.stockQty > 0);
+
+    if (product.has_variants) {
+      if (!hasVariantStock) return false;
+    } else if ((product.stock_qty ?? 0) <= 0) {
+      return false;
+    }
+
+    if (
+      sizeFilter &&
+      !variantsForProduct.some((entry) => entry.attributes.size?.includes(sizeFilter))
+    )
+      return false;
+    if (
+      colorFilter &&
+      !variantsForProduct.some((entry) => entry.attributes.color?.includes(colorFilter))
+    )
+      return false;
 
     for (const [key, value] of Object.entries(otherFilters)) {
-      if (!variantsForProduct.some((attrs) => attrs[key]?.includes(value))) return false;
+      if (!variantsForProduct.some((entry) => entry.attributes[key]?.includes(value))) return false;
     }
 
     return true;
@@ -213,25 +234,21 @@ export default async function CategoryPage({
       {/* Products Section */}
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         {/* Filters */}
-        <div className="mb-8 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <h2 className="text-lg font-semibold text-zinc-900">Filter products</h2>
-              <p className="mt-1 text-sm text-zinc-600">
-                Narrow results by size, color, price, and product attributes.
-              </p>
-            </div>
-            {hasFilters ? (
+        <FiltersPanel
+          title="Filter products"
+          description="Narrow results by size, color, price, and product attributes."
+          action={
+            hasFilters ? (
               <Link
                 href={clearFiltersHref}
                 className="rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50"
               >
                 Clear filters
               </Link>
-            ) : null}
-          </div>
-
-          <form method="get" className="mt-6 grid gap-4 lg:grid-cols-5">
+            ) : null
+          }
+        >
+          <form method="get" className="grid gap-4 lg:grid-cols-5">
             <div className="flex flex-col gap-2">
               <label className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Size</label>
               <select
@@ -331,7 +348,7 @@ export default async function CategoryPage({
               </div>
             ) : null}
           </form>
-        </div>
+        </FiltersPanel>
 
         {/* Toolbar */}
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

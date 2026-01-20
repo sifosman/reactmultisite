@@ -26,7 +26,7 @@ async function loadInvoice(supabaseAdmin: ReturnType<typeof createSupabaseAdminC
     supabaseAdmin
       .from("invoices")
       .select(
-        "id,invoice_number,status,customer_id,customer_snapshot,subtotal_cents,discount_cents,total_cents,currency,created_at,issued_at,cancelled_at"
+        "id,invoice_number,status,customer_id,customer_snapshot,subtotal_cents,discount_cents,delivery_cents,total_cents,currency,created_at,issued_at,cancelled_at"
       )
       .eq("id", id)
       .maybeSingle(),

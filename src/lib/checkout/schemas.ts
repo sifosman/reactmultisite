@@ -3,8 +3,8 @@ import { z } from "zod";
 export const createOrderSchema = z.object({
   customer: z.object({
     email: z.string().email(),
-    name: z.string().trim().min(1).optional(),
-    phone: z.string().trim().min(5).optional(),
+    name: z.string().trim().min(1),
+    phone: z.string().trim().min(5),
   }),
   shippingAddress: z.object({
     line1: z.string().trim().min(1),

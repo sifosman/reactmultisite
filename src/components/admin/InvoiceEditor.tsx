@@ -48,6 +48,7 @@ type InvoiceDetail = {
   subtotal_cents: number;
   discount_cents: number;
   total_cents: number;
+  delivery_cents?: number;
   created_at: string;
   issued_at: string | null;
   cancelled_at: string | null;
@@ -110,6 +111,8 @@ export function InvoiceEditor({
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [customerSearch, setCustomerSearch] = useState("");
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>("");
+
+  const [deliveryFeeRands, setDeliveryFeeRands] = useState("0.00");
 
   const [catalogQuery, setCatalogQuery] = useState("");
   const [catalog, setCatalog] = useState<CatalogItem[]>([]);
@@ -218,6 +221,8 @@ export function InvoiceEditor({
       setCustomerEmail(typeof snap.email === "string" ? snap.email : "");
       setCustomerAddress(typeof snap.address === "string" ? snap.address : "");
 
+      setDeliveryFeeRands(centsToRandsString(inv.delivery_cents ?? 0));
+
       setSelectedCustomerId(inv.customer_id ?? "");
     }
 
@@ -226,6 +231,11 @@ export function InvoiceEditor({
       cancelled = true;
     };
   }, [mode, invoiceId]);
+
+  useEffect(() => {
+    if (!invoice) return;
+    setDeliveryFeeRands(centsToRandsString(invoice.delivery_cents ?? 0));
+  }, [invoice?.delivery_cents]);
 
   useEffect(() => {
     const q = catalogQuery.trim();
@@ -268,8 +278,9 @@ export function InvoiceEditor({
   const totals = useMemo(() => {
     const subtotal = invoice?.lines?.reduce((s, l) => s + (l.line_total_cents ?? 0), 0) ?? 0;
     const discount = invoice?.discount_cents ?? 0;
-    const total = Math.max(0, subtotal - discount);
-    return { subtotal, discount, total };
+    const delivery = invoice?.delivery_cents ?? 0;
+    const total = Math.max(0, subtotal + delivery - discount);
+    return { subtotal, discount, delivery, total };
   }, [invoice]);
 
   function shareInvoiceOnWhatsApp() {
@@ -333,7 +344,7 @@ export function InvoiceEditor({
 
   async function addLine(item: CatalogItem) {
     if (!invoice?.id) return;
-    if (status !== "draft") return;
+    if (status === "cancelled") return;
 
     setError(null);
     setSaving(true);
@@ -366,7 +377,7 @@ export function InvoiceEditor({
 
   async function updateLine(lineId: string, patch: Partial<Pick<InvoiceLine, "qty" | "unit_price_cents">>) {
     if (!invoice?.id) return;
-    if (status !== "draft") return;
+    if (status === "cancelled") return;
 
     setError(null);
     setSaving(true);
@@ -382,6 +393,31 @@ export function InvoiceEditor({
 
     if (!res.ok) {
       setError(json?.error ?? "Failed to update line");
+      return;
+    }
+
+    setInvoice(json?.invoice as InvoiceDetail);
+  }
+
+  async function updateDeliveryFee() {
+    if (!invoice?.id) return;
+    if (status === "cancelled") return;
+
+    setError(null);
+    setSaving(true);
+
+    const nextCents = randsStringToCents(deliveryFeeRands);
+    const res = await fetch(`/api/admin/invoices/${invoice.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ delivery_cents: nextCents }),
+    });
+
+    const json = await res.json().catch(() => null);
+    setSaving(false);
+
+    if (!res.ok) {
+      setError(json?.error ?? "Failed to update delivery fee");
       return;
     }
 
@@ -432,7 +468,7 @@ export function InvoiceEditor({
 
   async function removeLine(lineId: string) {
     if (!invoice?.id) return;
-    if (status !== "draft") return;
+    if (status === "cancelled") return;
 
     setError(null);
     setSaving(true);
@@ -451,7 +487,7 @@ export function InvoiceEditor({
 
   async function saveCustomerSnapshot() {
     if (!invoice?.id) return;
-    if (status !== "draft") return;
+    if (status === "cancelled") return;
 
     setError(null);
     setSaving(true);
@@ -648,7 +684,7 @@ export function InvoiceEditor({
                 <button
                   type="button"
                   className="h-10 rounded-lg border bg-white px-4 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
-                  disabled={saving || status !== "draft"}
+                  disabled={saving || status === "cancelled"}
                   onClick={() => void saveCustomerSnapshot()}
                 >
                   {saving ? "Saving…" : "Save"}
@@ -710,7 +746,7 @@ export function InvoiceEditor({
               value={customerName}
               onChange={(e) => setCustomerName(e.target.value)}
               placeholder="Customer name"
-              disabled={saving || (mode === "edit" && status !== "draft")}
+              disabled={saving || status === "cancelled"}
             />
           </div>
           <div className="space-y-2">
@@ -720,7 +756,7 @@ export function InvoiceEditor({
               value={customerPhone}
               onChange={(e) => setCustomerPhone(e.target.value)}
               placeholder="082 123 4567"
-              disabled={saving || (mode === "edit" && status !== "draft")}
+              disabled={saving || status === "cancelled"}
             />
           </div>
           <div className="space-y-2">
@@ -730,7 +766,7 @@ export function InvoiceEditor({
               value={customerEmail}
               onChange={(e) => setCustomerEmail(e.target.value)}
               placeholder="customer@email.com"
-              disabled={saving || (mode === "edit" && status !== "draft")}
+              disabled={saving || status === "cancelled"}
             />
           </div>
           <div className="space-y-2 sm:col-span-2">
@@ -740,7 +776,7 @@ export function InvoiceEditor({
               value={customerAddress}
               onChange={(e) => setCustomerAddress(e.target.value)}
               placeholder="Delivery address"
-              disabled={saving || (mode === "edit" && status !== "draft")}
+              disabled={saving || status === "cancelled"}
             />
           </div>
 
@@ -751,7 +787,7 @@ export function InvoiceEditor({
               value={customerSearch}
               onChange={(e) => setCustomerSearch(e.target.value)}
               placeholder="Search clients…"
-              disabled={saving || (mode === "edit" && status !== "draft")}
+              disabled={saving || status === "cancelled"}
             />
 
             <div className="mt-2 flex flex-wrap gap-2">
@@ -765,7 +801,7 @@ export function InvoiceEditor({
                       ? "bg-indigo-600 text-white border-indigo-600"
                       : "bg-white text-slate-700")
                   }
-                  disabled={saving || (mode === "edit" && status !== "draft")}
+                  disabled={saving || status === "cancelled"}
                   onClick={() => {
                     setSelectedCustomerId(c.id);
                     setCustomerName(c.name);
@@ -783,7 +819,7 @@ export function InvoiceEditor({
               <button
                 type="button"
                 className="h-10 rounded-lg border bg-white px-4 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
-                disabled={saving || !customerName.trim() || (mode === "edit" && status !== "draft")}
+                disabled={saving || !customerName.trim() || status === "cancelled"}
                 onClick={() => void createAndAddCustomer()}
               >
                 Save as reusable client
@@ -802,7 +838,7 @@ export function InvoiceEditor({
               value={catalogQuery}
               onChange={(e) => setCatalogQuery(e.target.value)}
               placeholder="Search products / SKU…"
-              disabled={saving || status !== "draft"}
+              disabled={saving || status === "cancelled"}
             />
           </div>
 
@@ -815,7 +851,7 @@ export function InvoiceEditor({
                   key={`${item.kind}-${item.product_id}-${item.kind === "variant" ? item.variant_id : "simple"}`}
                   type="button"
                   className="w-full rounded-lg border p-3 text-left hover:bg-slate-50 disabled:opacity-60"
-                  disabled={saving || status !== "draft"}
+                  disabled={saving || status === "cancelled"}
                   onClick={() => void addLine(item)}
                 >
                   <div className="flex items-start justify-between gap-3">
@@ -861,7 +897,7 @@ export function InvoiceEditor({
                       <button
                         type="button"
                         className="text-xs text-red-600 hover:underline disabled:opacity-60"
-                        disabled={saving || status !== "draft"}
+                        disabled={saving || status === "cancelled"}
                         onClick={() => void removeLine(l.id)}
                       >
                         Remove
@@ -875,7 +911,7 @@ export function InvoiceEditor({
                           className="h-10 w-full rounded-md border bg-white px-3 text-sm"
                           inputMode="numeric"
                           value={String(l.qty)}
-                          disabled={saving || status !== "draft"}
+                          disabled={saving || status === "cancelled"}
                           onChange={(e) => {
                             const n = Math.max(1, Math.floor(Number(e.target.value || 1)));
                             setInvoice((prev) => {
@@ -899,7 +935,7 @@ export function InvoiceEditor({
                           className="h-10 w-full rounded-md border bg-white px-3 text-sm"
                           inputMode="decimal"
                           value={centsToRandsString(l.unit_price_cents)}
-                          disabled={saving || status !== "draft"}
+                          disabled={saving || status === "cancelled"}
                           onChange={(e) => {
                             const cents = randsStringToCents(e.target.value);
                             setInvoice((prev) => {
@@ -929,6 +965,20 @@ export function InvoiceEditor({
             <div className="flex items-center justify-between text-sm">
               <span className="text-slate-600">Subtotal</span>
               <span className="font-semibold">R{centsToRandsString(totals.subtotal)}</span>
+            </div>
+            <div className="mt-2 flex items-center justify-between gap-3 text-sm">
+              <span className="text-slate-600">Delivery fee</span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-500">R</span>
+                <input
+                  className="h-9 w-28 rounded-md border bg-white px-2 text-sm"
+                  inputMode="decimal"
+                  value={deliveryFeeRands}
+                  disabled={saving || status === "cancelled"}
+                  onChange={(e) => setDeliveryFeeRands(e.target.value)}
+                  onBlur={() => void updateDeliveryFee()}
+                />
+              </div>
             </div>
             <div className="mt-2 flex items-center justify-between text-sm">
               <span className="text-slate-600">Discount</span>

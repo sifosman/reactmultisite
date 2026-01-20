@@ -27,7 +27,7 @@ async function loadInvoice(supabaseAdmin: ReturnType<typeof createSupabaseAdminC
     supabaseAdmin
       .from("invoices")
       .select(
-        "id,invoice_number,status,customer_id,customer_snapshot,subtotal_cents,discount_cents,total_cents,currency,created_at,issued_at,cancelled_at"
+        "id,invoice_number,status,customer_id,customer_snapshot,subtotal_cents,discount_cents,delivery_cents,total_cents,currency,created_at,issued_at,cancelled_at"
       )
       .eq("id", id)
       .maybeSingle(),
@@ -78,7 +78,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
   if (invErr) return NextResponse.json({ error: invErr.message }, { status: 500 });
   if (!invoice) return NextResponse.json({ error: "not_found" }, { status: 404 });
-  if (invoice.status !== "draft") return NextResponse.json({ error: "invalid_status" }, { status: 400 });
+  if (invoice.status === "cancelled") return NextResponse.json({ error: "invalid_status" }, { status: 400 });
 
   const { data: currentLine, error: lineErr } = await supabaseAdmin
     .from("invoice_lines")
@@ -93,20 +93,33 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const nextQty = parsed.data.qty ?? (currentLine.qty as number);
   const nextUnit = parsed.data.unit_price_cents ?? (currentLine.unit_price_cents as number);
 
-  const { error } = await supabaseAdmin
-    .from("invoice_lines")
-    .update({
+  if (invoice.status === "issued") {
+    const { error } = await supabaseAdmin.rpc("update_invoice_line_issued", {
+      invoice_id: id,
+      line_id: lineId,
       qty: nextQty,
       unit_price_cents: nextUnit,
-      line_total_cents: nextQty * nextUnit,
-    })
-    .eq("id", lineId)
-    .eq("invoice_id", id);
+    });
+    if (error) {
+      const msg = error.message.includes("out_of_stock") ? "out_of_stock" : error.message;
+      return NextResponse.json({ error: msg }, { status: 400 });
+    }
+  } else {
+    const { error } = await supabaseAdmin
+      .from("invoice_lines")
+      .update({
+        qty: nextQty,
+        unit_price_cents: nextUnit,
+        line_total_cents: nextQty * nextUnit,
+      })
+      .eq("id", lineId)
+      .eq("invoice_id", id);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  const { error: recalcErr } = await supabaseAdmin.rpc("recalc_invoice_totals", { invoice_id: id });
-  if (recalcErr) return NextResponse.json({ error: recalcErr.message }, { status: 500 });
+    const { error: recalcErr } = await supabaseAdmin.rpc("recalc_invoice_totals", { invoice_id: id });
+    if (recalcErr) return NextResponse.json({ error: recalcErr.message }, { status: 500 });
+  }
 
   const loaded = await loadInvoice(supabaseAdmin, id);
   if (loaded.notFound) return NextResponse.json({ error: "not_found" }, { status: 404 });
@@ -130,18 +143,26 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
 
   if (invErr) return NextResponse.json({ error: invErr.message }, { status: 500 });
   if (!invoice) return NextResponse.json({ error: "not_found" }, { status: 404 });
-  if (invoice.status !== "draft") return NextResponse.json({ error: "invalid_status" }, { status: 400 });
+  if (invoice.status === "cancelled") return NextResponse.json({ error: "invalid_status" }, { status: 400 });
 
-  const { error } = await supabaseAdmin
-    .from("invoice_lines")
-    .delete()
-    .eq("id", lineId)
-    .eq("invoice_id", id);
+  if (invoice.status === "issued") {
+    const { error } = await supabaseAdmin.rpc("remove_invoice_line_issued", {
+      invoice_id: id,
+      line_id: lineId,
+    });
+    if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  } else {
+    const { error } = await supabaseAdmin
+      .from("invoice_lines")
+      .delete()
+      .eq("id", lineId)
+      .eq("invoice_id", id);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  const { error: recalcErr } = await supabaseAdmin.rpc("recalc_invoice_totals", { invoice_id: id });
-  if (recalcErr) return NextResponse.json({ error: recalcErr.message }, { status: 500 });
+    const { error: recalcErr } = await supabaseAdmin.rpc("recalc_invoice_totals", { invoice_id: id });
+    if (recalcErr) return NextResponse.json({ error: recalcErr.message }, { status: 500 });
+  }
 
   const loaded = await loadInvoice(supabaseAdmin, id);
   if (loaded.notFound) return NextResponse.json({ error: "not_found" }, { status: 404 });

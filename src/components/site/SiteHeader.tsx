@@ -91,12 +91,21 @@ export function SiteHeader({
             </Link>
           </nav>
 
-          <HeaderSearch />
+          <HeaderSearch className="relative hidden flex-1 sm:block" />
 
           <div className="ml-auto flex items-center gap-2">
             <UserMenu />
             <CartBadgeButton onClick={() => setCartOpen(true)} />
           </div>
+        </div>
+      </div>
+
+      <div className="border-b bg-white sm:hidden">
+        <div className="mx-auto max-w-6xl px-6 py-3">
+          <HeaderSearch
+            className="relative w-full"
+            containerClassName="flex h-11 items-center gap-2 rounded-full border bg-white px-4"
+          />
         </div>
       </div>
 

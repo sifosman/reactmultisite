@@ -27,7 +27,7 @@ async function loadInvoice(supabaseAdmin: ReturnType<typeof createSupabaseAdminC
     supabaseAdmin
       .from("invoices")
       .select(
-        "id,invoice_number,status,customer_id,customer_snapshot,subtotal_cents,discount_cents,total_cents,currency,created_at,issued_at,cancelled_at"
+        "id,invoice_number,status,customer_id,customer_snapshot,subtotal_cents,discount_cents,delivery_cents,total_cents,currency,created_at,issued_at,cancelled_at"
       )
       .eq("id", id)
       .maybeSingle(),
@@ -80,25 +80,41 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   if (invErr) return NextResponse.json({ error: invErr.message }, { status: 500 });
   if (!invoice) return NextResponse.json({ error: "not_found" }, { status: 404 });
-  if (invoice.status !== "draft") return NextResponse.json({ error: "invalid_status" }, { status: 400 });
+  if (invoice.status === "cancelled") return NextResponse.json({ error: "invalid_status" }, { status: 400 });
 
   const lineTotal = parsed.data.qty * parsed.data.unit_price_cents;
 
-  const { error } = await supabaseAdmin.from("invoice_lines").insert({
-    invoice_id: id,
-    product_id: parsed.data.product_id,
-    variant_id: parsed.data.variant_id ?? null,
-    qty: parsed.data.qty,
-    unit_price_cents: parsed.data.unit_price_cents,
-    title_snapshot: parsed.data.title_snapshot,
-    variant_snapshot: parsed.data.variant_snapshot,
-    line_total_cents: lineTotal,
-  });
+  if (invoice.status === "issued") {
+    const { error } = await supabaseAdmin.rpc("add_invoice_line_issued", {
+      invoice_id: id,
+      product_id: parsed.data.product_id,
+      variant_id: parsed.data.variant_id ?? null,
+      qty: parsed.data.qty,
+      unit_price_cents: parsed.data.unit_price_cents,
+      title_snapshot: parsed.data.title_snapshot,
+      variant_snapshot: parsed.data.variant_snapshot,
+    });
+    if (error) {
+      const msg = error.message.includes("out_of_stock") ? "out_of_stock" : error.message;
+      return NextResponse.json({ error: msg }, { status: 400 });
+    }
+  } else {
+    const { error } = await supabaseAdmin.from("invoice_lines").insert({
+      invoice_id: id,
+      product_id: parsed.data.product_id,
+      variant_id: parsed.data.variant_id ?? null,
+      qty: parsed.data.qty,
+      unit_price_cents: parsed.data.unit_price_cents,
+      title_snapshot: parsed.data.title_snapshot,
+      variant_snapshot: parsed.data.variant_snapshot,
+      line_total_cents: lineTotal,
+    });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  const { error: recalcErr } = await supabaseAdmin.rpc("recalc_invoice_totals", { invoice_id: id });
-  if (recalcErr) return NextResponse.json({ error: recalcErr.message }, { status: 500 });
+    const { error: recalcErr } = await supabaseAdmin.rpc("recalc_invoice_totals", { invoice_id: id });
+    if (recalcErr) return NextResponse.json({ error: recalcErr.message }, { status: 500 });
+  }
 
   const loaded = await loadInvoice(supabaseAdmin, id);
   if (loaded.notFound) return NextResponse.json({ error: "not_found" }, { status: 404 });

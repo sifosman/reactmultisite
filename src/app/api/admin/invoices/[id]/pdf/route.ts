@@ -37,7 +37,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     supabaseAdmin
       .from("invoices")
       .select(
-        "id,invoice_number,status,customer_snapshot,subtotal_cents,discount_cents,total_cents,currency,created_at,issued_at"
+        "id,invoice_number,status,customer_snapshot,subtotal_cents,discount_cents,delivery_cents,total_cents,currency,created_at,issued_at"
       )
       .eq("id", id)
       .maybeSingle(),
@@ -64,19 +64,21 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const fontBold = await pdf.embedFont(StandardFonts.HelveticaBold);
 
   const margin = 48;
+  const headerColor = rgb(0.12, 0.12, 0.12);
+  const accentColor = rgb(0.05, 0.45, 0.55);
   let y = 841.89 - margin;
 
-  page.drawText("Invoice", { x: margin, y, size: 20, font: fontBold, color: rgb(0, 0, 0) });
-  y -= 28;
+  page.drawRectangle({ x: 0, y: 780, width: 595.28, height: 62, color: headerColor });
+  page.drawText("INVOICE", { x: margin, y: 802, size: 20, font: fontBold, color: rgb(1, 1, 1) });
+  page.drawText(`No. ${invoice.invoice_number}`, { x: margin, y: 784, size: 10, font, color: rgb(0.9, 0.9, 0.9) });
 
-  page.drawText(`Number: ${invoice.invoice_number}`, { x: margin, y, size: 11, font });
+  y = 750;
+  page.drawText(`Date: ${new Date(invoice.created_at).toLocaleDateString("en-ZA")}`, { x: margin, y, size: 11, font });
   y -= 16;
   page.drawText(`Status: ${invoice.status}`, { x: margin, y, size: 11, font });
-  y -= 16;
-  page.drawText(`Date: ${new Date(invoice.created_at).toLocaleString("en-ZA")}`, { x: margin, y, size: 11, font });
-  y -= 24;
+  y -= 26;
 
-  page.drawText("Bill To", { x: margin, y, size: 12, font: fontBold });
+  page.drawText("Bill To", { x: margin, y, size: 12, font: fontBold, color: accentColor });
   y -= 16;
   if (customerName) {
     page.drawText(customerName, { x: margin, y, size: 11, font });
@@ -100,7 +102,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 
   y -= 10;
 
-  page.drawText("Items", { x: margin, y, size: 12, font: fontBold });
+  page.drawText("Items", { x: margin, y, size: 12, font: fontBold, color: accentColor });
   y -= 18;
 
   const colQtyX = margin;
@@ -130,11 +132,20 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 
   y -= 18;
 
-  page.drawText(`Subtotal: ${formatZar(invoice.subtotal_cents)}`, { x: colUnitX, y, size: 11, font });
+  const deliveryCents = invoice.delivery_cents ?? 0;
+
+  page.drawLine({ start: { x: colUnitX - 12, y: y + 6 }, end: { x: 560, y: y + 6 }, color: rgb(0.8, 0.8, 0.8) });
+  page.drawText(`Subtotal`, { x: colUnitX, y, size: 11, font });
+  page.drawText(formatZar(invoice.subtotal_cents), { x: colTotalX, y, size: 11, font });
   y -= 14;
-  page.drawText(`Discount: ${formatZar(invoice.discount_cents)}`, { x: colUnitX, y, size: 11, font });
+  page.drawText(`Delivery`, { x: colUnitX, y, size: 11, font });
+  page.drawText(formatZar(deliveryCents), { x: colTotalX, y, size: 11, font });
   y -= 14;
-  page.drawText(`Total: ${formatZar(invoice.total_cents)}`, { x: colUnitX, y, size: 12, font: fontBold });
+  page.drawText(`Discount`, { x: colUnitX, y, size: 11, font });
+  page.drawText(formatZar(invoice.discount_cents), { x: colTotalX, y, size: 11, font });
+  y -= 18;
+  page.drawText(`Total`, { x: colUnitX, y, size: 13, font: fontBold, color: accentColor });
+  page.drawText(formatZar(invoice.total_cents), { x: colTotalX, y, size: 13, font: fontBold });
 
   const bytes = await pdf.save();
   const blob = new Blob([bytes.buffer as unknown as BlobPart], { type: "application/pdf" });

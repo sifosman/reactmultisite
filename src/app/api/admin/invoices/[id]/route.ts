@@ -27,7 +27,7 @@ async function loadInvoice(supabaseAdmin: ReturnType<typeof createSupabaseAdminC
     supabaseAdmin
       .from("invoices")
       .select(
-        "id,invoice_number,status,customer_id,customer_snapshot,subtotal_cents,discount_cents,total_cents,currency,created_at,issued_at,cancelled_at,payment_status,payment_status_updated_at,fulfilment_status,fulfilment_status_updated_at"
+        "id,invoice_number,status,customer_id,customer_snapshot,subtotal_cents,discount_cents,total_cents,delivery_cents,currency,created_at,issued_at,cancelled_at,payment_status,payment_status_updated_at,fulfilment_status,fulfilment_status_updated_at"
       )
       .eq("id", id)
       .maybeSingle(),
@@ -55,6 +55,7 @@ async function loadInvoice(supabaseAdmin: ReturnType<typeof createSupabaseAdminC
 const patchSchema = z.object({
   customer_id: z.string().uuid().nullable().optional(),
   customer_snapshot: z.record(z.string(), z.unknown()).optional(),
+  delivery_cents: z.number().int().min(0).optional(),
   payment_status: z.enum(["unpaid", "paid"]).optional(),
   fulfilment_status: z.enum(["pending", "dispatched"]).optional(),
 });
@@ -88,6 +89,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const patch: Record<string, unknown> = {};
   if (parsed.data.customer_id !== undefined) patch.customer_id = parsed.data.customer_id;
   if (parsed.data.customer_snapshot !== undefined) patch.customer_snapshot = parsed.data.customer_snapshot;
+  if (parsed.data.delivery_cents !== undefined) patch.delivery_cents = parsed.data.delivery_cents;
   if (parsed.data.payment_status !== undefined) {
     patch.payment_status = parsed.data.payment_status;
     patch.payment_status_updated_at = new Date().toISOString();

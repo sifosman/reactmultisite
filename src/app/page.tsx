@@ -76,11 +76,43 @@ async function HomeContent() {
       .limit(6),
     supabase
       .from("products")
-      .select("id,name,slug,price_cents,compare_at_price_cents,product_images(url,sort_order)")
+      .select("id,name,slug,price_cents,compare_at_price_cents,stock_qty,has_variants,product_images(url,sort_order)")
       .eq("active", true)
       .order("created_at", { ascending: false })
       .limit(8),
   ]);
+
+  const productIds = (products ?? []).map((p) => p.id);
+  const { data: variants } = productIds.length
+    ? await supabase
+        .from("product_variants")
+        .select("product_id,stock_qty")
+        .in("product_id", productIds)
+        .eq("active", true)
+    : { data: [] };
+
+  const variantsByProduct = new Map<string, number[]>();
+  (variants ?? []).forEach((variant) => {
+    const list = variantsByProduct.get(variant.product_id) ?? [];
+    list.push(typeof variant.stock_qty === "number" ? variant.stock_qty : 0);
+    variantsByProduct.set(variant.product_id, list);
+  });
+
+  const availableProducts = (products ?? []).filter((product) => {
+    const variantsForProduct = variantsByProduct.get(product.id) ?? [];
+    const hasVariantStock = variantsForProduct.some((qty) => qty > 0);
+
+    if (product.has_variants) {
+      return hasVariantStock;
+    }
+
+    return (product.stock_qty ?? 0) > 0;
+  });
+
+  const featuredProducts = availableProducts
+    .slice()
+    .sort(() => 0.5 - Math.random())
+    .slice(0, 4);
 
   const categorySections = categorySectionsRaw
     .map((s, index) => {
@@ -95,11 +127,6 @@ async function HomeContent() {
       };
     })
     .filter((s) => s.categorySlug);
-
-  const featuredProducts = (products ?? [])
-    .slice()
-    .sort(() => 0.5 - Math.random())
-    .slice(0, 4);
 
   return (
     <main>

@@ -12,37 +12,48 @@ export function ProductImagesManager({
 }) {
   const router = useRouter();
   const [images, setImages] = useState(initialImages);
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function onUpload() {
-    if (!file) return;
+    if (files.length === 0) return;
 
     setError(null);
     setLoading(true);
 
-    const form = new FormData();
-    form.set("file", file);
-    form.set("sort_order", "0");
+    const uploaded: Array<{ id: string; url: string; sort_order: number }> = [];
 
-    const res = await fetch(`/api/admin/products/${productId}/images`, {
-      method: "POST",
-      body: form,
-    });
+    try {
+      for (const [index, file] of files.entries()) {
+        const form = new FormData();
+        form.set("file", file);
+        form.set("sort_order", String(images.length + index));
 
-    const json = await res.json().catch(() => null);
-    setLoading(false);
+        const res = await fetch(`/api/admin/products/${productId}/images`, {
+          method: "POST",
+          body: form,
+        });
 
-    if (!res.ok) {
-      setError(json?.error ?? "Upload failed");
-      return;
+        const json = await res.json().catch(() => null);
+        if (!res.ok) {
+          throw new Error(json?.error ?? "Upload failed");
+        }
+
+        const newImg = json?.image as { id: string; url: string; sort_order: number };
+        if (newImg) uploaded.push(newImg);
+      }
+
+      if (uploaded.length > 0) {
+        setImages((prev) => [...uploaded, ...prev]);
+      }
+      setFiles([]);
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setLoading(false);
     }
-
-    const newImg = json?.image as { id: string; url: string; sort_order: number };
-    setImages((prev) => [newImg, ...prev]);
-    setFile(null);
-    router.refresh();
   }
 
   async function onDelete(imageId: string) {
@@ -80,16 +91,17 @@ export function ProductImagesManager({
         <input
           type="file"
           accept="image/*"
-          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-          key={images.length}
+          multiple
+          onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
+          key={`${images.length}-${files.length}`}
         />
         <button
           type="button"
           className="h-10 rounded-md bg-black px-4 text-sm text-white disabled:opacity-60"
-          disabled={!file || loading}
+          disabled={files.length === 0 || loading}
           onClick={onUpload}
         >
-          {loading ? "Uploading..." : "Upload"}
+          {loading ? "Uploading..." : files.length > 1 ? `Upload ${files.length} images` : "Upload image"}
         </button>
       </div>
 
