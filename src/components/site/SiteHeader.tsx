@@ -78,7 +78,7 @@ export function SiteHeader({
               // eslint-disable-next-line @next/next/no-img-element
               <img src={logoUrl} alt={brandName} className="h-9 w-auto" />
             ) : (
-              <div className="text-base font-semibold tracking-tight">{brandName}</div>
+              <div className="text-base font-semibold tracking-tight text-zinc-900">{brandName}</div>
             )}
           </Link>
 

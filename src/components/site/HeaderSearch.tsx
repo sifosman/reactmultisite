@@ -92,7 +92,7 @@ export function HeaderSearch({
       >
         <Search className="h-4 w-4 shrink-0 text-zinc-900" />
         <input
-          className="w-full min-w-0 bg-transparent text-sm outline-none placeholder:text-zinc-500"
+          className="w-full min-w-0 bg-transparent text-sm text-zinc-900 outline-none placeholder:text-zinc-500"
           placeholder="Search for products…"
           value={q}
           onChange={(e) => setQ(e.target.value)}
