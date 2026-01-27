@@ -4,6 +4,8 @@ import { createPublicSupabaseServerClient } from "@/lib/storefront/publicClient"
 import { ProductCard } from "@/components/storefront/ProductCard";
 import { getSiteConfig } from "@/lib/config/site";
 import { NewsletterSignup } from "@/components/site/NewsletterSignup";
+import { BannerSlider } from "@/components/site/BannerSlider";
+import { ResponsiveBanner } from "@/components/site/ResponsiveBanner";
 
 export const revalidate = 60;
 
@@ -50,6 +52,18 @@ async function HomeContent() {
     typeof (hero as any).secondaryButtonBgColor === "string" ? (hero as any).secondaryButtonBgColor : null;
   const heroSecondaryButtonTextColor =
     typeof (hero as any).secondaryButtonTextColor === "string" ? (hero as any).secondaryButtonTextColor : null;
+
+  const bannerDesktopImages = [
+    "/desktop slider 1.jpg",
+    "/Desktop Slider 2.jpg",
+    "/desktop slider 3.jpg",
+  ];
+
+  const bannerMobileImages = [
+    "/Mobile Slider 1.jpg",
+    "/mobile slider 2.jpg",
+    "/mobile slider 3.jpg",
+  ];
 
   const leftBadge = typeof promoLeft.badge === "string" ? promoLeft.badge : "Limited Time";
   const leftTitle = typeof promoLeft.title === "string" ? promoLeft.title : "Summer Sale";
@@ -131,75 +145,27 @@ async function HomeContent() {
   return (
     <main>
       {/* Hero Section - Full Width Background Banner */}
-      <section className="relative overflow-hidden bg-zinc-900">
-        {/* Desktop / tablet background image */}
-        {heroImageUrl && (
-          <div
-            className="pointer-events-none absolute inset-0 hidden bg-cover bg-center sm:block"
-            style={{ backgroundImage: `url(${heroImageUrl})` }}
-          />
-        )}
+      <section className="relative min-h-[460px] overflow-hidden bg-white sm:min-h-[560px] lg:min-h-[640px]">
+        <BannerSlider
+          desktopImages={bannerDesktopImages}
+          mobileImages={bannerMobileImages}
+          fit="contain"
+          kenBurns
+        />
 
-        {/* Mobile background image (falls back to desktop if not set) */}
-        {(heroMobileImageUrl || heroImageUrl) && (
-          <div
-            className="pointer-events-none absolute inset-0 bg-cover bg-center sm:hidden"
-            style={{ backgroundImage: `url(${heroMobileImageUrl || heroImageUrl})` }}
-          />
-        )}
-
-        {/* Subtle grid texture only (no dark overlay) */}
-        <div className="pointer-events-none absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
-
-        <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-24 lg:px-8 lg:py-32">
-          <div className="max-w-2xl">
-            <div className="rounded-3xl border border-white/40 bg-white/10 p-6 shadow-xl backdrop-blur-md sm:p-8">
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/10 px-4 py-2 text-sm text-white">
-                <Sparkles className="h-4 w-4 text-yellow-400" />
-                <span>New Season Collection Available</span>
-              </div>
-              
-              <h1
-                className="mt-6 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl"
-                style={heroTitleColor ? { color: heroTitleColor } : { color: "#ffffff" }}
-              >
-                {heroTitle}
-              </h1>
-              
-              <p
-                className="mt-6 max-w-xl text-lg leading-relaxed sm:text-xl"
-                style={heroSubtitleColor ? { color: heroSubtitleColor } : { color: "#e5e5e5" }}
-              >
-                {heroSubtitle}
-              </p>
-              
-              <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:justify-start">
-                <Link 
-                  href={ctaHref}
-                  className="group inline-flex items-center justify-center gap-2 rounded-full border px-8 py-4 text-sm font-semibold backdrop-blur-sm transition"
-                  style={{
-                    backgroundColor: heroPrimaryButtonBgColor || "rgba(255,255,255,0.1)",
-                    color: heroPrimaryButtonTextColor || "#ffffff",
-                    borderColor: heroPrimaryButtonBgColor || "#ffffff",
-                  }}
-                >
-                  {ctaText}
-                  <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </Link>
-                <Link 
-                  href="/categories"
-                  className="inline-flex items-center justify-center gap-2 rounded-full border px-8 py-4 text-sm font-semibold backdrop-blur-sm transition"
-                  style={{
-                    backgroundColor: heroSecondaryButtonBgColor || "rgba(0,0,0,0.2)",
-                    color: heroSecondaryButtonTextColor || "#ffffff",
-                    borderColor: heroSecondaryButtonBgColor || "rgba(255,255,255,0.7)",
-                  }}
-                >
-                  Browse Categories
-                </Link>
-              </div>
-            </div>
-          </div>
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <Link
+            href={ctaHref}
+            className="absolute bottom-8 left-1/2 inline-flex -translate-x-1/2 items-center justify-center gap-2 rounded-full border px-10 py-4 text-sm font-semibold transition"
+            style={{
+              backgroundColor: heroPrimaryButtonBgColor || "rgba(0,0,0,0.35)",
+              color: heroPrimaryButtonTextColor || "#ffffff",
+              borderColor: heroPrimaryButtonBgColor || "rgba(255,255,255,0.8)",
+            }}
+          >
+            {ctaText}
+            <ChevronRight className="h-4 w-4" />
+          </Link>
         </div>
       </section>
 
@@ -251,6 +217,16 @@ async function HomeContent() {
           </div>
         </section>
       ) : null}
+
+      <section className="bg-white py-8 sm:py-10">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <ResponsiveBanner
+            desktopSrc="/middle of homepage desktop.jpg"
+            mobileSrc="/middle of homepage mobile.jpg"
+            alt="Homepage banner"
+          />
+        </div>
+      </section>
 
       {/* Trust Badges */}
       <section className="border-b bg-white">
@@ -424,6 +400,16 @@ async function HomeContent() {
               );
             })}
           </div>
+        </div>
+      </section>
+
+      <section className="bg-white py-8 sm:py-10">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <ResponsiveBanner
+            desktopSrc="/middle of homepage desktop 1.jpg"
+            mobileSrc="/middle of homepage mobile 1.jpg"
+            alt="Homepage banner"
+          />
         </div>
       </section>
 
