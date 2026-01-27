@@ -145,7 +145,7 @@ async function HomeContent() {
   return (
     <main>
       {/* Hero Section - Full Width Background Banner */}
-      <section className="relative min-h-[460px] overflow-hidden bg-white sm:min-h-[560px] lg:min-h-[640px]">
+      <section className="relative overflow-hidden bg-white sm:min-h-[560px] lg:min-h-[640px]">
         <BannerSlider
           desktopImages={bannerDesktopImages}
           mobileImages={bannerMobileImages}

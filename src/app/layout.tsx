@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Affordable React Ecomm",
+  title: "Coastal Warehouse Online Store",
   description: "Affordable Finds. ZAR pricing. Flat shipping R60.",
 };
 
