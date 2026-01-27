@@ -11,7 +11,7 @@ type BulkRow = {
   salePriceRands: string;
   stockQty: string;
   active: boolean;
-  imageFile: File | null;
+  imageFiles: File[];
   galleryImageUrl: string | null;
   categorySlug: string;
 };
@@ -39,7 +39,7 @@ function createEmptyRow(): BulkRow {
     salePriceRands: "",
     stockQty: "0",
     active: true,
-    imageFile: null,
+    imageFiles: [],
     galleryImageUrl: null,
     categorySlug: "",
   };
@@ -190,24 +190,27 @@ export function BulkProductUpload() {
             }
           }
 
-          if (row.imageFile) {
-            const form = new FormData();
-            form.set("file", row.imageFile);
-            form.set("sort_order", "0");
+          if (row.imageFiles.length > 0) {
+            for (let i = 0; i < row.imageFiles.length; i += 1) {
+              const file = row.imageFiles[i];
+              const form = new FormData();
+              form.set("file", file);
+              form.set("sort_order", String(i));
 
-            const imgRes = await fetch(`/api/admin/products/${productId}/images`, {
-              method: "POST",
-              body: form,
-            });
-
-            if (imgRes.ok) {
-              imageUploadedCount += 1;
-            } else {
-              const imgJson = await imgRes.json().catch(() => null);
-              rowErrors.push({
-                index,
-                message: imgJson?.error || "Image upload failed",
+              const imgRes = await fetch(`/api/admin/products/${productId}/images`, {
+                method: "POST",
+                body: form,
               });
+
+              if (imgRes.ok) {
+                imageUploadedCount += 1;
+              } else {
+                const imgJson = await imgRes.json().catch(() => null);
+                rowErrors.push({
+                  index,
+                  message: imgJson?.error || "Image upload failed",
+                });
+              }
             }
           } else if (row.galleryImageUrl) {
             // Support multiple URLs separated by | in the galleryImageUrl field
@@ -425,7 +428,7 @@ export function BulkProductUpload() {
   function handleSelectGalleryImage(url: string) {
     if (galleryTargetRow == null) return;
     updateRow(galleryTargetRow, "galleryImageUrl", url);
-    updateRow(galleryTargetRow, "imageFile", null);
+    updateRow(galleryTargetRow, "imageFiles", []);
     setGalleryOpen(false);
   }
 
@@ -435,13 +438,13 @@ export function BulkProductUpload() {
   }
 
   function handleModalUploadChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file || galleryTargetRow == null) {
+    const files = Array.from(e.target.files ?? []);
+    if (files.length === 0 || galleryTargetRow == null) {
       e.target.value = "";
       return;
     }
 
-    updateRow(galleryTargetRow, "imageFile", file);
+    updateRow(galleryTargetRow, "imageFiles", files);
     updateRow(galleryTargetRow, "galleryImageUrl", null);
     setGalleryOpen(false);
     e.target.value = "";
@@ -621,12 +624,12 @@ export function BulkProductUpload() {
                       >
                         Choose image
                       </button>
-                      {row.imageFile ? (
+                      {row.imageFiles.length > 0 ? (
                         <span className="truncate max-w-[180px] text-[11px] text-slate-600">
-                          From device: {row.imageFile.name}
+                          From device: {row.imageFiles.length} file{row.imageFiles.length === 1 ? "" : "s"}
                         </span>
                       ) : null}
-                      {!row.imageFile && row.galleryImageUrl ? (
+                      {row.imageFiles.length === 0 && row.galleryImageUrl ? (
                         <div className="flex items-center gap-2 text-[11px] text-slate-500">
                           <span className="truncate max-w-[160px]">Gallery: {row.galleryImageUrl}</span>
                           <button
@@ -693,6 +696,7 @@ export function BulkProductUpload() {
                   ref={modalUploadInputRef}
                   type="file"
                   accept="image/*"
+                  multiple
                   className="hidden"
                   onChange={handleModalUploadChange}
                 />

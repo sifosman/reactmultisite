@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 
 type BannerSliderProps = {
   desktopImages: string[];
@@ -9,6 +9,7 @@ type BannerSliderProps = {
   className?: string;
   fit?: "cover" | "contain";
   kenBurns?: boolean;
+  mode?: "background" | "inline";
 };
 
 function toCssUrl(src: string) {
@@ -42,6 +43,7 @@ export function BannerSlider({
   className,
   fit = "cover",
   kenBurns = false,
+  mode = "background",
 }: BannerSliderProps) {
   const isDesktop = useIsDesktop();
 
@@ -53,6 +55,7 @@ export function BannerSlider({
   const [index, setIndex] = useState(0);
   const [prevIndex, setPrevIndex] = useState<number | null>(null);
   const [transitioning, setTransitioning] = useState(false);
+  const [aspectRatio, setAspectRatio] = useState<number>(16 / 9);
 
   useEffect(() => {
     setIndex(0);
@@ -89,9 +92,14 @@ export function BannerSlider({
   const previous = prevIndex !== null ? images[prevIndex] : null;
   const objectFitClass = fit === "contain" ? "object-contain" : "object-cover";
   const activeAnim = kenBurns ? "banner-kenburns" : "";
+  const isInline = mode === "inline";
+
+  const containerClassName = isInline
+    ? "relative w-full overflow-hidden " + (className ?? "")
+    : "pointer-events-none absolute inset-0 overflow-hidden " + (className ?? "");
 
   return (
-    <div className={"pointer-events-none absolute inset-0 overflow-hidden " + (className ?? "")}>
+    <div className={containerClassName} style={isInline ? ({ aspectRatio } as CSSProperties) : undefined}>
       {previous ? (
         <div
           className={
@@ -119,6 +127,13 @@ export function BannerSlider({
         <img
           className={"h-full w-full will-change-transform " + objectFitClass + (activeAnim ? " " + activeAnim : "")}
           src={toCssUrl(current)}
+          onLoad={(event) => {
+            if (!isInline) return;
+            const img = event.currentTarget;
+            const w = img.naturalWidth;
+            const h = img.naturalHeight;
+            if (w > 0 && h > 0) setAspectRatio(w / h);
+          }}
           alt=""
           aria-hidden="true"
           draggable={false}

@@ -36,13 +36,11 @@ export async function GET(req: Request) {
       supabaseAdmin
         .from("products")
         .select("id,name,slug,price_cents,has_variants,stock_qty,active")
-        .eq("active", true)
         .or(`name.ilike.%${q}%,slug.ilike.%${q}%`)
         .limit(30),
       supabaseAdmin
         .from("product_variants")
         .select("id,product_id,sku,name,price_cents_override,stock_qty,attributes,active")
-        .eq("active", true)
         .or(`sku.ilike.%${q}%,name.ilike.%${q}%`)
         .limit(40),
     ]);

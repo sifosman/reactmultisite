@@ -61,16 +61,18 @@ export default async function CategoryPage({
     color?: string;
     minPrice?: string;
     maxPrice?: string;
+    sort?: string;
     [key: string]: string | undefined;
   }>;
 }) {
   const { slug } = await params;
   const filters = await searchParams;
-  const { size, color, minPrice, maxPrice } = filters;
+  const { size, color, minPrice, maxPrice, sort } = filters;
   const sizeFilter = typeof size === "string" ? size : "";
   const colorFilter = typeof color === "string" ? color : "";
   const minPriceValue = toNumber(typeof minPrice === "string" ? minPrice : undefined);
   const maxPriceValue = toNumber(typeof maxPrice === "string" ? maxPrice : undefined);
+  const sortValue = typeof sort === "string" ? sort : "featured";
   const otherFilters = Object.entries(filters)
     .filter(([key, value]) => key.startsWith("attr_") && typeof value === "string" && value.trim())
     .reduce<Record<string, string>>((acc, [key, value]) => {
@@ -104,6 +106,9 @@ export default async function CategoryPage({
         .select("id,name,slug,price_cents,compare_at_price_cents,stock_qty,has_variants,product_images(url,sort_order)")
         .in("id", productIds)
         .eq("active", true)
+        .order(sortValue === "price_asc" || sortValue === "price_desc" ? "price_cents" : "created_at", {
+          ascending: sortValue === "price_asc" ? true : sortValue === "price_desc" ? false : false,
+        })
         .order("created_at", { ascending: false })
     : { data: [], error: null };
 
@@ -189,6 +194,12 @@ export default async function CategoryPage({
     return true;
   });
 
+  const sortedProducts = filteredProducts.slice().sort((a, b) => {
+    if (sortValue === "price_asc") return a.price_cents - b.price_cents;
+    if (sortValue === "price_desc") return b.price_cents - a.price_cents;
+    return 0;
+  });
+
   const hasFilters =
     Boolean(sizeFilter || colorFilter) ||
     minPriceValue !== null ||
@@ -248,7 +259,8 @@ export default async function CategoryPage({
             ) : null
           }
         >
-          <form method="get" className="grid gap-4 lg:grid-cols-5">
+          <form method="get" id="category-filters" className="grid gap-4 lg:grid-cols-5">
+            <input type="hidden" name="sort" value={sortValue} />
             <div className="flex flex-col gap-2">
               <label className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Size</label>
               <select
@@ -353,16 +365,21 @@ export default async function CategoryPage({
         {/* Toolbar */}
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-zinc-600">
-            Showing <span className="font-medium text-zinc-900">{filteredProducts.length}</span> products
+            Showing <span className="font-medium text-zinc-900">{sortedProducts.length}</span> products
           </p>
 
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <SlidersHorizontal className="h-4 w-4 text-zinc-400" />
-              <select className="rounded-lg border-zinc-200 bg-white py-2 pl-3 pr-8 text-sm focus:border-zinc-400 focus:ring-zinc-400">
-                <option>Sort by: Featured</option>
-                <option>Price: Low to High</option>
-                <option>Price: High to Low</option>
+              <select
+                name="sort"
+                form="category-filters"
+                defaultValue={sortValue}
+                className="rounded-lg border-zinc-200 bg-white py-2 pl-3 pr-8 text-sm focus:border-zinc-400 focus:ring-zinc-400"
+              >
+                <option value="featured">Sort by: Featured</option>
+                <option value="price_asc">Price: Low to High</option>
+                <option value="price_desc">Price: High to Low</option>
               </select>
             </div>
             <div className="flex rounded-lg border border-zinc-200 bg-white p-1">
@@ -377,9 +394,9 @@ export default async function CategoryPage({
         </div>
 
         {/* Products Grid */}
-        {filteredProducts.length > 0 ? (
+        {sortedProducts.length > 0 ? (
           <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
-            {filteredProducts.map((p) => {
+            {sortedProducts.map((p) => {
               const imgs = (p.product_images ?? []) as Array<{ url: string; sort_order: number | null }>;
               const first = imgs
                 .slice()

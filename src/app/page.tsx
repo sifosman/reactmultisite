@@ -146,14 +146,27 @@ async function HomeContent() {
     <main>
       {/* Hero Section - Full Width Background Banner */}
       <section className="relative overflow-hidden bg-white sm:min-h-[560px] lg:min-h-[640px]">
-        <BannerSlider
-          desktopImages={bannerDesktopImages}
-          mobileImages={bannerMobileImages}
-          fit="contain"
-          kenBurns
-        />
+        <div className="pointer-events-none sm:hidden">
+          <BannerSlider
+            desktopImages={bannerDesktopImages}
+            mobileImages={bannerMobileImages}
+            fit="contain"
+            kenBurns
+            mode="inline"
+          />
+        </div>
 
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="hidden sm:block">
+          <BannerSlider
+            desktopImages={bannerDesktopImages}
+            mobileImages={bannerMobileImages}
+            fit="contain"
+            kenBurns
+            mode="background"
+          />
+        </div>
+
+        <div className="absolute inset-0 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <Link
             href={ctaHref}
             className="absolute bottom-8 left-1/2 inline-flex -translate-x-1/2 items-center justify-center gap-2 rounded-full border px-10 py-4 text-sm font-semibold transition"

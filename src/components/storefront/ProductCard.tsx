@@ -59,14 +59,6 @@ export function ProductCard({
         >
           <Heart className="h-4 w-4 text-zinc-600" />
         </button>
-
-        {/* Quick add button */}
-        <div className="absolute bottom-0 left-0 right-0 translate-y-full bg-gradient-to-t from-black/80 to-black/0 p-4 transition-transform duration-300 group-hover:translate-y-0">
-          <div className="flex items-center justify-center gap-2 rounded-full bg-white py-2.5 text-sm font-semibold text-zinc-900 transition hover:bg-zinc-100">
-            <ShoppingBag className="h-4 w-4" />
-            Quick View
-          </div>
-        </div>
       </div>
 
       <div className="p-4">

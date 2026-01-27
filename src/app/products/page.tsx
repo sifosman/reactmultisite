@@ -48,11 +48,12 @@ export default async function ProductsPage({
     minPrice?: string;
     maxPrice?: string;
     limit?: string;
+    sort?: string;
     [key: string]: string | undefined;
   }>;
 }) {
   const params = await searchParams;
-  const { q, size, color, minPrice, maxPrice, limit } = params;
+  const { q, size, color, minPrice, maxPrice, limit, sort } = params;
   const query = typeof q === "string" ? q.trim() : "";
   const sizeFilter = typeof size === "string" ? size : "";
   const colorFilter = typeof color === "string" ? color : "";
@@ -60,6 +61,7 @@ export default async function ProductsPage({
   const maxPriceValue = toNumber(typeof maxPrice === "string" ? maxPrice : undefined);
   const limitValueRaw = toNumber(typeof limit === "string" ? limit : undefined);
   const limitValue = Math.min(120, Math.max(24, limitValueRaw ?? 24));
+  const sortValue = typeof sort === "string" ? sort : "featured";
   const otherFilters = Object.entries(params)
     .filter(([key, value]) => key.startsWith("attr_") && typeof value === "string" && value.trim())
     .reduce<Record<string, string>>((acc, [key, value]) => {
@@ -73,8 +75,17 @@ export default async function ProductsPage({
     .from("products")
     .select("id,name,slug,price_cents,compare_at_price_cents,stock_qty,has_variants,product_images(url,sort_order)")
     .eq("active", true)
-    .order("created_at", { ascending: false })
     .limit(limitValue);
+
+  if (sortValue === "price_asc") {
+    builder = builder.order("price_cents", { ascending: true }).order("created_at", { ascending: false });
+  } else if (sortValue === "price_desc") {
+    builder = builder.order("price_cents", { ascending: false }).order("created_at", { ascending: false });
+  } else if (sortValue === "newest") {
+    builder = builder.order("created_at", { ascending: false });
+  } else {
+    builder = builder.order("created_at", { ascending: false });
+  }
 
   if (query) {
     builder = builder.ilike("name", `%${query}%`);
@@ -183,6 +194,12 @@ export default async function ProductsPage({
     return true;
   });
 
+  const sortedProducts = filteredProducts.slice().sort((a, b) => {
+    if (sortValue === "price_asc") return a.price_cents - b.price_cents;
+    if (sortValue === "price_desc") return b.price_cents - a.price_cents;
+    return 0;
+  });
+
   const hasFilters =
     Boolean(sizeFilter || colorFilter) ||
     minPriceValue !== null ||
@@ -259,9 +276,10 @@ export default async function ProductsPage({
             ) : null
           }
         >
-          <form method="get" className="grid gap-4 lg:grid-cols-5">
+          <form method="get" id="products-filters" className="grid gap-4 lg:grid-cols-5">
             {query ? <input type="hidden" name="q" value={query} /> : null}
             <input type="hidden" name="limit" value={String(limitValue)} />
+            <input type="hidden" name="sort" value={sortValue} />
 
             <div className="flex flex-col gap-2">
               <label className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Size</label>
@@ -366,18 +384,22 @@ export default async function ProductsPage({
         {/* Toolbar */}
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-zinc-600">
-            Showing <span className="font-medium text-zinc-900">{filteredProducts.length}</span> products
+            Showing <span className="font-medium text-zinc-900">{sortedProducts.length}</span> products
           </p>
           
           <div className="flex items-center gap-4">
-            {/* Sort dropdown placeholder */}
             <div className="flex items-center gap-2">
               <SlidersHorizontal className="h-4 w-4 text-zinc-400" />
-              <select className="rounded-lg border-zinc-200 bg-white py-2 pl-3 pr-8 text-sm focus:border-zinc-400 focus:ring-zinc-400">
-                <option>Sort by: Featured</option>
-                <option>Price: Low to High</option>
-                <option>Price: High to Low</option>
-                <option>Newest First</option>
+              <select
+                name="sort"
+                form="products-filters"
+                defaultValue={sortValue}
+                className="rounded-lg border-zinc-200 bg-white py-2 pl-3 pr-8 text-sm focus:border-zinc-400 focus:ring-zinc-400"
+              >
+                <option value="featured">Sort by: Featured</option>
+                <option value="price_asc">Price: Low to High</option>
+                <option value="price_desc">Price: High to Low</option>
+                <option value="newest">Newest First</option>
               </select>
             </div>
             
@@ -394,9 +416,9 @@ export default async function ProductsPage({
         </div>
 
         {/* Products Grid */}
-        {filteredProducts.length > 0 ? (
+        {sortedProducts.length > 0 ? (
           <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
-            {filteredProducts.map((p) => {
+            {sortedProducts.map((p) => {
               const imgs = (p.product_images ?? []) as Array<{ url: string; sort_order: number | null }>;
               const first = imgs
                 .slice()
@@ -439,6 +461,7 @@ export default async function ProductsPage({
           <div className="mt-12 text-center">
             <Link
               href={loadMoreHref}
+              scroll={false}
               className="inline-flex rounded-full border-2 border-zinc-200 bg-white px-8 py-3 text-sm font-semibold text-zinc-900 transition hover:border-zinc-300 hover:bg-zinc-50"
             >
               Load more products
