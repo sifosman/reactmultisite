@@ -79,9 +79,9 @@ export function SiteHeader({
               <Image 
                 src={logoUrl} 
                 alt={brandName} 
-                width={120} 
-                height={36}
-                className="h-9 w-auto"
+                width={180} 
+                height={54}
+                className="h-14 w-auto"
                 priority
               />
             ) : (
