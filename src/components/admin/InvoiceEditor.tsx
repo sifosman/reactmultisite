@@ -913,14 +913,18 @@ export function InvoiceEditor({
                           value={String(l.qty)}
                           disabled={saving || status === "cancelled"}
                           onChange={(e) => {
-                            const n = Math.max(1, Math.floor(Number(e.target.value || 1)));
-                            setInvoice((prev) => {
-                              if (!prev) return prev;
-                              return {
-                                ...prev,
-                                lines: prev.lines.map((x) => (x.id === l.id ? { ...x, qty: n, line_total_cents: n * x.unit_price_cents } : x)),
-                              };
-                            });
+                            const value = e.target.value;
+                            // Allow empty value for editing, but validate on blur
+                            if (value === "" || /^\d*$/.test(value)) {
+                              setInvoice((prev) => {
+                                if (!prev) return prev;
+                                const n = value === "" ? 1 : Math.max(1, Math.floor(Number(value)));
+                                return {
+                                  ...prev,
+                                  lines: prev.lines.map((x) => (x.id === l.id ? { ...x, qty: n, line_total_cents: n * x.unit_price_cents } : x)),
+                                };
+                              });
+                            }
                           }}
                           onBlur={(e) => {
                             const n = Math.max(1, Math.floor(Number(e.target.value || 1)));

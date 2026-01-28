@@ -68,13 +68,20 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const accentColor = rgb(0.05, 0.45, 0.55);
   let y = 841.89 - margin;
 
-  page.drawRectangle({ x: 0, y: 780, width: 595.28, height: 62, color: headerColor });
-  page.drawText("INVOICE", { x: margin, y: 802, size: 20, font: fontBold, color: rgb(1, 1, 1) });
-  page.drawText(`No. ${invoice.invoice_number}`, { x: margin, y: 784, size: 10, font, color: rgb(0.9, 0.9, 0.9) });
+  // Enhanced header with logo placeholder
+  page.drawRectangle({ x: 0, y: 780, width: 595.28, height: 80, color: headerColor });
+  
+  // Company info on the left
+  page.drawText("Coastal Warehouse", { x: margin, y: 820, size: 16, font: fontBold, color: rgb(1, 1, 1) });
+  page.drawText("Verulam, Durban, 4340", { x: margin, y: 804, size: 10, font, color: rgb(0.9, 0.9, 0.9) });
+  page.drawText("WhatsApp: 071 3456 393", { x: margin, y: 792, size: 10, font, color: rgb(0.9, 0.9, 0.9) });
+  
+  // Invoice info on the right
+  page.drawText("INVOICE", { x: 450, y: 820, size: 20, font: fontBold, color: rgb(1, 1, 1) });
+  page.drawText(`No. ${invoice.invoice_number}`, { x: 450, y: 804, size: 10, font, color: rgb(0.9, 0.9, 0.9) });
+  page.drawText(`Date: ${new Date(invoice.created_at).toLocaleDateString("en-ZA")}`, { x: 450, y: 792, size: 10, font, color: rgb(0.9, 0.9, 0.9) });
 
   y = 750;
-  page.drawText(`Date: ${new Date(invoice.created_at).toLocaleDateString("en-ZA")}`, { x: margin, y, size: 11, font });
-  y -= 16;
   page.drawText(`Status: ${invoice.status}`, { x: margin, y, size: 11, font });
   y -= 26;
 
@@ -140,12 +147,23 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   y -= 14;
   page.drawText(`Delivery`, { x: colUnitX, y, size: 11, font });
   page.drawText(formatZar(deliveryCents), { x: colTotalX, y, size: 11, font });
-  y -= 14;
-  page.drawText(`Discount`, { x: colUnitX, y, size: 11, font });
-  page.drawText(formatZar(invoice.discount_cents), { x: colTotalX, y, size: 11, font });
+  
+  // Only show discount if it's greater than 0
+  if (invoice.discount_cents > 0) {
+    y -= 14;
+    page.drawText(`Discount`, { x: colUnitX, y, size: 11, font });
+    page.drawText(formatZar(invoice.discount_cents), { x: colTotalX, y, size: 11, font });
+  }
+  
   y -= 18;
   page.drawText(`Total`, { x: colUnitX, y, size: 13, font: fontBold, color: accentColor });
   page.drawText(formatZar(invoice.total_cents), { x: colTotalX, y, size: 13, font: fontBold });
+
+  // Footer
+  y = 100;
+  page.drawText("Thank you for your business!", { x: margin, y, size: 10, font: fontBold, color: accentColor });
+  y -= 14;
+  page.drawText("For any queries, contact us on WhatsApp: 071 3456 393", { x: margin, y, size: 9, font, color: rgb(0.6, 0.6, 0.6) });
 
   const bytes = await pdf.save();
   const blob = new Blob([bytes.buffer as unknown as BlobPart], { type: "application/pdf" });
