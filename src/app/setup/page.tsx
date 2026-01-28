@@ -51,7 +51,7 @@ interface ConfigValues {
 
 const defaultValues: ConfigValues = {
   siteName: "My Store",
-  siteTagline: "Quality products, delivered fast",
+  siteTagline: "Wholesale and retail, nationwide delivery",
   siteDescription: "Your one-stop shop for quality products",
   contactEmail: "",
   contactPhone: "",
@@ -248,7 +248,7 @@ NEXT_PUBLIC_APP_URL="http://localhost:3000"
                         className="mt-1 h-10 w-full rounded-md border px-3 text-sm"
                         value={values.siteTagline}
                         onChange={(e) => updateValue("siteTagline", e.target.value)}
-                        placeholder="Quality products, delivered fast"
+                        placeholder="Wholesale and retail, nationwide delivery"
                       />
                     </div>
                     <div>

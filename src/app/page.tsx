@@ -73,11 +73,11 @@ async function HomeContent() {
   const leftTheme = promoLeft.theme === "sky" ? "sky" : "amber";
   const leftImageUrl = typeof promoLeft.imageUrl === "string" ? promoLeft.imageUrl : null;
 
-  const rightBadge = typeof promoRight.badge === "string" ? promoRight.badge : "New Collection";
-  const rightTitle = typeof promoRight.title === "string" ? promoRight.title : "Premium Picks";
-  const rightSubtitle = typeof promoRight.subtitle === "string" ? promoRight.subtitle : "Discover our curated selection";
-  const rightButtonText = typeof promoRight.buttonText === "string" ? promoRight.buttonText : "Explore Now";
-  const rightButtonHref = typeof promoRight.buttonHref === "string" ? promoRight.buttonHref : "/products";
+  const rightBadge = typeof promoRight.badge === "string" ? promoRight.badge : "Business Opportunity";
+  const rightTitle = typeof promoRight.title === "string" ? promoRight.title : "Start Your Own Business";
+  const rightSubtitle = typeof promoRight.subtitle === "string" ? promoRight.subtitle : "by reselling our products";
+  const rightButtonText = typeof promoRight.buttonText === "string" ? promoRight.buttonText : "WhatsApp Now";
+  const rightButtonHref = typeof promoRight.buttonHref === "string" ? promoRight.buttonHref : "https://wa.me/27713456393";
   const rightTheme = promoRight.theme === "amber" ? "amber" : "sky";
   const rightImageUrl = typeof promoRight.imageUrl === "string" ? promoRight.imageUrl : null;
 
@@ -250,8 +250,8 @@ async function HomeContent() {
                 <Truck className="h-6 w-6 text-zinc-700" />
               </div>
               <div>
-                <div className="font-semibold text-zinc-900">Free Shipping</div>
-                <div className="text-sm text-zinc-500">On orders over R500</div>
+                <div className="font-semibold text-zinc-900">Delivery nationwide</div>
+                <div className="text-sm text-zinc-500">R60 for website orders</div>
               </div>
             </div>
             <div className="flex items-center gap-4">
@@ -268,8 +268,8 @@ async function HomeContent() {
                 <RotateCcw className="h-6 w-6 text-zinc-700" />
               </div>
               <div>
-                <div className="font-semibold text-zinc-900">Easy Returns</div>
-                <div className="text-sm text-zinc-500">30-day return policy</div>
+                <div className="font-semibold text-zinc-900">Dedicated support</div>
+                <div className="text-sm text-zinc-500">WhatsApp 071 3456 393</div>
               </div>
             </div>
             <div className="flex items-center gap-4">
@@ -382,7 +382,7 @@ async function HomeContent() {
                 New Arrivals
               </h2>
               <p className="mt-2 text-lg text-zinc-600">
-                The latest additions to our collection
+                A rotating selection of items from the store.
               </p>
             </div>
             <Link 
@@ -423,6 +423,30 @@ async function HomeContent() {
             mobileSrc="/middle of homepage mobile 1.jpg"
             alt="Homepage banner"
           />
+        </div>
+      </section>
+
+      {/* Summer Sale Banner */}
+      <section className="bg-gradient-to-r from-red-600 to-orange-600 py-12 sm:py-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col items-center text-center">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-2 text-sm font-semibold text-white backdrop-blur-sm">
+              <span>Limited Time</span>
+            </div>
+            <h2 className="mt-4 text-3xl font-bold tracking-tight text-white sm:text-4xl">
+              Summer Sale to Bargain Box
+            </h2>
+            <p className="mt-2 text-lg text-white/90">
+              Up to 40% off - Order now
+            </p>
+            <Link
+              href="/category/sale"
+              className="mt-6 inline-flex items-center gap-2 rounded-full bg-white px-8 py-3 text-sm font-semibold text-red-600 transition hover:bg-white/90"
+            >
+              Shop Sale Items
+              <ChevronRight className="h-4 w-4" />
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -491,6 +515,8 @@ async function HomeContent() {
                 <p className="mt-2 text-zinc-600">{rightSubtitle}</p>
                 <Link
                   href={rightButtonHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="mt-6 inline-flex items-center gap-2 rounded-full bg-zinc-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800"
                 >
                   {rightButtonText}

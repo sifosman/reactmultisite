@@ -35,7 +35,7 @@ export function SiteHeader({
                   {config.announcement.badge}
                 </span>
               )}
-              <span className="text-white/90">{config.announcement.text}</span>
+              <span className="text-white/90">Wholesale or any enquiries please WhatsApp <a href="https://wa.me/27713456393" className="underline hover:no-underline" target="_blank" rel="noopener noreferrer">071 3456 393</a></span>
             </div>
             <div className="hidden items-center gap-4 sm:flex">
               <div className="rounded-full border border-white/15 px-2 py-0.5 text-white/90">EN</div>

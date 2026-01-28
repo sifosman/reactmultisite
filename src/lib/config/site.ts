@@ -62,7 +62,7 @@ export interface SiteConfig {
 // Default configuration - overridden by environment variables
 const defaultConfig: SiteConfig = {
   name: "My Store",
-  tagline: "Quality products, delivered fast",
+  tagline: "Wholesale and retail, nationwide delivery",
   description: "Your one-stop shop for quality products",
   
   email: "hello@example.com",

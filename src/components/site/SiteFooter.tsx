@@ -85,6 +85,9 @@ export function SiteFooter({
                   <Twitter className="h-5 w-5" />
                 </a>
               )}
+              <a href="https://www.instagram.com/coastal_warehouse?igsh=aG13dnlrNWN6ejRq" target="_blank" rel="noreferrer" className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 transition hover:bg-white/20">
+                <Instagram className="h-5 w-5" />
+              </a>
               {!social.facebook && !social.instagram && !social.twitter && (
                 <>
                   <a href="#" className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 transition hover:bg-white/20">
@@ -108,8 +111,7 @@ export function SiteFooter({
               <li><Link href="/products" className="text-zinc-400 transition hover:text-white">All Products</Link></li>
               <li><Link href="/categories" className="text-zinc-400 transition hover:text-white">Categories</Link></li>
               <li><Link href="/products" className="text-zinc-400 transition hover:text-white">New Arrivals</Link></li>
-              <li><Link href="/products" className="text-zinc-400 transition hover:text-white">Best Sellers</Link></li>
-              <li><Link href="/products" className="text-zinc-400 transition hover:text-white">Sale</Link></li>
+              <li><Link href="/category/sale" className="text-zinc-400 transition hover:text-white">Sale</Link></li>
             </ul>
           </div>
 

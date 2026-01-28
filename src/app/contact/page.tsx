@@ -20,9 +20,9 @@ export default async function ContactPage() {
   const contact = (site.contact ?? {}) as Record<string, unknown>;
 
   const body = typeof pages.contact === "string" ? pages.contact : "";
-  const email = typeof contact.email === "string" ? contact.email : "";
-  const phone = typeof contact.phone === "string" ? contact.phone : "";
-  const address = typeof contact.address === "string" ? contact.address : "";
+  const email = typeof contact.email === "string" ? contact.email : "admin@coastalwarehouse.co.za";
+  const phone = typeof contact.phone === "string" ? contact.phone : "071 3456 393";
+  const address = typeof contact.address === "string" ? contact.address : "Dawncrest, Verulam, Durban, 4340";
 
   return (
     <main className="mx-auto max-w-4xl p-6">
@@ -46,6 +46,7 @@ export default async function ContactPage() {
           <div>
             <div className="text-sm font-semibold">Contact details</div>
             <div className="mt-2 space-y-1 text-sm">
+              <div>Name: Sameer</div>
               {email ? <div>Email: <a href={`mailto:${email}`} className="text-blue-600 hover:underline">{email}</a></div> : null}
               {phone ? <div>Phone: <a href={`tel:${phone}`} className="text-blue-600 hover:underline">{phone}</a></div> : null}
               {address ? <div className="whitespace-pre-wrap">{address}</div> : null}
