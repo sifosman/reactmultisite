@@ -430,14 +430,11 @@ async function HomeContent() {
       <section className="bg-gradient-to-r from-red-600 to-orange-600 py-12 sm:py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center text-center">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-2 text-sm font-semibold text-white backdrop-blur-sm">
-              <span>Limited Time</span>
-            </div>
             <h2 className="mt-4 text-3xl font-bold tracking-tight text-white sm:text-4xl">
-              Summer Sale to Bargain Box
+              Bargain Box
             </h2>
             <p className="mt-2 text-lg text-white/90">
-              Up to 40% off - Order now
+              Order now
             </p>
             <Link
               href="/category/sale"
