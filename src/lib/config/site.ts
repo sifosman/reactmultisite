@@ -104,8 +104,8 @@ export function getSiteConfig(): SiteConfig {
     name: process.env.NEXT_PUBLIC_SITE_NAME || defaultConfig.name,
     tagline: process.env.NEXT_PUBLIC_SITE_TAGLINE || defaultConfig.tagline,
     description: process.env.NEXT_PUBLIC_SITE_DESCRIPTION || defaultConfig.description,
-    logo: process.env.NEXT_PUBLIC_SITE_LOGO || undefined,
-    favicon: process.env.NEXT_PUBLIC_SITE_FAVICON || undefined,
+    logo: process.env.NEXT_PUBLIC_SITE_LOGO || defaultConfig.logo,
+    favicon: process.env.NEXT_PUBLIC_SITE_FAVICON || defaultConfig.favicon,
     
     email: process.env.NEXT_PUBLIC_CONTACT_EMAIL || defaultConfig.email,
     phone: process.env.NEXT_PUBLIC_CONTACT_PHONE || undefined,

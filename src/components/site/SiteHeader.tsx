@@ -24,9 +24,6 @@ export function SiteHeader({
   const [cartOpen, setCartOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
-  // Debug logging
-  console.log('SiteHeader - logoUrl:', logoUrl, 'brandName:', brandName, 'config.logo:', config.logo);
-
   return (
     <header className="sticky top-0 z-40">
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
