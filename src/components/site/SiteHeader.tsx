@@ -1,13 +1,14 @@
 "use client";
 
-import Link from "next/link";
-import { Facebook, Instagram, Twitter, Menu, X } from "lucide-react";
 import { useState } from "react";
-import { CartBadgeButton } from "@/components/site/CartBadgeButton";
-import { HeaderSearch } from "@/components/site/HeaderSearch";
-import { getSiteConfig } from "@/lib/config/site";
+import Link from "next/link";
+import Image from "next/image";
+import { ChevronDown, Menu, X, Search, Twitter, Facebook, Instagram } from "lucide-react";
+import { CartBadgeButton } from "./CartBadgeButton";
 import { CartDrawer } from "@/components/cart/CartDrawer";
 import { UserMenu } from "@/components/site/UserMenu";
+import { HeaderSearch } from "./HeaderSearch";
+import { getSiteConfig } from "@/lib/config/site";
 
 export function SiteHeader({
   site,
@@ -22,6 +23,9 @@ export function SiteHeader({
   const logoUrl = site?.logoUrl ?? config.logo;
   const [cartOpen, setCartOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+  // Debug logging
+  console.log('SiteHeader - logoUrl:', logoUrl, 'brandName:', brandName, 'config.logo:', config.logo);
 
   return (
     <header className="sticky top-0 z-40">
@@ -75,8 +79,14 @@ export function SiteHeader({
 
           <Link href="/" className="shrink-0">
             {logoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={logoUrl} alt={brandName} className="h-9 w-auto" />
+              <Image 
+                src={logoUrl} 
+                alt={brandName} 
+                width={120} 
+                height={36}
+                className="h-9 w-auto"
+                priority
+              />
             ) : (
               <div className="text-base font-semibold tracking-tight text-zinc-900">{brandName}</div>
             )}

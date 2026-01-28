@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
-import { Facebook, Instagram, Twitter, Mail, MapPin, Phone, CreditCard } from "lucide-react";
+import Image from "next/image";
+import { Facebook, Instagram, Twitter, MapPin, Phone, CreditCard, Mail } from "lucide-react";
 import { getSiteConfig } from "@/lib/config/site";
 import { NewsletterSignup } from "@/components/site/NewsletterSignup";
 
@@ -59,8 +62,13 @@ export function SiteFooter({
           <div className="lg:col-span-1">
             <Link href="/" className="inline-flex items-center gap-3 text-2xl font-bold">
               {logoUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={logoUrl} alt={brandName} className="h-9 w-auto" />
+                <Image 
+                  src={logoUrl} 
+                  alt={brandName} 
+                  width={120} 
+                  height={36}
+                  className="h-9 w-auto"
+                />
               ) : null}
               <span>{brandName}</span>
             </Link>
