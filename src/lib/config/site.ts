@@ -61,7 +61,7 @@ export interface SiteConfig {
 
 // Default configuration - overridden by environment variables
 const defaultConfig: SiteConfig = {
-  name: "My Store",
+  name: "Coastal Warehouse",
   logo: "/logo.jpg",
   tagline: "Wholesale and retail, nationwide delivery",
   description: "Your one-stop shop for quality products",

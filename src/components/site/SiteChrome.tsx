@@ -6,12 +6,14 @@ import { SiteFooter } from "@/components/site/SiteFooter";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { MobileBottomNav } from "@/components/site/MobileBottomNav";
 import { FloatingWhatsAppButton } from "@/components/site/FloatingWhatsAppButton";
+import { getSiteConfig } from "@/lib/config/site";
 
 export function SiteChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isAdmin = pathname === "/admin" || pathname.startsWith("/admin/");
 
   const [siteData, setSiteData] = useState<Record<string, unknown> | null>(null);
+  const config = getSiteConfig();
 
   useEffect(() => {
     let cancelled = false;
@@ -40,9 +42,9 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
     const contact = (siteData?.contact ?? {}) as Record<string, unknown>;
     const social = (contact?.social ?? {}) as Record<string, unknown>;
 
-    const name = typeof branding.name === "string" ? branding.name : undefined;
-    const logoUrl = typeof branding.logoUrl === "string" ? branding.logoUrl : undefined;
-    const footerAbout = typeof footer.about === "string" ? footer.about : undefined;
+    const name = typeof branding.name === "string" ? branding.name : config.name;
+    const logoUrl = typeof branding.logoUrl === "string" ? branding.logoUrl : config.logo;
+    const footerAbout = typeof footer.about === "string" ? footer.about : config.tagline;
     const termsLabel = typeof footer.termsLabel === "string" ? footer.termsLabel : undefined;
     const hasTerms = typeof legal.termsContent === "string" && legal.termsContent.trim().length > 0;
     const whatsappNumber = typeof contact.whatsappNumber === "string" ? contact.whatsappNumber : undefined;
@@ -74,7 +76,7 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
         whatsappNumber,
       },
     };
-  }, [siteData]);
+  }, [siteData, config]);
 
   if (isAdmin) {
     // For admin routes, render children without public site chrome

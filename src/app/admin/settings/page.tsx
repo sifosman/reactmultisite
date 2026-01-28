@@ -24,25 +24,25 @@ export default async function AdminSettingsPage() {
           <div className="mt-4 space-y-3 text-sm">
             <div className="flex items-center justify-between">
               <span className="text-slate-600">Supabase</span>
-              <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${hasSupabase ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"}`}>
+              <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${hasSupabase ? "bg-emerald-100" : "bg-slate-100"} text-slate-700`}>
                 {hasSupabase ? "Configured" : "Missing"}
               </span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-slate-600">Yoco</span>
-              <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${hasYoco ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"}`}>
+              <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${hasYoco ? "bg-emerald-100" : "bg-slate-100"} text-slate-700`}>
                 {hasYoco ? "Configured" : "Missing"}
               </span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-slate-600">Yoco Webhook</span>
-              <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${hasYocoWebhook ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"}`}>
+              <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${hasYocoWebhook ? "bg-emerald-100" : "bg-slate-100"} text-slate-700`}>
                 {hasYocoWebhook ? "Configured" : "Missing"}
               </span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-slate-600">PayFast</span>
-              <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${hasPayFast ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"}`}>
+              <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${hasPayFast ? "bg-emerald-100" : "bg-slate-100"} text-slate-700`}>
                 {hasPayFast ? "Configured" : "Missing"}
               </span>
             </div>
