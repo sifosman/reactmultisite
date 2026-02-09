@@ -28,7 +28,7 @@ export function AddToCart({
   simpleProductStockQty?: number | null;
 }) {
   const [selectedAttrs, setSelectedAttrs] = useState<Record<string, string>>({});
-  const [qty, setQty] = useState(1);
+  const [qty, setQty] = useState("1");
   const [added, setAdded] = useState(false);
 
   const allVariants = useMemo(() => {
@@ -98,9 +98,10 @@ export function AddToCart({
     setAdded(false);
 
     const variantId = selectedVariant ? selectedVariant.id : null;
+    const qtyNum = parseInt(qty) || 1;
     const cappedQty = maxSelectableQty === Number.POSITIVE_INFINITY
-      ? qty
-      : Math.max(1, Math.min(qty, maxSelectableQty));
+      ? qtyNum
+      : Math.max(1, Math.min(qtyNum, maxSelectableQty));
     addToGuestCart({ productId, variantId, qty: cappedQty }, maxSelectableQty);
 
     setAdded(true);
@@ -191,21 +192,57 @@ export function AddToCart({
       <div className="grid grid-cols-3 gap-3">
         <div className="col-span-1 space-y-2">
           <label className="text-sm font-medium">Qty</label>
-          <input
-            className="h-10 w-full rounded-md border px-3 text-sm"
-            value={qty}
-            onChange={(e) => {
-              const inputValue = e.target.value;
-              
-              // Allow empty input or valid numbers
-              if (inputValue === '' || /^\d*$/.test(inputValue)) {
+          <div className="flex items-center">
+            <button
+              type="button"
+              onClick={() => {
+                const currentQty = parseInt(qty) || 1;
+                const newQty = Math.max(1, currentQty - 1);
+                setQty(newQty.toString());
+              }}
+              className="h-10 w-8 rounded-l-md border border-r-0 bg-gray-50 text-gray-600 hover:bg-gray-100 disabled:opacity-50"
+              disabled={parseInt(qty) <= 1}
+            >
+              <svg className="mx-auto h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+              </svg>
+            </button>
+            <input
+              className="h-10 w-full -mx-px rounded-none border px-3 text-center text-sm [appearance:textfield] [&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:m-0 [&::-webkit-outer-spin-button]:appearance-none"
+              value={qty}
+              onChange={(e) => {
+                const inputValue = e.target.value;
+                
+                // Allow empty input or valid numbers
+                if (inputValue === '' || /^\d*$/.test(inputValue)) {
+                  setQty(inputValue);
+                }
+              }}
+              onBlur={(e) => {
+                const inputValue = e.target.value;
                 const numValue = inputValue === '' ? 1 : parseInt(inputValue, 10);
-                setQty(isNaN(numValue) ? 1 : Math.max(1, numValue));
-              }
-            }}
-            type="number"
-            min={1}
-          />
+                const finalQty = isNaN(numValue) ? 1 : Math.max(1, numValue);
+                setQty(finalQty.toString());
+              }}
+              type="number"
+              min={1}
+              placeholder=""
+            />
+            <button
+              type="button"
+              onClick={() => {
+                const currentQty = parseInt(qty) || 1;
+                const newQty = Math.min(maxSelectableQty || 999, currentQty + 1);
+                setQty(newQty.toString());
+              }}
+              className="h-10 w-8 rounded-r-md border border-l-0 bg-gray-50 text-gray-600 hover:bg-gray-100 disabled:opacity-50"
+              disabled={maxSelectableQty !== undefined && (parseInt(qty) || 1) >= maxSelectableQty}
+            >
+              <svg className="mx-auto h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+            </button>
+          </div>
         </div>
         <div className="col-span-2 flex items-end">
           <button
