@@ -5,6 +5,7 @@ import { getEffectiveShippingCents } from "@/lib/shipping/getEffectiveShippingCe
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { upsertCustomerFromOrder } from "@/lib/customers/upsertCustomerFromOrder";
+import { sendBankTransferOrderEmail } from "@/lib/brevo/sendBankTransferOrderEmail";
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
@@ -214,6 +215,13 @@ export async function POST(req: Request) {
     });
   } catch {
     // Do not fail checkout if customer upsert fails.
+  }
+
+  // Send bank transfer order email
+  try {
+    await sendBankTransferOrderEmail(order.id);
+  } catch {
+    // Don't fail order creation if email fails
   }
 
   return NextResponse.json({ orderId: order.id });

@@ -426,27 +426,7 @@ async function HomeContent() {
         </div>
       </section>
 
-      {/* Summer Sale Banner */}
-      <section className="bg-gradient-to-r from-red-600 to-orange-600 py-12 sm:py-16">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col items-center text-center">
-            <h2 className="mt-4 text-3xl font-bold tracking-tight text-white sm:text-4xl">
-              Bargain Box
-            </h2>
-            <p className="mt-2 text-lg text-white/90">
-              Order now
-            </p>
-            <Link
-              href="/category/sale"
-              className="mt-6 inline-flex items-center gap-2 rounded-full bg-white px-8 py-3 text-sm font-semibold text-red-600 transition hover:bg-white/90"
-            >
-              Shop Sale Items
-              <ChevronRight className="h-4 w-4" />
-            </Link>
-          </div>
-        </div>
-      </section>
-
+      
       {/* Two Column Promo */}
       <section className="bg-zinc-50 py-16 sm:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

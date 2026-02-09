@@ -46,11 +46,18 @@ export function BannerSlider({
   mode = "background",
 }: BannerSliderProps) {
   const isDesktop = useIsDesktop();
+  const [isClient, setIsClient] = useState(false);
+
+  // Ensure we're on client side before rendering to prevent SSR mismatch
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const images = useMemo(() => {
+    if (!isClient) return []; // Don't render images until client-side
     const list = isDesktop ? desktopImages : mobileImages;
     return Array.isArray(list) ? list.filter(Boolean) : [];
-  }, [desktopImages, isDesktop, mobileImages]);
+  }, [desktopImages, isDesktop, mobileImages, isClient]);
 
   const [index, setIndex] = useState(0);
   const [prevIndex, setPrevIndex] = useState<number | null>(null);
@@ -58,10 +65,11 @@ export function BannerSlider({
   const [aspectRatio, setAspectRatio] = useState<number>(16 / 9);
 
   useEffect(() => {
+    if (!isClient) return;
     setIndex(0);
     setPrevIndex(null);
     setTransitioning(false);
-  }, [images.length]);
+  }, [images.length, isClient]);
 
   useEffect(() => {
     if (images.length <= 1) return;
@@ -86,7 +94,7 @@ export function BannerSlider({
     return () => window.clearInterval(id);
   }, [images.length, intervalMs]);
 
-  if (images.length === 0) return null;
+  if (images.length === 0 || !isClient) return null;
 
   const current = images[index] ?? images[0];
   const previous = prevIndex !== null ? images[prevIndex] : null;

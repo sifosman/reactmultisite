@@ -73,7 +73,7 @@ export default async function ProductsPage({
 
   let builder = supabase
     .from("products")
-    .select("id,name,slug,price_cents,compare_at_price_cents,stock_qty,has_variants,product_images(url,sort_order)")
+    .select("id,name,slug,price_cents,compare_at_price_cents,stock_qty,has_variants,created_at,product_images(url,sort_order)")
     .eq("active", true)
     .limit(limitValue);
 
@@ -194,9 +194,12 @@ export default async function ProductsPage({
     return true;
   });
 
+  // Apply client-side sorting after filtering (for price sorts)
   const sortedProducts = filteredProducts.slice().sort((a, b) => {
     if (sortValue === "price_asc") return a.price_cents - b.price_cents;
     if (sortValue === "price_desc") return b.price_cents - a.price_cents;
+    if (sortValue === "newest") return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    // Default: featured (keep original order from DB which is by created_at desc)
     return 0;
   });
 
@@ -235,7 +238,7 @@ export default async function ProductsPage({
               <p className="mt-2 text-zinc-600">
                 {query 
                   ? `${(products ?? []).length} results found`
-                  : "Discover our curated collection of premium products"
+                  : "Discover our curated collection of quality products"
                 }
               </p>
             </div>
@@ -394,6 +397,10 @@ export default async function ProductsPage({
                 name="sort"
                 form="products-filters"
                 defaultValue={sortValue}
+                onChange={(e) => {
+                  const form = document.getElementById('products-filters') as HTMLFormElement;
+                  if (form) form.submit();
+                }}
                 className="rounded-lg border-zinc-200 bg-white py-2 pl-3 pr-8 text-sm focus:border-zinc-400 focus:ring-zinc-400"
               >
                 <option value="featured">Sort by: Featured</option>

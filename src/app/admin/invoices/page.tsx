@@ -13,7 +13,7 @@ export default async function AdminInvoicesPage() {
 
   const { data: invoices, error } = await supabase
     .from("invoices")
-    .select("id,invoice_number,status,total_cents,currency,created_at,customer_snapshot")
+    .select("id,invoice_number,status,total_cents,currency,created_at,customer_snapshot,payment_status,fulfilment_status")
     .order("created_at", { ascending: false })
     .limit(200);
 
@@ -84,7 +84,23 @@ export default async function AdminInvoicesPage() {
                         );
                       })()}
                     </td>
-                    <td className="px-6 py-4 text-sm text-slate-700">{inv.status}</td>
+                    <td className="px-6 py-4 text-sm text-slate-700">
+                      <div className="flex flex-wrap gap-1">
+                        <span className="inline-flex items-center rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-700">
+                          {inv.status}
+                        </span>
+                        {inv.payment_status && (
+                          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${inv.payment_status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                            {inv.payment_status}
+                          </span>
+                        )}
+                        {inv.fulfilment_status && (
+                          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${inv.fulfilment_status === 'dispatched' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}>
+                            {inv.fulfilment_status}
+                          </span>
+                        )}
+                      </div>
+                    </td>
                     <td className="px-6 py-4 text-sm font-semibold text-slate-900">
                       R{((inv.total_cents ?? 0) / 100).toFixed(2)}
                     </td>

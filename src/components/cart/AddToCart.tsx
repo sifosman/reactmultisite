@@ -195,11 +195,13 @@ export function AddToCart({
             className="h-10 w-full rounded-md border px-3 text-sm"
             value={qty}
             onChange={(e) => {
-              const next = Math.max(1, Math.floor(Number(e.target.value) || 1));
-              const capped = maxSelectableQty === Number.POSITIVE_INFINITY
-                ? next
-                : Math.min(next, maxSelectableQty || 1);
-              setQty(capped);
+              const inputValue = e.target.value;
+              
+              // Allow empty input or valid numbers
+              if (inputValue === '' || /^\d*$/.test(inputValue)) {
+                const numValue = inputValue === '' ? 1 : parseInt(inputValue, 10);
+                setQty(isNaN(numValue) ? 1 : Math.max(1, numValue));
+              }
             }}
             type="number"
             min={1}
@@ -217,7 +219,7 @@ export function AddToCart({
         </div>
       </div>
 
-      <div className="text-xs text-zinc-600">Guest cart is stored in this browser (for now).</div>
+      <div className="text-xs text-zinc-600">Your cart is saved locally for quick checkout.</div>
     </div>
   );
 }

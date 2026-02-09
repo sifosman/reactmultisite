@@ -31,17 +31,29 @@ export async function GET(req: Request) {
 
   const supabaseAdmin = createSupabaseAdminClient();
 
+  // Split query into individual words for flexible matching
+  const words = q.split(/\s+/).filter(word => word.length > 0);
+  
+  // Create search conditions for each word
+  const productSearchConditions = words.map(word => 
+    `(name.ilike.%${word}%,slug.ilike.%${word}%,description.ilike.%${word}%)`
+  ).join(',');
+  
+  const variantSearchConditions = words.map(word => 
+    `(sku.ilike.%${word}%,name.ilike.%${word}%)`
+  ).join(',');
+
   const [{ data: products, error: productsError }, { data: variants, error: variantsError }] =
     await Promise.all([
       supabaseAdmin
         .from("products")
-        .select("id,name,slug,price_cents,has_variants,stock_qty,active")
-        .or(`name.ilike.%${q}%,slug.ilike.%${q}%`)
+        .select("id,name,slug,price_cents,has_variants,stock_qty,active,description")
+        .or(productSearchConditions)
         .limit(30),
       supabaseAdmin
         .from("product_variants")
         .select("id,product_id,sku,name,price_cents_override,stock_qty,attributes,active")
-        .or(`sku.ilike.%${q}%,name.ilike.%${q}%`)
+        .or(variantSearchConditions)
         .limit(40),
     ]);
 
@@ -59,7 +71,7 @@ export async function GET(req: Request) {
   if (missingProductIds.length > 0) {
     const { data: moreProducts } = await supabaseAdmin
       .from("products")
-      .select("id,name,slug,price_cents,has_variants,stock_qty,active")
+      .select("id,name,slug,price_cents,has_variants,stock_qty,active,description")
       .in("id", missingProductIds);
 
     (moreProducts ?? []).forEach((p) => productsById.set(p.id as string, p as any));

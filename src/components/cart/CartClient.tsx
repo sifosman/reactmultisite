@@ -221,7 +221,7 @@ export function CartClient() {
               </div>
             </div>
             <div className="mt-4 text-xs text-zinc-900">
-              Totals shown here are for display only. Checkout recalculates totals server-side.
+              Final prices will be calculated during checkout to ensure accuracy.
             </div>
             <Link
               className="mt-5 flex h-11 w-full items-center justify-center rounded-full bg-orange-500 px-4 text-base font-semibold text-white shadow-md transition hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2"

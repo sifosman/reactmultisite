@@ -159,11 +159,23 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   page.drawText(`Total`, { x: colUnitX, y, size: 13, font: fontBold, color: accentColor });
   page.drawText(formatZar(invoice.total_cents), { x: colTotalX, y, size: 13, font: fontBold });
 
-  // Footer
+  // Footer with banking details
   y = 100;
   page.drawText("Thank you for your business!", { x: margin, y, size: 10, font: fontBold, color: accentColor });
   y -= 14;
   page.drawText("For any queries, contact us on WhatsApp: 071 3456 393", { x: margin, y, size: 9, font, color: rgb(0.6, 0.6, 0.6) });
+  
+  // Banking details
+  y -= 20;
+  page.drawText("Banking Details", { x: margin, y, size: 11, font: fontBold, color: accentColor });
+  y -= 14;
+  page.drawText("Account Holder: S kadwa", { x: margin, y, size: 9, font, color: rgb(0.6, 0.6, 0.6) });
+  y -= 12;
+  page.drawText("Account Number: 9285283250", { x: margin, y, size: 9, font, color: rgb(0.6, 0.6, 0.6) });
+  y -= 12;
+  page.drawText("Bank: Absa", { x: margin, y, size: 9, font, color: rgb(0.6, 0.6, 0.6) });
+  y -= 12;
+  page.drawText("Account Type: Savings", { x: margin, y, size: 9, font, color: rgb(0.6, 0.6, 0.6) });
 
   const bytes = await pdf.save();
   const blob = new Blob([bytes.buffer as unknown as BlobPart], { type: "application/pdf" });
