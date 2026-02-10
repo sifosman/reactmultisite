@@ -29,17 +29,32 @@ export function verifyYocoWebhook({
     .update(signedContent)
     .digest("base64");
 
-  const first = signatureHeader.split(" ")[0];
-  const actualSignature = first.split(",")[1];
+  // The header can contain multiple entries separated by spaces, e.g.
+  // "v1,abc= v1,def= v2,ghi=". Accept if ANY v1 signature matches.
+  const candidates = signatureHeader
+    .split(" ")
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .map((entry) => {
+      const [version, sig] = entry.split(",");
+      return { version, sig };
+    })
+    .filter((x) => x.version === "v1" && typeof x.sig === "string" && x.sig.length > 0);
 
-  if (!actualSignature) return false;
-
-  try {
-    return crypto.timingSafeEqual(
-      Buffer.from(expectedSignature),
-      Buffer.from(actualSignature)
-    );
-  } catch {
-    return false;
+  for (const c of candidates) {
+    try {
+      if (
+        crypto.timingSafeEqual(
+          Buffer.from(expectedSignature),
+          Buffer.from(c.sig)
+        )
+      ) {
+        return true;
+      }
+    } catch {
+      // ignore and try next candidate
+    }
   }
+
+  return false;
 }

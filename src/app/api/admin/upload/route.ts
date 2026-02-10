@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
 
 async function assertAdmin() {
   const supabase = await createSupabaseServerClient();
@@ -57,31 +55,32 @@ export async function POST(req: Request) {
     const randomString = Math.random().toString(36).substring(2, 8);
     const extension = file.name.split('.').pop();
     const filename = `${timestamp}-${randomString}.${extension}`;
-    
-    // Ensure upload directory exists
-    const uploadDir = path.join(process.cwd(), "public", folder);
-    try {
-      await mkdir(uploadDir, { recursive: true });
-    } catch (error) {
-      // Directory might already exist, that's fine
+
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    const safeName = file.name.replaceAll(/[^a-zA-Z0-9._-]+/g, "-");
+    const storagePath = `${folder}/${timestamp}-${randomString}-${safeName}`;
+
+    const supabaseAdmin = createSupabaseAdminClient();
+
+    const { error: uploadError } = await supabaseAdmin.storage
+      .from("banners")
+      .upload(storagePath, bytes, {
+        contentType: file.type || "application/octet-stream",
+        upsert: false,
+      });
+
+    if (uploadError) {
+      return NextResponse.json({ error: uploadError.message }, { status: 500 });
     }
 
-    // Save file to public/uploads directory
-    const filePath = path.join(uploadDir, filename);
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
-    await writeFile(filePath, buffer);
-
-    // Return the public URL
-    const publicUrl = `/${folder}/${filename}`;
+    const { data } = supabaseAdmin.storage.from("banners").getPublicUrl(storagePath);
 
     return NextResponse.json({
       success: true,
       filename,
-      url: publicUrl,
+      url: data.publicUrl,
       size: file.size,
-      type: file.type
+      type: file.type,
     });
 
   } catch (error) {

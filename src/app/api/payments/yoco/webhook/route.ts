@@ -3,6 +3,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { verifyYocoWebhook } from "@/lib/yoco/webhookVerify";
 import { sendOrderPaidEmail } from "@/lib/brevo/sendOrderPaidEmail";
 import { createOrderFromData } from "@/lib/checkout/createOrderFromData";
+import { getEffectiveShippingCents } from "@/lib/shipping/getEffectiveShippingCents";
 
 export async function POST(req: Request) {
   const rawBody = await req.text();
@@ -183,6 +184,7 @@ export async function POST(req: Request) {
     };
 
     try {
+      const shippingCents = await getEffectiveShippingCents(shippingAddress.province);
       const { orderId, totalCents } = await createOrderFromData({
         userId: pendingCheckout.user_id,
         customer: {
@@ -192,13 +194,14 @@ export async function POST(req: Request) {
         },
         shippingAddress,
         items,
+        shippingCents,
         status: "paid",
       });
 
       await supabaseAdmin.from("payments").insert({
         order_id: orderId,
         provider: "yoco",
-        provider_payment_id: yocoCheckoutId ?? pendingCheckout.checkout_id,
+        provider_payment_id: pendingCheckout.checkout_id,
         amount_cents: totalCents,
         currency: pendingCheckout.currency,
         status: "succeeded",

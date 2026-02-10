@@ -58,8 +58,22 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
   const { id } = await params;
   const supabaseAdmin = createSupabaseAdminClient();
 
-  const { error } = await supabaseAdmin.rpc("cancel_invoice", { invoice_id: id });
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  const firstAttempt = await supabaseAdmin.rpc("cancel_invoice", { p_invoice_id: id });
+
+  if (firstAttempt.error) {
+    const shouldRetryLegacyParam =
+      firstAttempt.error.message.includes("schema cache") ||
+      firstAttempt.error.message.includes("Could not find the function");
+
+    if (shouldRetryLegacyParam) {
+      const secondAttempt = await supabaseAdmin.rpc("cancel_invoice", { invoice_id: id });
+      if (secondAttempt.error) {
+        return NextResponse.json({ error: secondAttempt.error.message }, { status: 400 });
+      }
+    } else {
+      return NextResponse.json({ error: firstAttempt.error.message }, { status: 400 });
+    }
+  }
 
   const loaded = await loadInvoice(supabaseAdmin, id);
   if (loaded.notFound) return NextResponse.json({ error: "not_found" }, { status: 404 });

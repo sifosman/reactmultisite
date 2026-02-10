@@ -446,6 +446,7 @@ export function InvoiceEditor({
     }
 
     setInvoice(json?.invoice as InvoiceDetail);
+    router.refresh();
   }
 
   async function updateDeliveryFee() {
@@ -471,6 +472,7 @@ export function InvoiceEditor({
     }
 
     setInvoice(json?.invoice as InvoiceDetail);
+    router.refresh();
   }
 
   async function markPaid() {
@@ -492,6 +494,7 @@ export function InvoiceEditor({
     }
 
     setInvoice(json?.invoice as InvoiceDetail);
+    router.refresh();
   }
 
   async function markDispatched() {
@@ -513,6 +516,7 @@ export function InvoiceEditor({
     }
 
     setInvoice(json?.invoice as InvoiceDetail);
+    router.refresh();
   }
 
   async function removeLine(lineId: string) {
@@ -595,6 +599,7 @@ export function InvoiceEditor({
     }
 
     setInvoice(json?.invoice as InvoiceDetail);
+    router.refresh();
   }
 
   async function cancelInvoice() {
@@ -612,6 +617,7 @@ export function InvoiceEditor({
     }
 
     setInvoice(json?.invoice as InvoiceDetail);
+    router.refresh();
   }
 
   async function createAndAddCustomer() {

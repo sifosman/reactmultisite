@@ -58,10 +58,27 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
   const { id } = await params;
   const supabaseAdmin = createSupabaseAdminClient();
 
-  const { error } = await supabaseAdmin.rpc("issue_invoice", { invoice_id: id });
-  if (error) {
-    const msg = error.message.includes("out_of_stock") ? "out_of_stock" : error.message;
-    return NextResponse.json({ error: msg }, { status: 400 });
+  const firstAttempt = await supabaseAdmin.rpc("issue_invoice", { p_invoice_id: id });
+
+  if (firstAttempt.error) {
+    const shouldRetryLegacyParam =
+      firstAttempt.error.message.includes("schema cache") ||
+      firstAttempt.error.message.includes("Could not find the function");
+
+    if (shouldRetryLegacyParam) {
+      const secondAttempt = await supabaseAdmin.rpc("issue_invoice", { invoice_id: id });
+      if (secondAttempt.error) {
+        const msg = secondAttempt.error.message.includes("out_of_stock")
+          ? "out_of_stock"
+          : secondAttempt.error.message;
+        return NextResponse.json({ error: msg }, { status: 400 });
+      }
+    } else {
+      const msg = firstAttempt.error.message.includes("out_of_stock")
+        ? "out_of_stock"
+        : firstAttempt.error.message;
+      return NextResponse.json({ error: msg }, { status: 400 });
+    }
   }
 
   const loaded = await loadInvoice(supabaseAdmin, id);

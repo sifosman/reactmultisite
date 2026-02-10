@@ -1,11 +1,13 @@
 import Link from "next/link";
 
+import { YocoSuccessClient } from "@/components/checkout/YocoSuccessClient";
+
 export default async function CheckoutSuccessPage({
   searchParams,
 }: {
-  searchParams: Promise<{ orderId?: string; method?: string }>;
+  searchParams: Promise<{ orderId?: string; method?: string; pendingCheckoutId?: string }>;
 }) {
-  const { orderId, method } = await searchParams;
+  const { orderId, method, pendingCheckoutId } = await searchParams;
   const paymentMethod = method === "bank_transfer" ? "bank_transfer" : "yoco";
 
   return (
@@ -13,16 +15,13 @@ export default async function CheckoutSuccessPage({
       {paymentMethod === "yoco" ? (
         <>
           <h1 className="text-2xl font-semibold">Payment successful</h1>
+
           <div className="mt-2 text-sm text-zinc-600">
-            Your payment has been received and your order has been created.
+            We’re finalizing your order. This can take a few seconds.
           </div>
 
-          <div className="mt-6 rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-800">
-            <div className="font-semibold">✓ Order confirmed</div>
-            <div className="mt-2">
-              We've sent an email to your inbox with your order details and tracking information. Your order will be
-              processed and shipped soon.
-            </div>
+          <div className="mt-6">
+            <YocoSuccessClient pendingCheckoutId={pendingCheckoutId ?? null} />
           </div>
 
           <div className="mt-6 flex gap-3">

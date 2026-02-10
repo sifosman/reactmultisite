@@ -129,9 +129,15 @@ export async function POST(req: Request) {
     body: JSON.stringify({
       amount: totalCents,
       currency: "ZAR",
-      successUrl: `${siteUrl}/checkout/success?method=yoco`,
-      cancelUrl: `${siteUrl}/checkout/cancelled`,
-      failureUrl: `${siteUrl}/checkout/failed`,
+      successUrl: `${siteUrl}/checkout/success?method=yoco&pendingCheckoutId=${encodeURIComponent(
+        pendingCheckout.id
+      )}`,
+      cancelUrl: `${siteUrl}/checkout/cancelled?method=yoco&pendingCheckoutId=${encodeURIComponent(
+        pendingCheckout.id
+      )}`,
+      failureUrl: `${siteUrl}/checkout/failed?method=yoco&pendingCheckoutId=${encodeURIComponent(
+        pendingCheckout.id
+      )}`,
       metadata: {
         pendingCheckoutId: pendingCheckout.id,
       },
