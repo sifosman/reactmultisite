@@ -76,10 +76,6 @@ export async function sendBankTransferOrderEmail(orderId: string) {
             <span style="color:#666;">Shipping</span>
             <span>${formatZar(order.shipping_cents)}</span>
           </div>
-          <div style="display:flex;justify-content:space-between;font-size:14px;margin-top:4px;">
-            <span style="color:#666;">Discount</span>
-            <span>${formatZar(order.discount_cents)}</span>
-          </div>
           <div style="display:flex;justify-content:space-between;font-size:16px;margin-top:10px;">
             <span><strong>Total</strong></span>
             <span><strong>${formatZar(order.total_cents)}</strong></span>
@@ -102,58 +98,138 @@ export async function sendBankTransferOrderEmail(orderId: string) {
     </div>
   `;
 
-  // Build recipients: customer + all admin users with emails
-  const recipients: { email: string; name?: string }[] = [];
-
+  // Send order email to customer only
   const customerEmail = (order.customer_email ?? "").trim().toLowerCase();
-  if (customerEmail) {
-    recipients.push({ email: customerEmail, name: order.customer_name ?? undefined });
+  if (!customerEmail) {
+    throw new Error("Customer email is required");
   }
 
-  const { data: admins, error: adminsError } = await supabaseAdmin
-    .from("profiles")
-    .select("email,full_name,role")
-    .eq("role", "admin");
-
-  if (adminsError) {
-    throw new Error(adminsError.message);
-  }
-
-  for (const admin of admins ?? []) {
-    const email = (admin.email ?? "").trim().toLowerCase();
-    if (!email) continue;
-    // Avoid sending duplicate email if admin email is same as customer
-    if (email === customerEmail) continue;
-    if (!recipients.some((r) => r.email === email)) {
-      recipients.push({ email, name: (admin as any).full_name ?? undefined });
-    }
-  }
-
-  if (recipients.length === 0) {
-    // No valid recipients; nothing to send.
-    return;
-  }
-
-  const payload = {
+  const customerPayload = {
     sender: { email: senderEmail, name: senderName },
-    to: recipients,
+    to: [{ email: customerEmail, name: order.customer_name ?? undefined }],
     subject: `Order received - Bank Transfer - Order ${order.id}`,
     htmlContent,
   };
 
-  const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+  // Send customer order email
+  const customerRes = await fetch("https://api.brevo.com/v3/smtp/email", {
     method: "POST",
     headers: {
       "api-key": apiKey,
       "Content-Type": "application/json",
       Accept: "application/json",
     },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(customerPayload),
   });
 
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`Brevo send failed: ${res.status} ${text}`);
+  if (!customerRes.ok) {
+    const text = await customerRes.text().catch(() => "");
+    throw new Error(`Customer email send failed: ${customerRes.status} ${text}`);
+  }
+
+  // Send admin notification email
+  await sendAdminNotification(order, items, apiKey, senderEmail, senderName);
+}
+
+async function sendAdminNotification(
+  order: any,
+  items: any[],
+  apiKey: string,
+  senderEmail: string,
+  senderName: string
+) {
+  const itemRows = (items ?? [])
+    .map((i) => {
+      const lineTotal = i.unit_price_cents_snapshot * i.qty;
+      const variant = (i.variant_snapshot ?? {}) as Record<string, unknown>;
+      const variantName = typeof variant.name === "string" ? ` (${variant.name})` : "";
+      return `
+        <tr>
+          <td style="padding:8px 0;">${escapeHtml(i.title_snapshot)}${escapeHtml(variantName)}</td>
+          <td style="padding:8px 0;text-align:right;">${i.qty}</td>
+          <td style="padding:8px 0;text-align:right;">${formatZar(i.unit_price_cents_snapshot)}</td>
+          <td style="padding:8px 0;text-align:right;"><strong>${formatZar(lineTotal)}</strong></td>
+        </tr>
+      `;
+    })
+    .join("");
+
+  const adminHtmlContent = `
+    <div style="font-family:Arial,Helvetica,sans-serif;line-height:1.5;color:#111;">
+      <h2 style="margin:0 0 8px;">🔔 New Order Received - Bank Transfer</h2>
+      <p style="margin:0 0 16px;">A new order has been placed and is awaiting payment.</p>
+
+      <div style="border:1px solid #eee;border-radius:10px;padding:16px;">
+        <div style="color:#666;font-size:12px;">Order ID</div>
+        <div style="font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-size:13px;">${escapeHtml(order.id)}</div>
+        
+        <div style="margin-top:12px;">
+          <div style="color:#666;font-size:12px;">Customer</div>
+          <div style="font-size:14px;">
+            <div><strong>${escapeHtml(order.customer_name || "N/A")}</strong></div>
+            <div>${escapeHtml(order.customer_email)}</div>
+            ${order.customer_phone ? `<div>${escapeHtml(order.customer_phone)}</div>` : ""}
+          </div>
+        </div>
+
+        <table style="width:100%;margin-top:16px;border-collapse:collapse;">
+          <thead>
+            <tr style="border-bottom:1px solid #eee;">
+              <th style="text-align:left;padding:8px 0;font-size:12px;color:#666;">Item</th>
+              <th style="text-align:right;padding:8px 0;font-size:12px;color:#666;">Qty</th>
+              <th style="text-align:right;padding:8px 0;font-size:12px;color:#666;">Unit</th>
+              <th style="text-align:right;padding:8px 0;font-size:12px;color:#666;">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${itemRows}
+          </tbody>
+        </table>
+
+        <div style="margin-top:16px;border-top:1px solid #eee;padding-top:12px;">
+          <div style="display:flex;justify-content:space-between;font-size:14px;">
+            <span style="color:#666;">Subtotal</span>
+            <span>${formatZar(order.subtotal_cents)}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:14px;margin-top:4px;">
+            <span style="color:#666;">Shipping</span>
+            <span>${formatZar(order.shipping_cents)}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:16px;margin-top:10px;">
+            <span><strong>Total</strong></span>
+            <span><strong>${formatZar(order.total_cents)}</strong></span>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:20px;">
+        <a href="https://coastal-warehouse.vercel.app/admin" style="display:inline-block;background:#000;color:white;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:bold;">
+          View Order in Admin Dashboard
+        </a>
+      </div>
+    </div>
+  `;
+
+  const adminPayload = {
+    sender: { email: senderEmail, name: senderName },
+    to: [{ email: "thecoastalwarehouse@gmail.com", name: "Coastal Warehouse Admin" }],
+    subject: `🔔 New Order - ${order.customer_name || "Customer"} - Order ${order.id}`,
+    htmlContent: adminHtmlContent,
+  };
+
+  const adminRes = await fetch("https://api.brevo.com/v3/smtp/email", {
+    method: "POST",
+    headers: {
+      "api-key": apiKey,
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify(adminPayload),
+  });
+
+  if (!adminRes.ok) {
+    const text = await adminRes.text().catch(() => "");
+    throw new Error(`Admin email send failed: ${adminRes.status} ${text}`);
   }
 }
 
