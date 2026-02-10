@@ -1,6 +1,8 @@
 import { createPublicSupabaseServerClient } from "@/lib/storefront/publicClient";
 import type { Theme } from "@/lib/config/site";
 
+export const dynamic = 'force-dynamic';
+
 export async function getStoredTheme(): Promise<Theme> {
   try {
     const supabase = await createPublicSupabaseServerClient();
