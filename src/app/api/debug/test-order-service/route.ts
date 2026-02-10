@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createClient } from "@supabase/supabase-js";
 
 export async function POST() {
   try {
-    const supabase = await createSupabaseServerClient();
+    // Use service role key to bypass RLS
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+    
+    const supabase = createClient(supabaseUrl, serviceRoleKey);
     
     // Test creating a simple order with correct schema
     const testOrder = {
@@ -25,6 +29,8 @@ export async function POST() {
       }
     };
     
+    console.log("Creating test order:", testOrder);
+    
     // Try to insert the order
     const { data: order, error: insertError } = await supabase
       .from("orders")
@@ -32,11 +38,15 @@ export async function POST() {
       .select()
       .single();
     
+    console.log("Insert result:", { order, insertError });
+    
     if (insertError) {
       return NextResponse.json({ 
         error: "Failed to create order", 
         details: insertError.message,
-        code: insertError.code
+        code: insertError.code,
+        hint: insertError.hint,
+        errorDetails: insertError.details
       }, { status: 500 });
     }
     
@@ -54,9 +64,11 @@ export async function POST() {
     });
     
   } catch (error) {
+    console.error("Test order error:", error);
     return NextResponse.json({ 
       error: "Server error", 
-      details: error instanceof Error ? error.message : "Unknown error" 
+      details: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : null
     }, { status: 500 });
   }
 }

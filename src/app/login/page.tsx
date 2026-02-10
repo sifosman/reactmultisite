@@ -11,11 +11,13 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setMessage(null);
 
     const supabase = createSupabaseBrowserClient();
     const { error: signInError } = await supabase.auth.signInWithPassword({
@@ -62,6 +64,33 @@ export default function LoginPage() {
     }
   }
 
+  async function handleForgotPassword(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    setMessage(null);
+
+    if (!email) {
+      setError("Please enter your email address first");
+      setLoading(false);
+      return;
+    }
+
+    const supabase = createSupabaseBrowserClient();
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+
+    setLoading(false);
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    setMessage("Password reset link sent! Check your email inbox.");
+  }
+
   return (
     <main className="min-h-[calc(100vh-64px)] bg-white">
       <div className="mx-auto flex max-w-md flex-col justify-start p-6 pt-10 text-zinc-900">
@@ -96,6 +125,12 @@ export default function LoginPage() {
           </div>
         ) : null}
 
+        {message ? (
+          <div className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-700">
+            {message}
+          </div>
+        ) : null}
+
         <button
           className="h-10 w-full rounded-md bg-black px-4 text-white disabled:opacity-60"
           disabled={loading}
@@ -103,6 +138,23 @@ export default function LoginPage() {
         >
           {loading ? "Signing in..." : "Sign in"}
         </button>
+
+        <div className="flex items-center justify-between">
+          <button
+            type="button"
+            onClick={handleForgotPassword}
+            disabled={loading}
+            className="text-sm text-zinc-600 underline hover:text-zinc-900 disabled:opacity-60"
+          >
+            Forgot password?
+          </button>
+          <Link
+            href="/admin/login"
+            className="text-sm text-zinc-600 underline hover:text-zinc-900"
+          >
+            Admin Login
+          </Link>
+        </div>
       </form>
 
         <p className="mt-6 text-sm text-zinc-600">
