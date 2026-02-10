@@ -1,22 +1,67 @@
 import Link from "next/link";
-import { Plus, Search, Filter, MoreHorizontal, Edit, Eye, Package } from "lucide-react";
+import { Plus, Edit, Eye, Package } from "lucide-react";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { DeleteProductButton } from "@/components/admin/DeleteProductButton";
 import { DeleteAllProductsButton } from "@/components/admin/DeleteAllProductsButton";
+import { ProductsFilters } from "@/components/admin/ProductsFilters";
 
 export const revalidate = 0;
 
-export default async function AdminProductsPage() {
+export default async function AdminProductsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   await requireAdmin();
   const supabase = await createSupabaseServerClient();
 
-  const { data: products, error } = await supabase
-    .from("products")
-    .select("id,name,slug,price_cents,active,has_variants,created_at,product_images(url)")
-    .order("created_at", { ascending: false })
-    .limit(200);
+  const sp = await searchParams;
+  const q = typeof sp.q === "string" ? sp.q.trim() : "";
+  const status = typeof sp.status === "string" ? sp.status : "all";
+  const sort = typeof sp.sort === "string" ? sp.sort : "newest";
+
+  const baseSelect = "id,name,slug,price_cents,stock_qty,active,has_variants,created_at,product_images(url)";
+  let query = supabase.from("products").select(baseSelect);
+
+  if (q) {
+    const safe = q.replace(/%/g, "\\%");
+    query = query.or(`name.ilike.%${safe}%,slug.ilike.%${safe}%`);
+  }
+
+  if (status === "active") query = query.eq("active", true);
+  if (status === "inactive") query = query.eq("active", false);
+
+  switch (sort) {
+    case "oldest":
+      query = query.order("created_at", { ascending: true });
+      break;
+    case "name_asc":
+      query = query.order("name", { ascending: true });
+      break;
+    case "name_desc":
+      query = query.order("name", { ascending: false });
+      break;
+    case "price_asc":
+      query = query.order("price_cents", { ascending: true });
+      break;
+    case "price_desc":
+      query = query.order("price_cents", { ascending: false });
+      break;
+    case "stock_asc":
+      query = query.order("stock_qty", { ascending: true });
+      break;
+    case "stock_desc":
+      query = query.order("stock_qty", { ascending: false });
+      break;
+    case "newest":
+    default:
+      query = query.order("created_at", { ascending: false });
+      break;
+  }
+
+  const { data: products, error } = await query.limit(200);
 
   return (
     <AdminShell title="Products">
@@ -44,28 +89,24 @@ export default async function AdminProductsPage() {
         </div>
       </div>
 
-      {/* Filters Bar */}
-      <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-2 rounded-lg border bg-white px-3 py-2">
-          <Search className="h-4 w-4 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Search products..."
-            className="w-full bg-transparent text-sm outline-none placeholder:text-slate-400 sm:w-64"
-          />
-        </div>
-        <div className="flex items-center gap-3">
-          <button className="inline-flex items-center gap-2 rounded-lg border bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
-            <Filter className="h-4 w-4" />
-            Filter
-          </button>
-          <select className="rounded-lg border bg-white px-4 py-2 text-sm">
-            <option>All Status</option>
-            <option>Active</option>
-            <option>Inactive</option>
-          </select>
-        </div>
-      </div>
+      <ProductsFilters
+        initialQ={q}
+        initialStatus={status === "active" || status === "inactive" ? status : "all"}
+        initialSort={
+          [
+            "newest",
+            "oldest",
+            "name_asc",
+            "name_desc",
+            "price_asc",
+            "price_desc",
+            "stock_asc",
+            "stock_desc",
+          ].includes(sort)
+            ? (sort as any)
+            : "newest"
+        }
+      />
 
       {error ? (
         <div className="mt-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
@@ -87,6 +128,9 @@ export default async function AdminProductsPage() {
                   Price
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  Stock
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                   Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
@@ -103,6 +147,7 @@ export default async function AdminProductsPage() {
             <tbody className="divide-y divide-slate-100">
               {(products ?? []).map((p) => {
                 const firstImage = (p.product_images as Array<{ url: string }>)?.[0]?.url;
+                const stockQty = typeof (p as any).stock_qty === "number" ? ((p as any).stock_qty as number) : 0;
                 return (
                   <tr key={p.id} className="hover:bg-slate-50">
                     <td className="whitespace-nowrap px-6 py-4">
@@ -126,6 +171,19 @@ export default async function AdminProductsPage() {
                     <td className="whitespace-nowrap px-6 py-4">
                       <span className="font-semibold text-slate-900">
                         R{(p.price_cents / 100).toFixed(2)}
+                      </span>
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4">
+                      <span
+                        className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${
+                          stockQty <= 0
+                            ? "bg-red-100 text-red-700"
+                            : stockQty <= 5
+                              ? "bg-yellow-100 text-yellow-800"
+                              : "bg-emerald-100 text-emerald-700"
+                        }`}
+                      >
+                        {stockQty}
                       </span>
                     </td>
                     <td className="whitespace-nowrap px-6 py-4">
