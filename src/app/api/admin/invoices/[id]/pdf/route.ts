@@ -207,10 +207,10 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     const totalWidth = font.widthOfTextAtSize(totalText, 10);
     page.drawText(totalText, { x: colTotalX - totalWidth, y, size: 10, font, color: black });
 
-    y -= 18;
+    y -= 20;
 
     // Light row separator
-    page.drawLine({ start: { x: margin - 6, y: y + 6 }, end: { x: rightEdge + 6, y: y + 6 }, thickness: 0.3, color: lightGray });
+    page.drawLine({ start: { x: margin - 6, y: y + 14 }, end: { x: rightEdge + 6, y: y + 14 }, thickness: 0.3, color: lightGray });
 
     if (y < 180) break;
   }
@@ -222,7 +222,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const totalsValueX = colTotalX;
 
   // Divider above totals
-  page.drawLine({ start: { x: totalsLabelX - 10, y: y + 8 }, end: { x: rightEdge + 6, y: y + 8 }, thickness: 1, color: lightGray });
+  page.drawLine({ start: { x: totalsLabelX - 10, y: y + 14 }, end: { x: rightEdge + 6, y: y + 14 }, thickness: 1, color: lightGray });
 
   // Subtotal
   page.drawText("Subtotal", { x: totalsLabelX, y, size: 10, font, color: darkGray });
@@ -249,8 +249,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   }
 
   // Total line
-  y -= 4;
-  page.drawLine({ start: { x: totalsLabelX - 10, y: y + 8 }, end: { x: rightEdge + 6, y: y + 8 }, thickness: 1.5, color: black });
+  y -= 6;
+  page.drawLine({ start: { x: totalsLabelX - 10, y: y + 16 }, end: { x: rightEdge + 6, y: y + 16 }, thickness: 1.5, color: black });
   page.drawText("TOTAL", { x: totalsLabelX, y, size: 12, font: fontBold, color: black });
   const totalAmtText = formatZar(invoice.total_cents);
   const totalAmtWidth = fontBold.widthOfTextAtSize(totalAmtText, 14);

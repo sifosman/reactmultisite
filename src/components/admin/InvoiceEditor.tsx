@@ -630,11 +630,11 @@ export function InvoiceEditor({
         </div>
       ) : null}
 
-      <div className="rounded-xl border bg-white p-4">
+      <div className="rounded-xl border bg-white p-4 text-slate-900">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <div className="text-sm text-zinc-600">Invoice</div>
-            <div className="mt-1 font-mono text-sm">
+            <div className="text-sm text-slate-600">Invoice</div>
+            <div className="mt-1 font-mono text-sm text-slate-900">
               {invoice?.invoice_number ?? "(new)"}
             </div>
             <div className="mt-1 flex flex-wrap gap-1 text-xs">
@@ -735,14 +735,14 @@ export function InvoiceEditor({
         </div>
       </div>
 
-      <div className="rounded-xl border bg-white p-4">
-        <div className="text-sm font-semibold">Client details</div>
+      <div className="rounded-xl border bg-white p-4 text-slate-900">
+        <div className="text-sm font-semibold text-slate-900">Client details</div>
 
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <label className="text-sm font-medium">Client name</label>
+            <label className="text-sm font-medium text-slate-700">Client name</label>
             <input
-              className="h-11 w-full rounded-md border bg-white px-3 text-sm"
+              className="h-11 w-full rounded-md border bg-white px-3 text-sm text-slate-900"
               value={customerName}
               onChange={(e) => setCustomerName(e.target.value)}
               placeholder="Customer name"
@@ -750,9 +750,9 @@ export function InvoiceEditor({
             />
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium">Phone</label>
+            <label className="text-sm font-medium text-slate-700">Phone</label>
             <input
-              className="h-11 w-full rounded-md border bg-white px-3 text-sm"
+              className="h-11 w-full rounded-md border bg-white px-3 text-sm text-slate-900"
               value={customerPhone}
               onChange={(e) => setCustomerPhone(e.target.value)}
               placeholder="082 123 4567"
@@ -760,9 +760,9 @@ export function InvoiceEditor({
             />
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium">Email (optional)</label>
+            <label className="text-sm font-medium text-slate-700">Email (optional)</label>
             <input
-              className="h-11 w-full rounded-md border bg-white px-3 text-sm"
+              className="h-11 w-full rounded-md border bg-white px-3 text-sm text-slate-900"
               value={customerEmail}
               onChange={(e) => setCustomerEmail(e.target.value)}
               placeholder="customer@email.com"
@@ -770,9 +770,9 @@ export function InvoiceEditor({
             />
           </div>
           <div className="space-y-2 sm:col-span-2">
-            <label className="text-sm font-medium">Address (optional)</label>
+            <label className="text-sm font-medium text-slate-700">Address (optional)</label>
             <textarea
-              className="min-h-20 w-full rounded-md border bg-white px-3 py-2 text-sm"
+              className="min-h-20 w-full rounded-md border bg-white px-3 py-2 text-sm text-slate-900"
               value={customerAddress}
               onChange={(e) => setCustomerAddress(e.target.value)}
               placeholder="Delivery address"
@@ -781,9 +781,9 @@ export function InvoiceEditor({
           </div>
 
           <div className="space-y-2 sm:col-span-2">
-            <div className="text-sm font-medium">Pick existing client (optional)</div>
+            <div className="text-sm font-medium text-slate-700">Pick existing client (optional)</div>
             <input
-              className="mt-1 h-11 w-full rounded-md border bg-white px-3 text-sm"
+              className="mt-1 h-11 w-full rounded-md border bg-white px-3 text-sm text-slate-900"
               value={customerSearch}
               onChange={(e) => setCustomerSearch(e.target.value)}
               placeholder="Search clients…"
@@ -830,11 +830,11 @@ export function InvoiceEditor({
       </div>
 
       {mode === "edit" ? (
-        <div className="rounded-xl border bg-white p-4">
-          <div className="text-sm font-semibold">Add items</div>
+        <div className="rounded-xl border bg-white p-4 text-slate-900">
+          <div className="text-sm font-semibold text-slate-900">Add items</div>
           <div className="mt-3">
             <input
-              className="h-11 w-full rounded-md border bg-white px-3 text-sm"
+              className="h-11 w-full rounded-md border bg-white px-3 text-sm text-slate-900"
               value={catalogQuery}
               onChange={(e) => setCatalogQuery(e.target.value)}
               placeholder="Search products / SKU…"
@@ -874,8 +874,8 @@ export function InvoiceEditor({
       ) : null}
 
       {mode === "edit" ? (
-        <div className="rounded-xl border bg-white p-4">
-          <div className="text-sm font-semibold">Lines</div>
+        <div className="rounded-xl border bg-white p-4 text-slate-900">
+          <div className="text-sm font-semibold text-slate-900">Lines</div>
 
           {(invoice?.lines ?? []).length === 0 ? (
             <div className="mt-3 text-sm text-zinc-600">No items yet.</div>
@@ -908,7 +908,7 @@ export function InvoiceEditor({
                       <div className="space-y-1">
                         <div className="text-xs font-medium text-slate-600">Qty</div>
                         <input
-                          className="h-10 w-full rounded-md border bg-white px-3 text-sm"
+                          className="h-10 w-full rounded-md border bg-white px-3 text-sm text-slate-900"
                           inputMode="numeric"
                           value={String(l.qty)}
                           disabled={saving || status === "cancelled"}
@@ -936,7 +936,7 @@ export function InvoiceEditor({
                       <div className="space-y-1">
                         <div className="text-xs font-medium text-slate-600">Unit price (R)</div>
                         <input
-                          className="h-10 w-full rounded-md border bg-white px-3 text-sm"
+                          className="h-10 w-full rounded-md border bg-white px-3 text-sm text-slate-900"
                           inputMode="decimal"
                           value={centsToRandsString(l.unit_price_cents)}
                           disabled={saving || status === "cancelled"}
@@ -975,7 +975,7 @@ export function InvoiceEditor({
               <div className="flex items-center gap-2">
                 <span className="text-xs text-slate-500">R</span>
                 <input
-                  className="h-9 w-28 rounded-md border bg-white px-2 text-sm"
+                  className="h-9 w-28 rounded-md border bg-white px-2 text-sm text-slate-900"
                   inputMode="decimal"
                   value={deliveryFeeRands}
                   disabled={saving || status === "cancelled"}
