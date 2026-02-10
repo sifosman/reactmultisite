@@ -139,7 +139,7 @@ export default function LoginPage() {
           {loading ? "Signing in..." : "Sign in"}
         </button>
 
-        <div className="flex items-center justify-between">
+        <div className="flex justify-center">
           <button
             type="button"
             onClick={handleForgotPassword}
@@ -148,12 +148,6 @@ export default function LoginPage() {
           >
             Forgot password?
           </button>
-          <Link
-            href="/admin/login"
-            className="text-sm text-zinc-600 underline hover:text-zinc-900"
-          >
-            Admin Login
-          </Link>
         </div>
       </form>
 

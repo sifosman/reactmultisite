@@ -34,7 +34,7 @@ export function SiteFooter({
   const termsHref = site?.termsHref;
   const termsLabel = site?.termsLabel ?? "Terms";
 
-  const contactEmail = site?.contactEmail ?? config.email;
+  const contactEmail = "thecoastalwarehouse@gmail.com";
   const contactPhone = site?.contactPhone ?? config.phone;
   const contactAddress = site?.contactAddress ?? config.address;
 
@@ -61,16 +61,7 @@ export function SiteFooter({
           {/* Brand Column */}
           <div className="lg:col-span-1">
             <Link href="/" className="inline-flex items-center gap-3 text-2xl font-bold">
-              {logoUrl ? (
-                <Image 
-                  src={logoUrl} 
-                  alt={brandName} 
-                  width={180} 
-                  height={54}
-                  className="h-14 w-auto"
-                />
-              ) : null}
-              <span>{brandName}</span>
+              <span>Coast Warehouse</span>
             </Link>
             <p className="mt-4 text-sm leading-relaxed text-zinc-400">
               {footerAbout}
