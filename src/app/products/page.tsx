@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { SlidersHorizontal, Grid3X3, LayoutGrid, ChevronRight } from "lucide-react";
+import { Grid3X3, LayoutGrid, ChevronRight } from "lucide-react";
 import { createPublicSupabaseServerClient } from "@/lib/storefront/publicClient";
 import { ProductCard } from "@/components/storefront/ProductCard";
 import { FiltersPanel } from "@/components/storefront/FiltersPanel";
+import { SortSelect } from "@/components/storefront/SortSelect";
 
 export const revalidate = 60;
 
@@ -391,24 +392,7 @@ export default async function ProductsPage({
           </p>
           
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <SlidersHorizontal className="h-4 w-4 text-zinc-400" />
-              <select
-                name="sort"
-                form="products-filters"
-                defaultValue={sortValue}
-                onChange={(e) => {
-                  const form = document.getElementById('products-filters') as HTMLFormElement;
-                  if (form) form.submit();
-                }}
-                className="rounded-lg border-zinc-200 bg-white py-2 pl-3 pr-8 text-sm focus:border-zinc-400 focus:ring-zinc-400"
-              >
-                <option value="featured">Sort by: Featured</option>
-                <option value="price_asc">Price: Low to High</option>
-                <option value="price_desc">Price: High to Low</option>
-                <option value="newest">Newest First</option>
-              </select>
-            </div>
+            <SortSelect defaultValue={sortValue} formId="products-filters" />
             
             {/* View toggle */}
             <div className="hidden items-center gap-1 rounded-lg border bg-white p-1 sm:flex">
