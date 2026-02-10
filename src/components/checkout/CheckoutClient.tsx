@@ -42,6 +42,10 @@ export function CheckoutClient() {
 
   const [paymentMethod, setPaymentMethod] = useState<"yoco" | "bank_transfer">("yoco");
   const [couponCode, setCouponCode] = useState("");
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [couponSuccess, setCouponSuccess] = useState<string | null>(null);
+  const [appliedDiscountCents, setAppliedDiscountCents] = useState(0);
   const [productsById, setProductsById] = useState<Record<string, ProductRow>>({});
   const [variantsById, setVariantsById] = useState<Record<string, VariantRow>>({});
 
@@ -104,7 +108,78 @@ export function CheckoutClient() {
   }, [cart.items, productsById, variantsById]);
 
   const subtotalCents = cartLines.reduce((sum, l) => sum + l.lineTotalCents, 0);
-  const totalCents = subtotalCents + (cartLines.length > 0 ? SHIPPING_CENTS : 0);
+  const shippingCents = cartLines.length > 0 ? SHIPPING_CENTS : 0;
+  const totalCents = subtotalCents + shippingCents - appliedDiscountCents;
+
+  useEffect(() => {
+    setAppliedDiscountCents(0);
+    setCouponError(null);
+    setCouponSuccess(null);
+  }, [cart.items, subtotalCents]);
+
+  async function onApplyCoupon() {
+    setCouponError(null);
+    setCouponSuccess(null);
+
+    const code = couponCode.trim().toUpperCase();
+    if (!code) {
+      setCouponError("Enter a coupon code");
+      return;
+    }
+    if (!province) {
+      setCouponError("Select a province to calculate shipping");
+      return;
+    }
+    if (cart.items.length === 0) {
+      setCouponError("Your cart is empty");
+      return;
+    }
+
+    setCouponLoading(true);
+    try {
+      const res = await fetch("/api/checkout/coupon", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items: cart.items.map((i) => ({
+            productId: i.productId,
+            variantId: i.variantId,
+            qty: i.qty,
+          })),
+          couponCode: code,
+          province,
+        }),
+      });
+
+      const json = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        setAppliedDiscountCents(0);
+        const err = json?.error;
+        if (err === "invalid_coupon") setCouponError("Invalid or expired coupon");
+        else if (err === "coupon_not_applicable") setCouponError("Coupon does not apply to this order");
+        else setCouponError("Could not apply coupon");
+        setCouponLoading(false);
+        return;
+      }
+
+      const discountCents = Number(json?.coupon?.discountCents ?? 0);
+      if (!Number.isFinite(discountCents) || discountCents <= 0) {
+        setAppliedDiscountCents(0);
+        setCouponError("Coupon does not apply to this order");
+        setCouponLoading(false);
+        return;
+      }
+
+      setAppliedDiscountCents(discountCents);
+      setCouponSuccess(`Coupon applied: -${formatZar(discountCents)}`);
+      setCouponLoading(false);
+    } catch {
+      setAppliedDiscountCents(0);
+      setCouponError("Could not apply coupon");
+      setCouponLoading(false);
+    }
+  }
 
   const canSubmit =
     cart.items.length > 0 &&
@@ -459,8 +534,14 @@ export function CheckoutClient() {
               </div>
               <div className="flex justify-between">
                 <span>Shipping</span>
-                <span>{formatZar(cartLines.length > 0 ? SHIPPING_CENTS : 0)}</span>
+                <span>{formatZar(shippingCents)}</span>
               </div>
+              {appliedDiscountCents > 0 ? (
+                <div className="flex justify-between text-emerald-700">
+                  <span>Discount</span>
+                  <span>-{formatZar(appliedDiscountCents)}</span>
+                </div>
+              ) : null}
               <div className="flex justify-between font-semibold text-zinc-900">
                 <span>Total</span>
                 <span>{formatZar(totalCents)}</span>
@@ -474,7 +555,25 @@ export function CheckoutClient() {
                 onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                 placeholder="SAVE10"
               />
-              <p className="text-xs text-zinc-600">Discount will be applied server-side if the code is valid.</p>
+              <button
+                type="button"
+                onClick={onApplyCoupon}
+                disabled={couponLoading || !couponCode.trim()}
+                className="h-10 w-full rounded-md bg-black px-3 text-sm font-semibold text-white disabled:opacity-60"
+              >
+                {couponLoading ? "Applying..." : "Apply coupon"}
+              </button>
+              {couponError ? (
+                <div className="rounded-md border border-red-200 bg-red-50 p-2 text-xs text-red-700">
+                  {couponError}
+                </div>
+              ) : null}
+              {couponSuccess ? (
+                <div className="rounded-md border border-emerald-200 bg-emerald-50 p-2 text-xs text-emerald-800">
+                  {couponSuccess}
+                </div>
+              ) : null}
+              <p className="text-xs text-zinc-600">Discount will be validated and applied on order creation.</p>
             </div>
             <div className="mt-4 rounded-xl border bg-zinc-50 p-4 text-xs text-zinc-600">
               Totals are calculated server-side on order creation.
