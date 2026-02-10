@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
   experimental: {
     turbopackUseSystemTlsCerts: true,
   },
+  trailingSlash: true,
   images: {
     remotePatterns: [
       {

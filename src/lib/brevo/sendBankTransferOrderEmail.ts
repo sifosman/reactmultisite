@@ -203,7 +203,7 @@ async function sendAdminNotification(
       </div>
 
       <div style="margin-top:20px;">
-        <a href="https://coastal-warehouse.vercel.app/admin" style="display:inline-block;background:#000;color:white;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:bold;">
+        <a href="https://www.coastalwarehouse.co.za/admin" style="display:inline-block;background:#000;color:white;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:bold;">
           View Order in Admin Dashboard
         </a>
       </div>
