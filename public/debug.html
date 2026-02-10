@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Database</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        button { padding: 10px 20px; margin: 10px; background: #007bff; color: white; border: none; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        pre { background: #f4f4f4; padding: 10px; border-radius: 4px; white-space: pre-wrap; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <h1>Database Debug Tools</h1>
+    
+    <button onclick="testDatabase()">Test Database Connection</button>
+    <button onclick="createTestOrder()">Create Test Order</button>
+    <button onclick="checkOrders()">Check Orders</button>
+    
+    <div id="results"></div>
+
+    <script>
+        async function testDatabase() {
+            try {
+                const response = await fetch('/api/debug/database');
+                const data = await response.json();
+                displayResults(data, response.ok);
+            } catch (error) {
+                displayResults({ error: error.message }, false);
+            }
+        }
+
+        async function createTestOrder() {
+            try {
+                const response = await fetch('/api/debug/test-order', { method: 'POST' });
+                const data = await response.json();
+                displayResults(data, response.ok);
+            } catch (error) {
+                displayResults({ error: error.message }, false);
+            }
+        }
+
+        async function checkOrders() {
+            try {
+                const response = await fetch('/api/orders');
+                const data = await response.json();
+                displayResults(data, response.ok);
+            } catch (error) {
+                displayResults({ error: error.message }, false);
+            }
+        }
+
+        function displayResults(data, isSuccess) {
+            const results = document.getElementById('results');
+            results.innerHTML = `
+                <h3 class="${isSuccess ? 'success' : 'error'}">
+                    ${isSuccess ? 'Success' : 'Error'}
+                </h3>
+                <pre>${JSON.stringify(data, null, 2)}</pre>
+            `;
+        }
+    </script>
+</body>
+</html>
