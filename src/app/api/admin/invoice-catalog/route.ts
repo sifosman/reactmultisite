@@ -54,13 +54,11 @@ export async function GET(req: Request) {
         .from("products")
         .select("id,name,slug,price_cents,has_variants,stock_qty,active,description")
         .or(productSearchCondition)
-        .eq("active", true)
         .limit(30),
       supabaseAdmin
         .from("product_variants")
         .select("id,product_id,sku,name,price_cents_override,stock_qty,attributes,active")
         .or(variantSearchCondition)
-        .eq("active", true)
         .limit(40),
     ]);
 
