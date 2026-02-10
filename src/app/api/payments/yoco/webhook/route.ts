@@ -55,6 +55,18 @@ export async function POST(req: Request) {
 
   const supabaseAdmin = createSupabaseAdminClient();
 
+  function findStringDeep(value: unknown, key: string, depth = 0): string | null {
+    if (depth > 6) return null;
+    if (!value || typeof value !== "object") return null;
+    const obj = value as Record<string, unknown>;
+    if (typeof obj[key] === "string") return obj[key] as string;
+    for (const v of Object.values(obj)) {
+      const found = findStringDeep(v, key, depth + 1);
+      if (found) return found;
+    }
+    return null;
+  }
+
   // Idempotency: store event id once
   const { error: insertEventError } = await supabaseAdmin
     .from("payment_events")
@@ -75,9 +87,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: insertEventError.message }, { status: 500 });
   }
 
-  const pendingCheckoutId = event?.payload?.metadata?.pendingCheckoutId;
-  const existingOrderId = event?.payload?.metadata?.existingOrderId;
   const yocoCheckoutId = event?.payload?.id;
+
+  // Yoco metadata location can vary by event type; be defensive.
+  const pendingCheckoutId =
+    event?.payload?.metadata?.pendingCheckoutId ??
+    (eventJson ? findStringDeep(eventJson, "pendingCheckoutId") : null);
+
+  const existingOrderId =
+    event?.payload?.metadata?.existingOrderId ??
+    (eventJson ? findStringDeep(eventJson, "existingOrderId") : null);
 
   // Handle payment for existing pending_payment order
   if (existingOrderId && event.type === "payment.succeeded") {
@@ -147,7 +166,22 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true });
   }
 
-  if (!pendingCheckoutId) {
+  let resolvedPendingCheckoutId = pendingCheckoutId;
+
+  // If metadata didn't come through, try resolving via checkout_id.
+  if (!resolvedPendingCheckoutId && typeof yocoCheckoutId === "string" && yocoCheckoutId) {
+    const { data: pendingByCheckoutId } = await supabaseAdmin
+      .from("pending_checkouts")
+      .select("id")
+      .eq("checkout_id", yocoCheckoutId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    resolvedPendingCheckoutId = pendingByCheckoutId?.id ?? null;
+  }
+
+  if (!resolvedPendingCheckoutId) {
     return NextResponse.json({ ok: true });
   }
 
@@ -155,7 +189,7 @@ export async function POST(req: Request) {
   const { data: pendingCheckout, error: pendingCheckoutError } = await supabaseAdmin
     .from("pending_checkouts")
     .select("*")
-    .eq("id", pendingCheckoutId)
+    .eq("id", resolvedPendingCheckoutId)
     .eq("status", "initiated")
     .maybeSingle();
 
@@ -264,7 +298,7 @@ export async function POST(req: Request) {
       }
     } catch (err) {
       console.error("Yoco order creation failed", {
-        pendingCheckoutId,
+        pendingCheckoutId: resolvedPendingCheckoutId,
         error: err instanceof Error ? err.message : "order_creation_failed",
         stack: err instanceof Error ? err.stack : undefined
       });
