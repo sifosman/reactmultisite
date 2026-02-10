@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getInvoiceStatusBadges } from "./invoiceStatusDisplay";
+import { calculateInvoiceTotals, formatZar } from "@/lib/invoice/calculateInvoiceTotals";
 
 type CatalogItem =
   | {
@@ -37,6 +38,8 @@ type InvoiceLine = {
   title_snapshot: string;
   variant_snapshot: Record<string, unknown>;
   line_total_cents: number;
+  stock_qty?: number; // Available stock for validation
+  _temp_price_input?: string; // Temporary storage for price input
 };
 
 type InvoiceDetail = {
@@ -112,7 +115,7 @@ export function InvoiceEditor({
   const [customerSearch, setCustomerSearch] = useState("");
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>("");
 
-  const [deliveryFeeRands, setDeliveryFeeRands] = useState("0.00");
+  const [deliveryFeeRands, setDeliveryFeeRands] = useState(formatZar(invoice?.delivery_cents ?? 0).replace('R', ''));
 
   const [catalogQuery, setCatalogQuery] = useState("");
   const [catalog, setCatalog] = useState<CatalogItem[]>([]);
@@ -234,7 +237,7 @@ export function InvoiceEditor({
 
   useEffect(() => {
     if (!invoice) return;
-    setDeliveryFeeRands(centsToRandsString(invoice.delivery_cents ?? 0));
+    setDeliveryFeeRands(formatZar(invoice.delivery_cents ?? 0).replace('R', ''));
   }, [invoice?.delivery_cents]);
 
   useEffect(() => {
@@ -276,11 +279,22 @@ export function InvoiceEditor({
   }, [customers, customerSearch]);
 
   const totals = useMemo(() => {
-    const subtotal = invoice?.lines?.reduce((s, l) => s + (l.line_total_cents ?? 0), 0) ?? 0;
-    const discount = invoice?.discount_cents ?? 0;
-    const delivery = invoice?.delivery_cents ?? 0;
-    const total = Math.max(0, subtotal + delivery - discount);
-    return { subtotal, discount, delivery, total };
+    if (!invoice?.lines) {
+      return { subtotal: 0, discount: 0, delivery: 0, total: 0 };
+    }
+    
+    const calculatedTotals = calculateInvoiceTotals(
+      invoice.lines,
+      invoice.delivery_cents,
+      invoice.discount_cents
+    );
+    
+    return {
+      subtotal: calculatedTotals.subtotal_cents,
+      discount: calculatedTotals.discount_cents,
+      delivery: calculatedTotals.delivery_cents,
+      total: calculatedTotals.total_cents
+    };
   }, [invoice]);
 
   function shareInvoiceOnWhatsApp() {
@@ -288,7 +302,7 @@ export function InvoiceEditor({
     if (!invoice?.id) return;
 
     const number = invoice.invoice_number;
-    const total = centsToRandsString(totals.total);
+    const total = formatZar(totals.total);
     const url = `${window.location.origin}/invoice/${encodeURIComponent(number)}`;
 
     const parts: string[] = [];
@@ -346,6 +360,12 @@ export function InvoiceEditor({
     if (!invoice?.id) return;
     if (status === "cancelled") return;
 
+    // Check stock availability before adding
+    if (item.stock_qty <= 0) {
+      setError(`Item "${item.title}" is out of stock`);
+      return;
+    }
+
     setError(null);
     setSaving(true);
 
@@ -355,7 +375,7 @@ export function InvoiceEditor({
       body: JSON.stringify({
         product_id: item.product_id,
         variant_id: item.kind === "variant" ? item.variant_id : null,
-        qty: 1,
+        qty: 1, // Always start with 1, stock validation handled server-side
         unit_price_cents: item.unit_price_cents_default,
         title_snapshot: item.title,
         variant_snapshot: item.variant_snapshot,
@@ -366,7 +386,11 @@ export function InvoiceEditor({
     setSaving(false);
 
     if (!res.ok) {
-      setError(json?.error ?? "Failed to add line");
+      if (json?.error === "out_of_stock") {
+        setError(`Only ${item.stock_qty} item(s) available in stock`);
+      } else {
+        setError(json?.error ?? "Failed to add line");
+      }
       return;
     }
 
@@ -378,6 +402,31 @@ export function InvoiceEditor({
   async function updateLine(lineId: string, patch: Partial<Pick<InvoiceLine, "qty" | "unit_price_cents">>) {
     if (!invoice?.id) return;
     if (status === "cancelled") return;
+
+    // Optimistic update for immediate UI response
+    if (patch.unit_price_cents !== undefined || patch.qty !== undefined) {
+      setInvoice((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          lines: prev.lines.map((x) => {
+            if (x.id === lineId) {
+              const updatedLine = { ...x };
+              if (patch.unit_price_cents !== undefined) {
+                updatedLine.unit_price_cents = patch.unit_price_cents;
+                updatedLine.line_total_cents = patch.unit_price_cents * (x.qty || 1);
+              }
+              if (patch.qty !== undefined) {
+                updatedLine.qty = patch.qty;
+                updatedLine.line_total_cents = patch.qty * (x.unit_price_cents || 0);
+              }
+              return updatedLine;
+            }
+            return x;
+          }),
+        };
+      });
+    }
 
     setError(null);
     setSaving(true);
@@ -470,19 +519,31 @@ export function InvoiceEditor({
     if (!invoice?.id) return;
     if (status === "cancelled") return;
 
+    console.log("Removing line:", { lineId, invoiceId: invoice.id, status, saving });
     setError(null);
     setSaving(true);
 
-    const res = await fetch(`/api/admin/invoices/${invoice.id}/lines/${lineId}`, { method: "DELETE" });
-    const json = await res.json().catch(() => null);
-    setSaving(false);
+    try {
+      const res = await fetch(`/api/admin/invoices/${invoice.id}/lines/${lineId}`, { method: "DELETE" });
+      const json = await res.json().catch(() => null);
+      setSaving(false);
 
-    if (!res.ok) {
-      setError(json?.error ?? "Failed to remove line");
-      return;
+      console.log("Remove line response:", { status: res.status, ok: res.ok, json });
+
+      if (!res.ok) {
+        const errorMsg = json?.error ?? "Failed to remove line";
+        console.error("Remove line failed:", errorMsg);
+        setError(errorMsg);
+        return;
+      }
+
+      console.log("Line removed successfully, updating invoice state");
+      setInvoice(json?.invoice as InvoiceDetail);
+    } catch (error) {
+      console.error("Remove line error:", error);
+      setError("Failed to remove line");
+      setSaving(false);
     }
-
-    setInvoice(json?.invoice as InvoiceDetail);
   }
 
   async function saveCustomerSnapshot() {
@@ -846,12 +907,19 @@ export function InvoiceEditor({
 
           {(catalog ?? []).length > 0 ? (
             <div className="mt-3 space-y-2">
-              {catalog.slice(0, 12).map((item) => (
+              {catalog.slice(0, 12).map((item) => {
+                const isOutOfStock = item.stock_qty <= 0;
+                const stockColor = item.stock_qty <= 2 ? "text-red-600" : item.stock_qty <= 5 ? "text-yellow-600" : "text-green-600";
+                const stockText = isOutOfStock ? "Out of stock" : `${item.stock_qty} available`;
+                
+                return (
                 <button
                   key={`${item.kind}-${item.product_id}-${item.kind === "variant" ? item.variant_id : "simple"}`}
                   type="button"
-                  className="w-full rounded-lg border p-3 text-left hover:bg-slate-50 disabled:opacity-60"
-                  disabled={saving || status === "cancelled"}
+                  className={`w-full rounded-lg border p-3 text-left hover:bg-slate-50 disabled:opacity-60 ${
+                    isOutOfStock ? "border-red-200 bg-red-50 opacity-60" : "border-slate-200"
+                  }`}
+                  disabled={saving || status === "cancelled" || isOutOfStock}
                   onClick={() => void addLine(item)}
                 >
                   <div className="flex items-start justify-between gap-3">
@@ -860,14 +928,22 @@ export function InvoiceEditor({
                         {item.title}
                         {item.variant_name ? ` (${item.variant_name})` : ""}
                       </div>
-                      <div className="mt-1 text-xs text-slate-500">
-                        Stock: {item.stock_qty} • Default: R{centsToRandsString(item.unit_price_cents_default)}
+                      <div className="mt-1 text-xs">
+                        <span className={`${stockColor} font-medium`}>
+                          {stockText}
+                        </span>
+                        <span className="text-slate-500"> • Default: {formatZar(item.unit_price_cents_default)}</span>
                       </div>
                     </div>
-                    <div className="text-xs text-slate-500">Add</div>
+                    <div className={`text-xs font-medium ${
+                      isOutOfStock ? "text-red-600" : "text-slate-500"
+                    }`}>
+                      {isOutOfStock ? "Unavailable" : "Add"}
+                    </div>
                   </div>
                 </button>
-              ))}
+              );
+            })}
             </div>
           ) : null}
         </div>
@@ -892,13 +968,18 @@ export function InvoiceEditor({
                           {l.title_snapshot}
                           {vName}
                         </div>
-                        <div className="mt-1 text-xs text-slate-500">Line total: R{centsToRandsString(l.line_total_cents)}</div>
+                        <div className="mt-1 text-xs text-slate-500">Line total: {formatZar(l.line_total_cents)}</div>
                       </div>
                       <button
                         type="button"
                         className="text-xs text-red-600 hover:underline disabled:opacity-60"
                         disabled={saving || status === "cancelled"}
-                        onClick={() => void removeLine(l.id)}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          console.log("Remove button clicked for line:", l.id);
+                          void removeLine(l.id);
+                        }}
                       >
                         Remove
                       </button>
@@ -907,30 +988,72 @@ export function InvoiceEditor({
                     <div className="mt-3 grid grid-cols-2 gap-3">
                       <div className="space-y-1">
                         <div className="text-xs font-medium text-slate-600">Qty</div>
-                        <input
-                          className="h-10 w-full rounded-md border bg-white px-3 text-sm text-slate-900"
-                          inputMode="numeric"
-                          value={String(l.qty)}
-                          disabled={saving || status === "cancelled"}
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            // Allow empty value for editing, but validate on blur
-                            if (value === "" || /^\d*$/.test(value)) {
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            className="h-10 w-10 rounded-md border bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60 transition-colors"
+                            disabled={saving || status === "cancelled" || l.qty <= 1}
+                            onClick={() => {
+                              const newQty = Math.max(1, l.qty - 1);
+                              // Optimistic update for immediate UI response
                               setInvoice((prev) => {
                                 if (!prev) return prev;
-                                const n = value === "" ? 1 : Math.max(1, Math.floor(Number(value)));
                                 return {
                                   ...prev,
-                                  lines: prev.lines.map((x) => (x.id === l.id ? { ...x, qty: n, line_total_cents: n * x.unit_price_cents } : x)),
+                                  lines: prev.lines.map((x) => 
+                                    x.id === l.id ? { ...x, qty: newQty, line_total_cents: newQty * x.unit_price_cents } : x
+                                  ),
                                 };
                               });
+                              // Then update on server
+                              void updateLine(l.id, { qty: newQty });
+                            }}
+                          >
+                            −
+                          </button>
+                          <input
+                            className="h-10 w-16 rounded-md border bg-white px-2 text-center text-sm text-slate-900"
+                            inputMode="numeric"
+                            value={String(l.qty)}
+                            disabled={saving || status === "cancelled"}
+                            readOnly
+                            style={{ pointerEvents: 'none' }}
+                          />
+                          <button
+                            type="button"
+                            className="h-10 w-10 rounded-md border bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60 transition-colors"
+                            disabled={
+                              saving ||
+                              status === "cancelled" ||
+                              (typeof l.stock_qty === "number" ? l.qty >= l.stock_qty : false)
                             }
-                          }}
-                          onBlur={(e) => {
-                            const n = Math.max(1, Math.floor(Number(e.target.value || 1)));
-                            void updateLine(l.id, { qty: n });
-                          }}
-                        />
+                            onClick={() => {
+                              const newQty = l.qty + 1;
+                              
+                              // Validate against stock if available
+                              if (typeof l.stock_qty === "number" && newQty > l.stock_qty) {
+                                setError(`Cannot add more than available stock: ${l.stock_qty} item(s)`);
+                                setTimeout(() => setError(null), 3000);
+                                return;
+                              }
+                              
+                              // Optimistic update for immediate UI response
+                              setInvoice((prev) => {
+                                if (!prev) return prev;
+                                return {
+                                  ...prev,
+                                  lines: prev.lines.map((x) => 
+                                    x.id === l.id ? { ...x, qty: newQty, line_total_cents: newQty * x.unit_price_cents } : x
+                                  ),
+                                };
+                              });
+                              // Then update on server
+                              void updateLine(l.id, { qty: newQty });
+                            }}
+                          >
+                            +
+                          </button>
+                        </div>
                       </div>
 
                       <div className="space-y-1">
@@ -938,23 +1061,52 @@ export function InvoiceEditor({
                         <input
                           className="h-10 w-full rounded-md border bg-white px-3 text-sm text-slate-900"
                           inputMode="decimal"
-                          value={centsToRandsString(l.unit_price_cents)}
+                          value={l._temp_price_input ?? (l.unit_price_cents / 100).toFixed(2)}
                           disabled={saving || status === "cancelled"}
                           onChange={(e) => {
-                            const cents = randsStringToCents(e.target.value);
+                            const value = e.target.value;
+                            // Allow empty value and decimal numbers
+                            if (value === "" || /^\d*\.?\d{0,2}$/.test(value)) {
+                              setInvoice((prev) => {
+                                if (!prev) return prev;
+                                return {
+                                  ...prev,
+                                  lines: prev.lines.map((x) =>
+                                    x.id === l.id ? { ...x, _temp_price_input: value } : x
+                                  ),
+                                };
+                              });
+                            }
+                          }}
+                          onBlur={(e) => {
+                            const value = e.target.value;
+                            let cents = l.unit_price_cents; // Default to current value
+                            
+                            if (value !== "") {
+                              // Convert rands to cents
+                              const rands = parseFloat(value);
+                              if (!isNaN(rands) && rands >= 0) {
+                                cents = Math.round(rands * 100);
+                              }
+                            }
+                            
+                            // Update the line with the new price
+                            void updateLine(l.id, { unit_price_cents: cents });
+                            
+                            // Clear temporary input
                             setInvoice((prev) => {
                               if (!prev) return prev;
                               return {
                                 ...prev,
                                 lines: prev.lines.map((x) =>
-                                  x.id === l.id ? { ...x, unit_price_cents: cents, line_total_cents: cents * x.qty } : x
+                                  x.id === l.id ? { ...x, _temp_price_input: undefined } : x
                                 ),
                               };
                             });
                           }}
-                          onBlur={(e) => {
-                            const cents = randsStringToCents(e.target.value);
-                            void updateLine(l.id, { unit_price_cents: cents });
+                          onFocus={(e) => {
+                            // Select all text when focused for easy editing
+                            e.target.select();
                           }}
                         />
                       </div>

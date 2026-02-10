@@ -7,7 +7,7 @@ export const categoryUpsertSchema = z.object({
     .trim()
     .min(1)
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
-  image_url: z.string().url().nullable().optional(),
+  image_url: z.string().nullable().optional(),
   sort_index: z.number().int().nonnegative().optional(),
 });
 

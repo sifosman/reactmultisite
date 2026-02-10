@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Invoice Search</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .search-box { margin: 20px 0; }
+        input { padding: 8px; width: 300px; }
+        button { padding: 8px 16px; margin-left: 10px; }
+        .results { margin-top: 20px; }
+        .item { border: 1px solid #ccc; padding: 10px; margin: 5px 0; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Invoice Product Search Test</h1>
+    
+    <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Search products..." />
+        <button onclick="search()">Search</button>
+        <button onclick="testDebug()">Debug Test</button>
+    </div>
+    
+    <div id="results" class="results"></div>
+
+    <script>
+        async function search() {
+            const query = document.getElementById('searchInput').value;
+            const results = document.getElementById('results');
+            
+            if (!query.trim()) {
+                results.innerHTML = '<div class="error">Please enter a search term</div>';
+                return;
+            }
+            
+            results.innerHTML = 'Searching...';
+            
+            try {
+                const response = await fetch(`/api/admin/invoice-catalog?q=${encodeURIComponent(query)}`);
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    results.innerHTML = `<div class="error">Error: ${data.error}</div>`;
+                    return;
+                }
+                
+                if (data.items && data.items.length > 0) {
+                    results.innerHTML = `
+                        <h3>Found ${data.items.length} items:</h3>
+                        ${data.items.map(item => `
+                            <div class="item">
+                                <strong>${item.title}</strong> ${item.variant_name ? `(${item.variant_name})` : ''}
+                                <br>SKU: ${item.sku || 'N/A'} | Stock: ${item.stock_qty} | Price: R${(item.unit_price_cents_default / 100).toFixed(2)}
+                                <br>Type: ${item.kind}
+                            </div>
+                        `).join('')}
+                    `;
+                } else {
+                    results.innerHTML = '<div>No products found</div>';
+                }
+            } catch (error) {
+                results.innerHTML = `<div class="error">Network error: ${error.message}</div>`;
+            }
+        }
+        
+        async function testDebug() {
+            const query = document.getElementById('searchInput').value;
+            const results = document.getElementById('results');
+            
+            results.innerHTML = 'Running debug test...';
+            
+            try {
+                const response = await fetch(`/api/debug/test-invoice-search?q=${encodeURIComponent(query)}`);
+                const data = await response.json();
+                
+                results.innerHTML = `
+                    <h3>Debug Results for "${query}":</h3>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                results.innerHTML = `<div class="error">Debug error: ${error.message}</div>`;
+            }
+        }
+        
+        // Allow Enter key to search
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                search();
+            }
+        });
+    </script>
+</body>
+</html>

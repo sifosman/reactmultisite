@@ -44,10 +44,40 @@ async function loadInvoice(supabaseAdmin: ReturnType<typeof createSupabaseAdminC
   if (linesErr) return { error: linesErr.message };
   if (!invoice) return { error: "not_found", notFound: true as const };
 
+  // Get stock information for each line
+  const linesWithStock = await Promise.all(
+    (lines ?? []).map(async (line) => {
+      let stock_qty = 0;
+      
+      if (line.variant_id) {
+        // Get variant stock
+        const { data: variant } = await supabaseAdmin
+          .from("product_variants")
+          .select("stock_qty")
+          .eq("id", line.variant_id)
+          .maybeSingle();
+        stock_qty = variant?.stock_qty ?? 0;
+      } else {
+        // Get product stock
+        const { data: product } = await supabaseAdmin
+          .from("products")
+          .select("stock_qty")
+          .eq("id", line.product_id)
+          .maybeSingle();
+        stock_qty = product?.stock_qty ?? 0;
+      }
+
+      return {
+        ...line,
+        stock_qty
+      };
+    })
+  );
+
   return {
     invoice: {
       ...invoice,
-      lines: lines ?? [],
+      lines: linesWithStock,
     },
   };
 }

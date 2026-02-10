@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { categoryUpsertSchema, type CategoryUpsertInput } from "@/lib/admin/categorySchemas";
+import { ImageUpload } from "./ImageUpload";
 
 export function CategoryForm({
   mode,
@@ -102,18 +103,18 @@ export function CategoryForm({
       <section className="rounded-xl border bg-white p-4">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-2 sm:col-span-2">
-            <label className="text-sm font-medium">Name</label>
+            <label className="text-sm font-medium text-gray-700">Name</label>
             <input
-              className="h-10 w-full rounded-md border px-3 text-sm"
+              className="h-10 w-full rounded-md border px-3 text-sm text-gray-900"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
             />
           </div>
           <div className="space-y-2 sm:col-span-2">
-            <label className="text-sm font-medium">Slug</label>
+            <label className="text-sm font-medium text-gray-700">Slug</label>
             <input
-              className="h-10 w-full rounded-md border px-3 text-sm"
+              className="h-10 w-full rounded-md border px-3 text-sm text-gray-900"
               value={slug}
               onChange={(e) => setSlug(e.target.value)}
               placeholder="kebab-case-slug"
@@ -121,18 +122,18 @@ export function CategoryForm({
             />
           </div>
           <div className="space-y-2 sm:col-span-2">
-            <label className="text-sm font-medium">Image URL (optional)</label>
-            <input
-              className="h-10 w-full rounded-md border px-3 text-sm"
+            <label className="text-sm font-medium text-gray-700">Category Image</label>
+            <ImageUpload
               value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              placeholder="https://..."
+              onChange={setImageUrl}
+              placeholder="Upload category image or enter URL"
+              folder="categories"
             />
           </div>
           <div className="space-y-2 sm:col-span-2">
-            <label className="text-sm font-medium">Sort order</label>
+            <label className="text-sm font-medium text-gray-700">Sort order</label>
             <input
-              className="h-10 w-full rounded-md border px-3 text-sm"
+              className="h-10 w-full rounded-md border px-3 text-sm text-gray-900"
               type="number"
               min={0}
               value={sortIndex}

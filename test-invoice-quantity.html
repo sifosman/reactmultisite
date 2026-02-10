@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Invoice Quantity Controls</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .quantity-control { display: flex; align-items: center; gap: 8px; margin: 20px 0; }
+        .btn { 
+            width: 40px; 
+            height: 40px; 
+            border: 1px solid #ccc; 
+            background: white; 
+            border-radius: 6px; 
+            font-size: 16px; 
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn:hover:not(:disabled) { background: #f5f5f5; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .input { 
+            width: 60px; 
+            height: 40px; 
+            border: 1px solid #ccc; 
+            border-radius: 6px; 
+            text-align: center; 
+            font-size: 14px;
+        }
+        .demo-section { border: 1px solid #ddd; padding: 20px; margin: 20px 0; border-radius: 8px; }
+        .label { font-size: 12px; font-weight: 600; color: #666; margin-bottom: 8px; }
+    </style>
+</head>
+<body>
+    <h1>Invoice Quantity Controls Test</h1>
+    
+    <div class="demo-section">
+        <div class="label">Quantity Controls Demo</div>
+        <div class="quantity-control">
+            <button class="btn" onclick="decrement()" id="decrementBtn">−</button>
+            <input type="text" class="input" id="quantityInput" value="1" onchange="handleInputChange()" />
+            <button class="btn" onclick="increment()">+</button>
+        </div>
+        <div>Current quantity: <strong id="currentQty">1</strong></div>
+        <div>Line total: R<strong id="lineTotal">100.00</strong> (assuming R100.00 per unit)</div>
+    </div>
+
+    <div class="demo-section">
+        <h3>Features:</h3>
+        <ul>
+            <li>✅ Increment button (+) increases quantity</li>
+            <li>✅ Decrement button (−) decreases quantity (minimum 1)</li>
+            <li>✅ Direct input allows manual entry</li>
+            <li>✅ Input validation on blur (minimum 1)</li>
+            <li>✅ Real-time line total calculation</li>
+            <li>✅ Decrement button disabled when quantity is 1</li>
+        </ul>
+    </div>
+
+    <script>
+        let quantity = 1;
+        const unitPrice = 10000; // 100.00 in cents
+        
+        function updateDisplay() {
+            document.getElementById('quantityInput').value = quantity;
+            document.getElementById('currentQty').textContent = quantity;
+            const lineTotal = quantity * unitPrice;
+            document.getElementById('lineTotal').textContent = (lineTotal / 100).toFixed(2);
+            
+            // Update decrement button state
+            document.getElementById('decrementBtn').disabled = quantity <= 1;
+        }
+        
+        function increment() {
+            quantity++;
+            updateDisplay();
+        }
+        
+        function decrement() {
+            if (quantity > 1) {
+                quantity--;
+                updateDisplay();
+            }
+        }
+        
+        function handleInputChange() {
+            const input = document.getElementById('quantityInput');
+            let value = parseInt(input.value) || 1;
+            
+            // Validate minimum
+            if (value < 1) value = 1;
+            if (isNaN(value)) value = 1;
+            
+            quantity = value;
+            updateDisplay();
+        }
+        
+        // Handle keyboard input
+        document.getElementById('quantityInput').addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                increment();
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                decrement();
+            }
+        });
+        
+        // Initialize display
+        updateDisplay();
+    </script>
+</body>
+</html>

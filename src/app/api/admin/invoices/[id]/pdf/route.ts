@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { formatZar, calculateInvoiceTotals } from "@/lib/invoice/calculateInvoiceTotals";
 import fs from "fs/promises";
 import path from "path";
 
@@ -22,10 +23,6 @@ async function assertAdmin() {
   if (!profile || profile.role !== "admin") return { ok: false as const };
 
   return { ok: true as const };
-}
-
-function formatZar(cents: number) {
-  return `R${(cents / 100).toFixed(2)}`;
 }
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -221,18 +218,30 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const totalsLabelX = 380;
   const totalsValueX = colTotalX;
 
+  // Recalculate totals to ensure consistency
+  const calculatedTotals = calculateInvoiceTotals(
+    lines ?? [],
+    invoice.delivery_cents,
+    invoice.discount_cents
+  );
+
+  // Use calculated totals for consistency
+  const subtotalCents = calculatedTotals.subtotal_cents;
+  const deliveryCents = calculatedTotals.delivery_cents;
+  const discountCents = calculatedTotals.discount_cents;
+  const totalCents = calculatedTotals.total_cents;
+
   // Divider above totals
   page.drawLine({ start: { x: totalsLabelX - 10, y: y + 14 }, end: { x: rightEdge + 6, y: y + 14 }, thickness: 1, color: lightGray });
 
   // Subtotal
   page.drawText("Subtotal", { x: totalsLabelX, y, size: 10, font, color: darkGray });
-  const subtotalText = formatZar(invoice.subtotal_cents);
+  const subtotalText = formatZar(subtotalCents);
   const subtotalWidth = font.widthOfTextAtSize(subtotalText, 10);
   page.drawText(subtotalText, { x: totalsValueX - subtotalWidth, y, size: 10, font, color: black });
   y -= 16;
 
   // Delivery
-  const deliveryCents = invoice.delivery_cents ?? 0;
   page.drawText("Delivery", { x: totalsLabelX, y, size: 10, font, color: darkGray });
   const deliveryText = formatZar(deliveryCents);
   const deliveryWidth = font.widthOfTextAtSize(deliveryText, 10);
@@ -240,9 +249,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   y -= 16;
 
   // Discount (only if > 0)
-  if (invoice.discount_cents > 0) {
+  if (discountCents > 0) {
     page.drawText("Discount", { x: totalsLabelX, y, size: 10, font, color: darkGray });
-    const discountText = `-${formatZar(invoice.discount_cents)}`;
+    const discountText = `-${formatZar(discountCents)}`;
     const discountWidth = font.widthOfTextAtSize(discountText, 10);
     page.drawText(discountText, { x: totalsValueX - discountWidth, y, size: 10, font, color: rgb(0.8, 0.2, 0.2) });
     y -= 16;
@@ -252,7 +261,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   y -= 6;
   page.drawLine({ start: { x: totalsLabelX - 10, y: y + 16 }, end: { x: rightEdge + 6, y: y + 16 }, thickness: 1.5, color: black });
   page.drawText("TOTAL", { x: totalsLabelX, y, size: 12, font: fontBold, color: black });
-  const totalAmtText = formatZar(invoice.total_cents);
+  const totalAmtText = formatZar(totalCents);
   const totalAmtWidth = fontBold.widthOfTextAtSize(totalAmtText, 14);
   page.drawText(totalAmtText, { x: totalsValueX - totalAmtWidth, y: y - 1, size: 14, font: fontBold, color: black });
 

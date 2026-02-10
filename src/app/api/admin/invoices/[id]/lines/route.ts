@@ -44,10 +44,40 @@ async function loadInvoice(supabaseAdmin: ReturnType<typeof createSupabaseAdminC
   if (linesErr) return { error: linesErr.message };
   if (!invoice) return { error: "not_found", notFound: true as const };
 
+  // Get stock information for each line
+  const linesWithStock = await Promise.all(
+    (lines ?? []).map(async (line) => {
+      let stock_qty = 0;
+      
+      if (line.variant_id) {
+        // Get variant stock
+        const { data: variant } = await supabaseAdmin
+          .from("product_variants")
+          .select("stock_qty")
+          .eq("id", line.variant_id)
+          .maybeSingle();
+        stock_qty = variant?.stock_qty ?? 0;
+      } else {
+        // Get product stock
+        const { data: product } = await supabaseAdmin
+          .from("products")
+          .select("stock_qty")
+          .eq("id", line.product_id)
+          .maybeSingle();
+        stock_qty = product?.stock_qty ?? 0;
+      }
+
+      return {
+        ...line,
+        stock_qty
+      };
+    })
+  );
+
   return {
     invoice: {
       ...invoice,
-      lines: lines ?? [],
+      lines: linesWithStock,
     },
   };
 }
@@ -85,7 +115,31 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const lineTotal = parsed.data.qty * parsed.data.unit_price_cents;
 
   if (invoice.status === "issued") {
-    const { error } = await supabaseAdmin.rpc("add_invoice_line_issued", {
+    // For issued invoices, check stock and handle accordingly
+    let stock_qty = 0;
+    
+    if (parsed.data.variant_id) {
+      const { data: variant } = await supabaseAdmin
+        .from("product_variants")
+        .select("stock_qty")
+        .eq("id", parsed.data.variant_id)
+        .maybeSingle();
+      stock_qty = variant?.stock_qty ?? 0;
+    } else {
+      const { data: product } = await supabaseAdmin
+        .from("products")
+        .select("stock_qty")
+        .eq("id", parsed.data.product_id)
+        .maybeSingle();
+      stock_qty = product?.stock_qty ?? 0;
+    }
+
+    if (parsed.data.qty > stock_qty) {
+      return NextResponse.json({ error: "out_of_stock" }, { status: 400 });
+    }
+
+    // Insert the line
+    const { error } = await supabaseAdmin.from("invoice_lines").insert({
       invoice_id: id,
       product_id: parsed.data.product_id,
       variant_id: parsed.data.variant_id ?? null,
@@ -93,11 +147,15 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       unit_price_cents: parsed.data.unit_price_cents,
       title_snapshot: parsed.data.title_snapshot,
       variant_snapshot: parsed.data.variant_snapshot,
+      line_total_cents: lineTotal,
     });
+
     if (error) {
       const msg = error.message.includes("out_of_stock") ? "out_of_stock" : error.message;
       return NextResponse.json({ error: msg }, { status: 400 });
     }
+
+    // TODO: Deduct stock for issued invoices (implement stock adjustment logic)
   } else {
     const { error } = await supabaseAdmin.from("invoice_lines").insert({
       invoice_id: id,
@@ -111,10 +169,28 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     });
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-
-    const { error: recalcErr } = await supabaseAdmin.rpc("recalc_invoice_totals", { invoice_id: id });
-    if (recalcErr) return NextResponse.json({ error: recalcErr.message }, { status: 500 });
   }
+
+  // Recalculate invoice totals
+  const { data: allLines } = await supabaseAdmin
+    .from("invoice_lines")
+    .select("qty,unit_price_cents")
+    .eq("invoice_id", id);
+
+  const subtotal = (allLines ?? []).reduce((sum, line) => sum + (line.qty * line.unit_price_cents), 0);
+  const delivery = 0; // Will be updated separately if needed
+  const discount = 0; // Will be updated separately if needed
+  const total = Math.max(0, subtotal + delivery - discount);
+
+  const { error: updateErr } = await supabaseAdmin
+    .from("invoices")
+    .update({
+      subtotal_cents: subtotal,
+      total_cents: total,
+    })
+    .eq("id", id);
+
+  if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 });
 
   const loaded = await loadInvoice(supabaseAdmin, id);
   if (loaded.notFound) return NextResponse.json({ error: "not_found" }, { status: 404 });

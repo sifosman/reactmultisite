@@ -9,6 +9,7 @@ export async function POST(req: Request) {
 
   const webhookSecret = process.env.YOCO_WEBHOOK_SECRET;
   if (!webhookSecret) {
+    console.error("YOCO_WEBHOOK_SECRET missing");
     return NextResponse.json({ error: "missing_webhook_secret" }, { status: 500 });
   }
 
@@ -19,6 +20,11 @@ export async function POST(req: Request) {
   });
 
   if (!verified) {
+    console.error("Yoco webhook verification failed", {
+      webhookId: req.headers.get("webhook-id"),
+      timestamp: req.headers.get("webhook-timestamp"),
+      hasSignature: !!req.headers.get("webhook-signature")
+    });
     return NextResponse.json({ error: "invalid_signature" }, { status: 403 });
   }
 
@@ -33,6 +39,16 @@ export async function POST(req: Request) {
       currency?: string;
     };
   };
+
+  console.log("Yoco webhook received", {
+    eventId: event.id,
+    eventType: event.type,
+    hasPayload: !!event.payload,
+    payloadId: event.payload?.id,
+    payloadStatus: event.payload?.status,
+    pendingCheckoutId: event.payload?.metadata?.pendingCheckoutId,
+    existingOrderId: event.payload?.metadata?.existingOrderId
+  });
 
   const eventJson = event as unknown as Record<string, unknown>;
 
@@ -49,10 +65,12 @@ export async function POST(req: Request) {
 
   // If already processed, return OK
   if (insertEventError && insertEventError.message.toLowerCase().includes("duplicate")) {
+    console.log("Yoco webhook event already processed", { eventId: event.id });
     return NextResponse.json({ ok: true });
   }
 
   if (insertEventError) {
+    console.error("Failed to store Yoco webhook event", { eventId: event.id, error: insertEventError.message });
     return NextResponse.json({ error: insertEventError.message }, { status: 500 });
   }
 
@@ -233,10 +251,20 @@ export async function POST(req: Request) {
 
       try {
         await sendOrderPaidEmail(orderId);
-      } catch {
+        console.log("Yoco order confirmation email sent", { orderId });
+      } catch (emailError) {
+        console.error("Yoco order confirmation email failed", {
+          orderId,
+          error: emailError instanceof Error ? emailError.message : "Unknown email error"
+        });
         // Don't fail webhook delivery if email sending fails.
       }
     } catch (err) {
+      console.error("Yoco order creation failed", {
+        pendingCheckoutId,
+        error: err instanceof Error ? err.message : "order_creation_failed",
+        stack: err instanceof Error ? err.stack : undefined
+      });
       return NextResponse.json(
         { error: err instanceof Error ? err.message : "order_creation_failed" },
         { status: 500 }

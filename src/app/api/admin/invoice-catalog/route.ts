@@ -34,26 +34,33 @@ export async function GET(req: Request) {
   // Split query into individual words for flexible matching
   const words = q.split(/\s+/).filter(word => word.length > 0);
   
-  // Create search conditions for each word
-  const productSearchConditions = words.map(word => 
-    `(name.ilike.%${word}%,slug.ilike.%${word}%,description.ilike.%${word}%)`
-  ).join(',');
+  // Build search conditions - simpler approach
+  let productSearchCondition = "";
+  let variantSearchCondition = "";
   
-  const variantSearchConditions = words.map(word => 
-    `(sku.ilike.%${word}%,name.ilike.%${word}%)`
-  ).join(',');
+  if (words.length === 1) {
+    const word = words[0];
+    productSearchCondition = `name.ilike.%${word}%,slug.ilike.%${word}%,description.ilike.%${word}%`;
+    variantSearchCondition = `sku.ilike.%${word}%,name.ilike.%${word}%`;
+  } else {
+    // For multiple words, search each word in name field primarily
+    productSearchCondition = words.map(word => `name.ilike.%${word}%`).join(',');
+    variantSearchCondition = words.map(word => `name.ilike.%${word}%`).join(',');
+  }
 
   const [{ data: products, error: productsError }, { data: variants, error: variantsError }] =
     await Promise.all([
       supabaseAdmin
         .from("products")
         .select("id,name,slug,price_cents,has_variants,stock_qty,active,description")
-        .or(productSearchConditions)
+        .or(productSearchCondition)
+        .eq("active", true)
         .limit(30),
       supabaseAdmin
         .from("product_variants")
         .select("id,product_id,sku,name,price_cents_override,stock_qty,attributes,active")
-        .or(variantSearchConditions)
+        .or(variantSearchCondition)
+        .eq("active", true)
         .limit(40),
     ]);
 
