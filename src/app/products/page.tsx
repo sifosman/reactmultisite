@@ -4,6 +4,7 @@ import { createPublicSupabaseServerClient } from "@/lib/storefront/publicClient"
 import { ProductCard } from "@/components/storefront/ProductCard";
 import { FiltersPanel } from "@/components/storefront/FiltersPanel";
 import { SortSelect } from "@/components/storefront/SortSelect";
+import { InfiniteLoadMore } from "@/components/storefront/InfiniteLoadMore";
 
 export const revalidate = 60;
 
@@ -79,13 +80,19 @@ export default async function ProductsPage({
     .limit(limitValue);
 
   if (sortValue === "price_asc") {
-    builder = builder.order("price_cents", { ascending: true }).order("created_at", { ascending: false });
+    builder = builder
+      .order("price_cents", { ascending: true })
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: false });
   } else if (sortValue === "price_desc") {
-    builder = builder.order("price_cents", { ascending: false }).order("created_at", { ascending: false });
+    builder = builder
+      .order("price_cents", { ascending: false })
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: false });
   } else if (sortValue === "newest") {
-    builder = builder.order("created_at", { ascending: false });
+    builder = builder.order("created_at", { ascending: false }).order("id", { ascending: false });
   } else {
-    builder = builder.order("created_at", { ascending: false });
+    builder = builder.order("created_at", { ascending: false }).order("id", { ascending: false });
   }
 
   if (query) {
@@ -283,7 +290,6 @@ export default async function ProductsPage({
           <form method="get" id="products-filters" className="grid gap-4 lg:grid-cols-5">
             {query ? <input type="hidden" name="q" value={query} /> : null}
             <input type="hidden" name="limit" value={String(limitValue)} />
-            <input type="hidden" name="sort" value={sortValue} />
 
             <div className="flex flex-col gap-2">
               <label className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Size</label>
@@ -449,15 +455,7 @@ export default async function ProductsPage({
 
         {/* Load More placeholder */}
         {hasMore && (
-          <div className="mt-12 text-center">
-            <Link
-              href={loadMoreHref}
-              scroll={false}
-              className="inline-flex rounded-full border-2 border-zinc-200 bg-white px-8 py-3 text-sm font-semibold text-zinc-900 transition hover:border-zinc-300 hover:bg-zinc-50"
-            >
-              Load more products
-            </Link>
-          </div>
+          <InfiniteLoadMore hasMore={hasMore} nextHref={loadMoreHref} />
         )}
       </div>
     </main>
