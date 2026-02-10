@@ -125,26 +125,26 @@ export function CouponForm({
   return (
     <form onSubmit={onSubmit} className="mt-6 space-y-6">
       <section className="rounded-xl border bg-white p-6 shadow-sm">
-        <h2 className="text-sm font-semibold text-slate-900">Coupon Details</h2>
+        <h2 className="text-sm font-semibold text-gray-900">Coupon Details</h2>
 
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <div className="space-y-2 sm:col-span-2">
-            <label className="text-sm font-medium">Coupon Code *</label>
+            <label className="text-sm font-medium text-gray-700">Coupon Code *</label>
             <input
               type="text"
-              className="h-10 w-full rounded-md border px-3 text-sm font-mono uppercase"
+              className="h-10 w-full rounded-md border px-3 text-sm font-mono uppercase text-gray-900"
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase())}
               placeholder="SAVE20"
               required
             />
-            <p className="text-xs text-slate-500">Code will be automatically converted to uppercase</p>
+            <p className="text-xs text-gray-500">Code will be automatically converted to uppercase</p>
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">Discount Type *</label>
+            <label className="text-sm font-medium text-gray-700">Discount Type *</label>
             <select
-              className="h-10 w-full rounded-md border px-3 text-sm"
+              className="h-10 w-full rounded-md border px-3 text-sm text-gray-900"
               value={discountType}
               onChange={(e) => setDiscountType(e.target.value as "percentage" | "fixed")}
             >
@@ -154,13 +154,13 @@ export function CouponForm({
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">
+            <label className="text-sm font-medium text-gray-700">
               Discount Value * {discountType === "percentage" ? "(%)" : "(R)"}
             </label>
             <input
               type="text"
               inputMode="decimal"
-              className="h-10 w-full rounded-md border px-3 text-sm"
+              className="h-10 w-full rounded-md border px-3 text-sm text-gray-900"
               value={discountValue}
               onChange={(e) => setDiscountValue(e.target.value)}
               placeholder={discountType === "percentage" ? "10" : "50.00"}
@@ -169,53 +169,53 @@ export function CouponForm({
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">Minimum Order Value (R)</label>
+            <label className="text-sm font-medium text-gray-700">Minimum Order Value (R)</label>
             <input
               type="text"
               inputMode="decimal"
-              className="h-10 w-full rounded-md border px-3 text-sm"
+              className="h-10 w-full rounded-md border px-3 text-sm text-gray-900"
               value={minOrderValue}
               onChange={(e) => setMinOrderValue(e.target.value)}
               placeholder="100.00"
             />
-            <p className="text-xs text-slate-500">Optional - leave blank for no minimum</p>
+            <p className="text-xs text-gray-500">Optional - leave blank for no minimum</p>
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">Maximum Uses</label>
+            <label className="text-sm font-medium text-gray-700">Maximum Uses</label>
             <input
               type="text"
               inputMode="numeric"
-              className="h-10 w-full rounded-md border px-3 text-sm"
+              className="h-10 w-full rounded-md border px-3 text-sm text-gray-900"
               value={maxUses}
               onChange={(e) => setMaxUses(e.target.value.replace(/\D/g, ""))}
               placeholder="100"
             />
-            <p className="text-xs text-slate-500">Optional - leave blank for unlimited</p>
+            <p className="text-xs text-gray-500">Optional - leave blank for unlimited</p>
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">Expiration Date</label>
+            <label className="text-sm font-medium text-gray-700">Expiration Date</label>
             <input
               type="date"
-              className="h-10 w-full rounded-md border px-3 text-sm"
+              className="h-10 w-full rounded-md border px-3 text-sm text-gray-900"
               value={expiresAt}
               onChange={(e) => setExpiresAt(e.target.value)}
             />
-            <p className="text-xs text-slate-500">Optional - leave blank for no expiration</p>
+            <p className="text-xs text-gray-500">Optional - leave blank for no expiration</p>
           </div>
 
           <div className="space-y-2 sm:col-span-2">
-            <label className="flex items-center gap-2 text-sm">
+            <label className="flex items-center gap-2 text-sm text-gray-700">
               <input
                 type="checkbox"
                 checked={active}
                 onChange={(e) => setActive(e.target.checked)}
-                className="h-4 w-4 rounded border-slate-300"
+                className="h-4 w-4 rounded border-gray-300"
               />
-              <span className="font-medium">Active</span>
+              <span className="font-medium text-gray-900">Active</span>
             </label>
-            <p className="text-xs text-slate-500">Inactive coupons cannot be used by customers</p>
+            <p className="text-xs text-gray-500">Inactive coupons cannot be used by customers</p>
           </div>
         </div>
       </section>
