@@ -67,6 +67,28 @@ export function YocoSuccessClient({ pendingCheckoutId }: { pendingCheckoutId: st
   useEffect(() => {
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | null = null;
+    let finalizeCalled = false;
+
+    async function tryFinalize(): Promise<string | null> {
+      if (finalizeCalled || !pendingCheckoutId) return null;
+      finalizeCalled = true;
+
+      try {
+        const res = await fetch("/api/payments/yoco/finalize", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pendingCheckoutId }),
+        });
+
+        const json = await res.json().catch(() => null);
+        if (res.ok && json?.orderId) {
+          return json.orderId as string;
+        }
+      } catch {
+        // finalize failed — will keep polling
+      }
+      return null;
+    }
 
     async function poll(attempt: number) {
       if (!pendingCheckoutId) {
@@ -76,6 +98,11 @@ export function YocoSuccessClient({ pendingCheckoutId }: { pendingCheckoutId: st
       }
 
       try {
+        // After 3 attempts with no order, call finalize as a fallback
+        if (attempt === 3 && !finalizeCalled) {
+          await tryFinalize();
+        }
+
         const res = await fetch("/api/payments/yoco/status", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -95,6 +122,15 @@ export function YocoSuccessClient({ pendingCheckoutId }: { pendingCheckoutId: st
         setData(json);
 
         if (json.order) {
+          setLoading(false);
+          return;
+        }
+
+        // Give up after 30 attempts (~1-2 minutes)
+        if (attempt >= 30) {
+          setError(
+            "Order confirmation is taking longer than expected. Please check your orders page or contact support."
+          );
           setLoading(false);
           return;
         }

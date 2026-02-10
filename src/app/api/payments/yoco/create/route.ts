@@ -34,7 +34,7 @@ export async function POST(req: Request) {
   }
 
   const yocoSecretKey = process.env.YOCO_SECRET_KEY;
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
   if (!yocoSecretKey) {
     return NextResponse.json({ error: "missing_yoco_secret_key" }, { status: 500 });
@@ -73,7 +73,7 @@ export async function POST(req: Request) {
       cancelUrl: `${siteUrl}/checkout/cancelled?orderId=${encodeURIComponent(order.id)}`,
       failureUrl: `${siteUrl}/checkout/failed?orderId=${encodeURIComponent(order.id)}`,
       metadata: {
-        orderId: order.id,
+        existingOrderId: order.id,
         paymentId: payment.id,
       },
     }),

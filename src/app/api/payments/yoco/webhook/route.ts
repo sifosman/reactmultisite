@@ -35,7 +35,11 @@ export async function POST(req: Request) {
     payload?: {
       id?: string;
       status?: string;
-      metadata?: { pendingCheckoutId?: string; existingOrderId?: string };
+      metadata?: {
+        checkoutId?: string;
+        pendingCheckoutId?: string;
+        existingOrderId?: string;
+      };
       amount?: number;
       currency?: string;
     };
@@ -47,8 +51,10 @@ export async function POST(req: Request) {
     hasPayload: !!event.payload,
     payloadId: event.payload?.id,
     payloadStatus: event.payload?.status,
+    metadataCheckoutId: event.payload?.metadata?.checkoutId,
     pendingCheckoutId: event.payload?.metadata?.pendingCheckoutId,
-    existingOrderId: event.payload?.metadata?.existingOrderId
+    existingOrderId: event.payload?.metadata?.existingOrderId,
+    fullMetadata: JSON.stringify(event.payload?.metadata),
   });
 
   const eventJson = event as unknown as Record<string, unknown>;
@@ -87,7 +93,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: insertEventError.message }, { status: 500 });
   }
 
-  const yocoCheckoutId = event?.payload?.id;
+  // Yoco puts the checkout ID in payload.metadata.checkoutId (per their docs).
+  // payload.id is the event/payment ID, NOT the checkout ID.
+  const yocoCheckoutId =
+    event?.payload?.metadata?.checkoutId ??
+    (eventJson ? findStringDeep(eventJson, "checkoutId") : null) ??
+    event?.payload?.id;
 
   // Yoco metadata location can vary by event type; be defensive.
   const pendingCheckoutId =
@@ -112,10 +123,18 @@ export async function POST(req: Request) {
         .update({ status: "paid" })
         .eq("id", existingOrderId);
 
-      await supabaseAdmin
-        .from("payments")
-        .update({ status: "succeeded", raw_payload: eventJson })
-        .eq("provider_payment_id", yocoCheckoutId);
+      // Match payment by checkout ID stored in provider_payment_id
+      const matchCheckoutId =
+        event?.payload?.metadata?.checkoutId ??
+        (eventJson ? findStringDeep(eventJson, "checkoutId") : null) ??
+        yocoCheckoutId;
+
+      if (matchCheckoutId) {
+        await supabaseAdmin
+          .from("payments")
+          .update({ status: "succeeded", raw_payload: eventJson })
+          .eq("provider_payment_id", matchCheckoutId);
+      }
 
       const { data: orderItems } = await supabaseAdmin
         .from("order_items")
