@@ -239,7 +239,7 @@ export default async function ProductsPage({
               <p className="mt-2 text-zinc-600">
                 {query 
                   ? `${(products ?? []).length} results found`
-                  : "Discover our curated collection of quality products"
+                  : "Discover our collection"
                 }
               </p>
             </div>
