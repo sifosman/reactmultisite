@@ -54,10 +54,10 @@ export function OrderStatusControl({
 
   return (
     <div className="rounded-xl border bg-white p-4">
-      <div className="text-sm font-medium">Order status</div>
+      <div className="text-sm font-medium text-slate-700">Order status</div>
       <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
         <select
-          className="h-10 w-full rounded-md border bg-white px-3 text-sm sm:w-auto"
+          className="h-10 w-full rounded-md border bg-white px-3 text-sm text-slate-900 sm:w-auto"
           value={status}
           onChange={(e) => setStatus(e.target.value as OrderStatus)}
         >

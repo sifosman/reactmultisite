@@ -194,8 +194,8 @@ export function ProductVariantsEditor({ productId }: { productId: string }) {
 
       <div className="mt-6 rounded-xl border bg-zinc-50 p-4">
         <div className="flex items-center justify-between">
-          <div className="text-sm font-medium">Attributes</div>
-          <button className="rounded-md border bg-white px-3 py-2 text-sm" type="button" onClick={addAttribute}>
+          <div className="text-sm font-medium text-slate-700">Attributes</div>
+          <button className="rounded-md border bg-white px-3 py-2 text-sm text-slate-900" type="button" onClick={addAttribute}>
             Add attribute
           </button>
         </div>
@@ -204,18 +204,18 @@ export function ProductVariantsEditor({ productId }: { productId: string }) {
           {attributes.map((a, idx) => (
             <div key={idx} className="grid grid-cols-1 gap-3 sm:grid-cols-[220px_1fr_auto]">
               <input
-                className="h-10 rounded-md border bg-white px-3 text-sm"
+                className="h-10 rounded-md border bg-white px-3 text-sm text-slate-900"
                 value={a.name}
                 onChange={(e) => updateAttribute(idx, { name: e.target.value })}
                 placeholder="Attribute name (e.g. Size)"
               />
               <input
-                className="h-10 rounded-md border bg-white px-3 text-sm"
+                className="h-10 rounded-md border bg-white px-3 text-sm text-slate-900"
                 value={a.values}
                 onChange={(e) => updateAttribute(idx, { values: e.target.value })}
                 placeholder="Values comma-separated (e.g. S,M,L)"
               />
-              <button className="h-10 rounded-md border bg-white px-3 text-sm" type="button" onClick={() => removeAttribute(idx)}>
+              <button className="h-10 rounded-md border bg-white px-3 text-sm text-slate-900" type="button" onClick={() => removeAttribute(idx)}>
                 Remove
               </button>
             </div>

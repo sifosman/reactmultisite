@@ -593,17 +593,17 @@ export function AdminHomepageContentEditor() {
   return (
     <div className="space-y-6">
       <div className="rounded-xl border bg-white p-6">
-        <div className="text-sm font-semibold">Homepage</div>
+          <div className="text-sm font-semibold text-slate-900">Homepage</div>
         <div className="mt-1 text-xs text-zinc-600">
           Edit homepage hero and promo strip. Changes are live immediately.
         </div>
 
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-2 sm:col-span-2">
-            <label className="text-sm font-medium">Hero title</label>
+            <label className="text-sm font-medium text-slate-700">Hero title</label>
             <div className="flex items-center gap-3">
               <input
-                className="h-11 w-full rounded-md border bg-white px-3 text-sm"
+                className="h-11 w-full rounded-md border bg-white px-3 text-sm text-slate-900"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
               />
@@ -618,10 +618,10 @@ export function AdminHomepageContentEditor() {
             </div>
           </div>
           <div className="space-y-2 sm:col-span-2">
-            <label className="text-sm font-medium">Hero subtitle</label>
+            <label className="text-sm font-medium text-slate-700">Hero subtitle</label>
             <div className="flex items-start gap-3">
               <textarea
-                className="min-h-24 w-full rounded-md border bg:white px-3 py-2 text-sm"
+                className="min-h-24 w-full rounded-md border bg-white px-3 py-2 text-sm text-slate-900"
                 value={subtitle}
                 onChange={(e) => setSubtitle(e.target.value)}
               />
@@ -634,17 +634,17 @@ export function AdminHomepageContentEditor() {
             </div>
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium">CTA text</label>
+            <label className="text-sm font-medium text-slate-700">CTA text</label>
             <input
-              className="h-11 w-full rounded-md border bg-white px-3 text-sm"
+              className="h-11 w-full rounded-md border bg-white px-3 text-sm text-slate-900"
               value={ctaText}
               onChange={(e) => setCtaText(e.target.value)}
             />
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium">CTA link</label>
+            <label className="text-sm font-medium text-slate-700">CTA link</label>
             <input
-              className="h-11 w-full rounded-md border bg-white px-3 text-sm"
+              className="h-11 w-full rounded-md border bg-white px-3 text-sm text-slate-900"
               value={ctaHref}
               onChange={(e) => setCtaHref(e.target.value)}
             />
@@ -665,7 +665,7 @@ export function AdminHomepageContentEditor() {
                 <span className="text-[11px] text-zinc-500">Text</span>
                 <input
                   type="color"
-                  className="h-8 w-8 cursor-pointer rounded border bg:white p-1"
+                  className="h-8 w-8 cursor-pointer rounded border bg-white p-1"
                   value={heroPrimaryButtonTextColor || "#000000"}
                   onChange={(e) => setHeroPrimaryButtonTextColor(e.target.value)}
                 />
@@ -679,7 +679,7 @@ export function AdminHomepageContentEditor() {
                 <span className="text-[11px] text-zinc-500">BG</span>
                 <input
                   type="color"
-                  className="h-8 w-8 cursor-pointer rounded border bg:white p-1"
+                  className="h-8 w-8 cursor-pointer rounded border bg-white p-1"
                   value={heroSecondaryButtonBgColor || "#000000"}
                   onChange={(e) => setHeroSecondaryButtonBgColor(e.target.value)}
                 />
@@ -688,7 +688,7 @@ export function AdminHomepageContentEditor() {
                 <span className="text-[11px] text-zinc-500">Text</span>
                 <input
                   type="color"
-                  className="h-8 w-8 cursor-pointer rounded border bg:white p-1"
+                  className="h-8 w-8 cursor-pointer rounded border bg-white p-1"
                   value={heroSecondaryButtonTextColor || "#ffffff"}
                   onChange={(e) => setHeroSecondaryButtonTextColor(e.target.value)}
                 />
@@ -696,9 +696,9 @@ export function AdminHomepageContentEditor() {
             </div>
           </div>
           <div className="space-y-2 sm:col-span-2">
-            <label className="text-sm font-medium">Promo strip text</label>
+            <label className="text-sm font-medium text-slate-700">Promo strip text</label>
             <input
-              className="h-11 w-full rounded-md border bg-white px-3 text-sm"
+              className="h-11 w-full rounded-md border bg-white px-3 text-sm text-slate-900"
               value={promoText}
               onChange={(e) => setPromoText(e.target.value)}
             />
@@ -706,7 +706,7 @@ export function AdminHomepageContentEditor() {
         </div>
         {/* Hero images grouped after hero text/colors */}
         <div className="mt-6 rounded-xl border bg-zinc-50 p-4">
-          <div className="text-sm font-semibold">Hero banner image (optional)</div>
+          <div className="text-sm font-semibold text-slate-900">Hero banner image (optional)</div>
           <div className="mt-1 text-xs text-zinc-600">Uploads to the Supabase Storage bucket <span className="font-mono">banners</span>.</div>
 
           {imageUrl ? (
@@ -751,7 +751,7 @@ export function AdminHomepageContentEditor() {
         </div>
 
         <div className="mt-6 rounded-xl border bg-zinc-50 p-4">
-          <div className="text-sm font-semibold">Hero mobile banner image (optional)</div>
+          <div className="text-sm font-semibold text-slate-900">Hero mobile banner image (optional)</div>
           <div className="mt-1 text-xs text-zinc-600">
             Recommended size <span className="font-mono">1080x1920</span>. Shown on mobile only. If not set, the desktop hero image is used.
           </div>
@@ -799,7 +799,7 @@ export function AdminHomepageContentEditor() {
 
         {/* Homepage category cards grouped after hero */}
         <div className="mt-6 rounded-xl border bg-zinc-50 p-4">
-          <div className="text-sm font-semibold">Homepage category cards</div>
+          <div className="text-sm font-semibold text-slate-900">Homepage category cards (optional)</div>
           <div className="mt-1 text-xs text-zinc-600">
             Optional curated category sections shown on the homepage under the hero icons.
           </div>
@@ -810,9 +810,9 @@ export function AdminHomepageContentEditor() {
                 <div className="flex items-start justify-between gap-3">
                   <div className="space-y-2 flex-1">
                     <div className="space-y-1">
-                      <label className="text-sm font-medium">Card title (optional)</label>
+                      <label className="text-sm font-medium text-slate-700">Card title (optional)</label>
                       <input
-                        className="h-10 w-full rounded-md border bg-white px-3 text-sm"
+                        className="h-10 w-full rounded-md border bg-white px-3 text-sm text-slate-900"
                         value={card.title}
                         onChange={(e) =>
                           setCategorySections((prev) =>
@@ -826,9 +826,9 @@ export function AdminHomepageContentEditor() {
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-sm font-medium">Linked category</label>
+                      <label className="text-sm font-medium text-slate-700">Linked category</label>
                       <select
-                        className="h-10 w-full rounded-md border bg-white px-3 text-sm"
+                        className="h-10 w-full rounded-md border bg-white px-3 text-sm text-slate-900"
                         value={card.categorySlug}
                         onChange={(e) =>
                           setCategorySections((prev) =>
@@ -922,39 +922,39 @@ export function AdminHomepageContentEditor() {
 
         {/* Promo cards grouped after homepage sections */}
         <div className="mt-6 rounded-xl border bg-zinc-50 p-4">
-          <div className="text-sm font-semibold">Promo cards</div>
+          <div className="text-sm font-semibold text-slate-900">Promo cards</div>
           <div className="mt-1 text-xs text-zinc-600">Two cards shown on the homepage (under New Arrivals).</div>
 
           <div className="mt-4 grid grid-cols-1 gap-6 lg:grid-cols-2">
             <div className="rounded-xl border bg-white p-4">
-              <div className="text-sm font-semibold">Left card</div>
+              <div className="text-sm font-semibold text-slate-900">Left card</div>
 
               <div className="mt-4 grid grid-cols-1 gap-3">
                 <div className="space-y-1">
-                  <label className="text-sm font-medium">Badge</label>
-                  <input className="h-11 w-full rounded-md border bg-white px-3 text-sm" value={promoLeftBadge} onChange={(e) => setPromoLeftBadge(e.target.value)} />
+                  <label className="text-sm font-medium text-slate-700">Badge</label>
+                  <input className="h-11 w-full rounded-md border bg-white px-3 text-sm text-slate-900" value={promoLeftBadge} onChange={(e) => setPromoLeftBadge(e.target.value)} />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-sm font-medium">Title</label>
-                  <input className="h-11 w-full rounded-md border bg-white px-3 text-sm" value={promoLeftTitle} onChange={(e) => setPromoLeftTitle(e.target.value)} />
+                  <label className="text-sm font-medium text-slate-700">Title</label>
+                  <input className="h-11 w-full rounded-md border bg-white px-3 text-sm text-slate-900" value={promoLeftTitle} onChange={(e) => setPromoLeftTitle(e.target.value)} />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-sm font-medium">Subtitle</label>
-                  <input className="h-11 w-full rounded-md border bg-white px-3 text-sm" value={promoLeftSubtitle} onChange={(e) => setPromoLeftSubtitle(e.target.value)} />
+                  <label className="text-sm font-medium text-slate-700">Subtitle</label>
+                  <input className="h-11 w-full rounded-md border bg-white px-3 text-sm text-slate-900" value={promoLeftSubtitle} onChange={(e) => setPromoLeftSubtitle(e.target.value)} />
                 </div>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div className="space-y-1">
-                    <label className="text-sm font-medium">Button text</label>
-                    <input className="h-11 w-full rounded-md border bg-white px-3 text-sm" value={promoLeftButtonText} onChange={(e) => setPromoLeftButtonText(e.target.value)} />
+                    <label className="text-sm font-medium text-slate-700">Button text</label>
+                    <input className="h-11 w-full rounded-md border bg-white px-3 text-sm text-slate-900" value={promoLeftButtonText} onChange={(e) => setPromoLeftButtonText(e.target.value)} />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-sm font-medium">Button link</label>
-                    <input className="h-11 w-full rounded-md border bg-white px-3 text-sm" value={promoLeftButtonHref} onChange={(e) => setPromoLeftButtonHref(e.target.value)} />
+                    <label className="text-sm font-medium text-slate-700">Button link</label>
+                    <input className="h-11 w-full rounded-md border bg-white px-3 text-sm text-slate-900" value={promoLeftButtonHref} onChange={(e) => setPromoLeftButtonHref(e.target.value)} />
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-sm font-medium">Theme</label>
-                  <select className="h-11 w-full rounded-md border bg-white px-3 text-sm" value={promoLeftTheme} onChange={(e) => setPromoLeftTheme((e.target.value as "amber" | "sky") || "amber")}>
+                  <label className="text-sm font-medium text-slate-700">Theme</label>
+                  <select className="h-11 w-full rounded-md border bg-white px-3 text-sm text-slate-900" value={promoLeftTheme} onChange={(e) => setPromoLeftTheme((e.target.value as "amber" | "sky") || "amber")}>
                     <option value="amber">Amber</option>
                     <option value="sky">Sky</option>
                   </select>
@@ -990,34 +990,34 @@ export function AdminHomepageContentEditor() {
             </div>
 
             <div className="rounded-xl border bg-white p-4">
-              <div className="text-sm font-semibold">Right card</div>
+              <div className="text-sm font-semibold text-slate-900">Right card</div>
 
               <div className="mt-4 grid grid-cols-1 gap-3">
                 <div className="space-y-1">
-                  <label className="text-sm font-medium">Badge</label>
-                  <input className="h-11 w-full rounded-md border bg-white px-3 text-sm" value={promoRightBadge} onChange={(e) => setPromoRightBadge(e.target.value)} />
+                  <label className="text-sm font-medium text-slate-700">Badge</label>
+                  <input className="h-11 w-full rounded-md border bg-white px-3 text-sm text-slate-900" value={promoRightBadge} onChange={(e) => setPromoRightBadge(e.target.value)} />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-sm font-medium">Title</label>
-                  <input className="h-11 w-full rounded-md border bg-white px-3 text-sm" value={promoRightTitle} onChange={(e) => setPromoRightTitle(e.target.value)} />
+                  <label className="text-sm font-medium text-slate-700">Title</label>
+                  <input className="h-11 w-full rounded-md border bg-white px-3 text-sm text-slate-900" value={promoRightTitle} onChange={(e) => setPromoRightTitle(e.target.value)} />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-sm font-medium">Subtitle</label>
-                  <input className="h-11 w-full rounded-md border bg-white px-3 text-sm" value={promoRightSubtitle} onChange={(e) => setPromoRightSubtitle(e.target.value)} />
+                  <label className="text-sm font-medium text-slate-700">Subtitle</label>
+                  <input className="h-11 w-full rounded-md border bg-white px-3 text-sm text-slate-900" value={promoRightSubtitle} onChange={(e) => setPromoRightSubtitle(e.target.value)} />
                 </div>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div className="space-y-1">
-                    <label className="text-sm font-medium">Button text</label>
-                    <input className="h-11 w-full rounded-md border bg-white px-3 text-sm" value={promoRightButtonText} onChange={(e) => setPromoRightButtonText(e.target.value)} />
+                    <label className="text-sm font-medium text-slate-700">Button text</label>
+                    <input className="h-11 w-full rounded-md border bg-white px-3 text-sm text-slate-900" value={promoRightButtonText} onChange={(e) => setPromoRightButtonText(e.target.value)} />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-sm font-medium">Button link</label>
-                    <input className="h-11 w-full rounded-md border bg-white px-3 text-sm" value={promoRightButtonHref} onChange={(e) => setPromoRightButtonHref(e.target.value)} />
+                    <label className="text-sm font-medium text-slate-700">Button link</label>
+                    <input className="h-11 w-full rounded-md border bg-white px-3 text-sm text-slate-900" value={promoRightButtonHref} onChange={(e) => setPromoRightButtonHref(e.target.value)} />
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-sm font-medium">Theme</label>
-                  <select className="h-11 w-full rounded-md border bg-white px-3 text-sm" value={promoRightTheme} onChange={(e) => setPromoRightTheme((e.target.value as "amber" | "sky") || "sky")}>
+                  <label className="text-sm font-medium text-slate-700">Theme</label>
+                  <select className="h-11 w-full rounded-md border bg-white px-3 text-sm text-slate-900" value={promoRightTheme} onChange={(e) => setPromoRightTheme((e.target.value as "amber" | "sky") || "sky")}>
                     <option value="amber">Amber</option>
                     <option value="sky">Sky</option>
                   </select>
