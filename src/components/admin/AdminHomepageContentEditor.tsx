@@ -98,18 +98,20 @@ export function AdminHomepageContentEditor() {
   const [heroSecondaryButtonTextColor, setHeroSecondaryButtonTextColor] = useState<string>("");
 
   const [promoLeftBadge, setPromoLeftBadge] = useState("Limited Time");
-  const [promoLeftTitle, setPromoLeftTitle] = useState("Summer Sale");
-  const [promoLeftSubtitle, setPromoLeftSubtitle] = useState("Up to 40% off selected items");
+  const [promoLeftTitle, setPromoLeftTitle] = useState("Sale");
+  const [promoLeftSubtitle, setPromoLeftSubtitle] = useState("Summer Sale. Bargain box. Order now");
   const [promoLeftButtonText, setPromoLeftButtonText] = useState("Shop Sale");
   const [promoLeftButtonHref, setPromoLeftButtonHref] = useState("/products");
   const [promoLeftTheme, setPromoLeftTheme] = useState<"amber" | "sky">("amber");
   const [promoLeftImageUrl, setPromoLeftImageUrl] = useState<string>("");
 
-  const [promoRightBadge, setPromoRightBadge] = useState("New Collection");
-  const [promoRightTitle, setPromoRightTitle] = useState("Premium Picks");
-  const [promoRightSubtitle, setPromoRightSubtitle] = useState("Discover our curated selection");
-  const [promoRightButtonText, setPromoRightButtonText] = useState("Explore Now");
-  const [promoRightButtonHref, setPromoRightButtonHref] = useState("/products");
+  const [promoRightBadge, setPromoRightBadge] = useState("Business Opportunity");
+  const [promoRightTitle, setPromoRightTitle] = useState("Start your own business");
+  const [promoRightSubtitle, setPromoRightSubtitle] = useState("by reselling our products");
+  const [promoRightButtonText, setPromoRightButtonText] = useState("WhatsApp");
+  const [promoRightButtonHref, setPromoRightButtonHref] = useState(
+    "https://wa.me/27788115168?text=" + encodeURIComponent("Hi, I'm interested in starting my own business.")
+  );
   const [promoRightTheme, setPromoRightTheme] = useState<"amber" | "sky">("sky");
   const [promoRightImageUrl, setPromoRightImageUrl] = useState<string>("");
 

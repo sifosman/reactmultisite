@@ -66,18 +66,25 @@ async function HomeContent() {
   ];
 
   const leftBadge = typeof promoLeft.badge === "string" ? promoLeft.badge : "Limited Time";
-  const leftTitle = typeof promoLeft.title === "string" ? promoLeft.title : "Summer Sale";
-  const leftSubtitle = typeof promoLeft.subtitle === "string" ? promoLeft.subtitle : "Up to 40% off selected items";
+  const leftTitle = typeof promoLeft.title === "string" ? promoLeft.title : "Sale";
+  const leftSubtitle =
+    typeof promoLeft.subtitle === "string"
+      ? promoLeft.subtitle
+      : "Summer Sale. Bargain box. Order now";
   const leftButtonText = typeof promoLeft.buttonText === "string" ? promoLeft.buttonText : "Shop Sale";
   const leftButtonHref = typeof promoLeft.buttonHref === "string" ? promoLeft.buttonHref : "/products";
   const leftTheme = promoLeft.theme === "sky" ? "sky" : "amber";
   const leftImageUrl = typeof promoLeft.imageUrl === "string" ? promoLeft.imageUrl : null;
 
   const rightBadge = typeof promoRight.badge === "string" ? promoRight.badge : "Business Opportunity";
-  const rightTitle = typeof promoRight.title === "string" ? promoRight.title : "Start Your Own Business";
+  const rightTitle = typeof promoRight.title === "string" ? promoRight.title : "Start your own business";
   const rightSubtitle = typeof promoRight.subtitle === "string" ? promoRight.subtitle : "by reselling our products";
-  const rightButtonText = typeof promoRight.buttonText === "string" ? promoRight.buttonText : "WhatsApp Now";
-  const rightButtonHref = typeof promoRight.buttonHref === "string" ? promoRight.buttonHref : "https://wa.me/27713456393";
+  const rightButtonText = typeof promoRight.buttonText === "string" ? promoRight.buttonText : "WhatsApp";
+  const rightButtonHref =
+    typeof promoRight.buttonHref === "string"
+      ? promoRight.buttonHref
+      : "https://wa.me/27788115168?text=" +
+        encodeURIComponent("Hi, I'm interested in starting my own business.");
   const rightTheme = promoRight.theme === "amber" ? "amber" : "sky";
   const rightImageUrl = typeof promoRight.imageUrl === "string" ? promoRight.imageUrl : null;
 
@@ -288,17 +295,6 @@ async function HomeContent() {
       {categorySections.length > 0 ? (
         <section className="bg-white py-8 sm:py-10">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="mb-4 flex items-end justify-between gap-4">
-              <div>
-                <h2 className="text-xl font-bold tracking-tight text-zinc-900 sm:text-2xl">
-                  Featured categories
-                </h2>
-                <p className="mt-1 text-sm text-zinc-600">
-                  Curated sections from your homepage settings
-                </p>
-              </div>
-            </div>
-
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {categorySections.map((card) => {
                 const cat = (categories ?? []).find((c) => c.slug === card.categorySlug);

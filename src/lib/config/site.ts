@@ -66,7 +66,7 @@ const defaultConfig: SiteConfig = {
   tagline: "Wholesale and retail, nationwide delivery",
   description: "Your one-stop shop for quality products",
   
-  email: "admin@coastalwarehouse.co.za",
+  email: "thecoastalwarehouse@gmail.com",
   
   social: {},
   

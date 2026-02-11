@@ -61,7 +61,7 @@ export function SiteFooter({
           {/* Brand Column */}
           <div className="lg:col-span-1">
             <Link href="/" className="inline-flex items-center gap-3 text-2xl font-bold">
-              <span>Coast Warehouse</span>
+              <span>Coastal Warehouse</span>
             </Link>
             <p className="mt-4 text-sm leading-relaxed text-zinc-400">
               {footerAbout}

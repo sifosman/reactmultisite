@@ -227,6 +227,8 @@ export async function POST(req: Request) {
       qty: number;
     }>;
 
+    const discountCents = Number((pendingCheckout as { discount_cents?: number | null }).discount_cents ?? 0);
+
     const shippingAddress = pendingCheckout.shipping_address_snapshot as {
       line1: string;
       line2?: string;
@@ -248,6 +250,7 @@ export async function POST(req: Request) {
         shippingAddress,
         items,
         shippingCents,
+        discountCents,
         status: "paid",
       });
 

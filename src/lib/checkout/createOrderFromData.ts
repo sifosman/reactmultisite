@@ -14,6 +14,7 @@ export async function createOrderFromData({
   shippingAddress,
   items,
   shippingCents,
+  discountCents = 0,
   status = "pending_payment",
 }: {
   userId: string | null;
@@ -36,6 +37,7 @@ export async function createOrderFromData({
     qty: number;
   }>;
   shippingCents?: number;
+  discountCents?: number;
   status?: "pending_payment" | "paid";
 }) {
   const supabaseAdmin = createSupabaseAdminClient();
@@ -150,9 +152,9 @@ export async function createOrderFromData({
     (sum, i) => sum + i.unit_price_cents_snapshot * i.qty,
     0
   );
-  const discountCents = 0;
+  const finalDiscountCents = Math.max(0, Math.min(discountCents, subtotalCents));
   const finalShippingCents = typeof shippingCents === "number" ? shippingCents : SHIPPING_CENTS;
-  const totalCents = subtotalCents + finalShippingCents - discountCents;
+  const totalCents = subtotalCents + finalShippingCents - finalDiscountCents;
 
   const { data: order, error: orderError } = await supabaseAdmin
     .from("orders")
@@ -164,7 +166,7 @@ export async function createOrderFromData({
       status,
       subtotal_cents: subtotalCents,
       shipping_cents: finalShippingCents,
-      discount_cents: discountCents,
+      discount_cents: finalDiscountCents,
       total_cents: totalCents,
       currency: "ZAR",
       shipping_address_snapshot: shippingAddress,

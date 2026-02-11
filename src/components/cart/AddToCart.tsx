@@ -256,7 +256,7 @@ export function AddToCart({
         </div>
       </div>
 
-      <div className="text-xs text-zinc-600">Your cart is saved locally for quick checkout.</div>
+      <div className="text-xs text-zinc-600"></div>
     </div>
   );
 }
