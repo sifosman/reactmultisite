@@ -142,7 +142,7 @@ export default async function ProductPage({
                 <span className="font-semibold">Flat R60</span>
               </div>
               <div className="mt-2 text-xs text-zinc-800">
-                Secure checkout. Totals are recalculated server-side.
+                Secure Checkout
               </div>
             </div>
           </div>
