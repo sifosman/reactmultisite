@@ -9,7 +9,20 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
+    "test:order-numbers": "vitest run **/orderNumbers.test.ts",
+    "test:stock-management": "vitest run **/stockManagement.test.ts",
+    "test:product-search": "vitest run **/productSearch.test.ts",
+    "test:coupons": "vitest run **/coupons.test.ts",
+    "test:checkout": "vitest run **/CheckoutClient.integration.test.tsx",
+    "test:unit": "vitest run **/*.test.ts",
+    "test:integration": "vitest run **/*.integration.test.tsx",
+    "test:all": "npm run test:unit && npm run test:integration",
+    "test:ci": "vitest run --coverage --reporter=verbose --reporter=junit",
+    "test:watch:unit": "vitest **/*.test.ts",
+    "test:watch:integration": "vitest **/*.integration.test.tsx",
+    "test:runner": "bash scripts/test-runner.sh"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
