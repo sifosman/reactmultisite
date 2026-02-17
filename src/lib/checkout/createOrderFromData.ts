@@ -171,7 +171,7 @@ export async function createOrderFromData({
       currency: "ZAR",
       shipping_address_snapshot: shippingAddress,
     })
-    .select("id,total_cents,created_at")
+    .select("id,order_number,total_cents,created_at")
     .single();
 
   if (orderError || !order) {

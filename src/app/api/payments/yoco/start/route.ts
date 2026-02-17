@@ -141,7 +141,7 @@ export async function POST(req: Request) {
       shipping_address_snapshot: input.shippingAddress,
       items: input.items,
       amount_cents: totalCents,
-      coupon_code: couponCode,
+      coupon_code: couponCode || null,
       discount_cents: discountCents,
       currency: "ZAR",
       status: "initiated",

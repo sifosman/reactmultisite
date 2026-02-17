@@ -195,26 +195,30 @@ export function CheckoutClient() {
     e.preventDefault();
     setError(null);
 
+    const customer = {
+      email,
+      name: fullName,
+      phone,
+    };
+
+    const shippingAddress = {
+      line1,
+      line2,
+      city,
+      province,
+      postal_code: postalCode,
+      country: "ZA",
+    };
+
     const payload = {
-      customer: {
-        email,
-        name: fullName,
-        phone,
-      },
-      shippingAddress: {
-        line1,
-        line2: line2 || undefined,
-        city,
-        province,
-        postal_code: postalCode,
-        country: "ZA",
-      },
+      customer,
+      shippingAddress,
       items: cart.items.map((i) => ({
         productId: i.productId,
         variantId: i.variantId,
         qty: i.qty,
       })),
-      couponCode: couponCode.trim() || undefined,
+      ...(couponCode.trim() && { couponCode: couponCode.trim() }),
     };
 
     const parsed = createOrderSchema.safeParse(payload);

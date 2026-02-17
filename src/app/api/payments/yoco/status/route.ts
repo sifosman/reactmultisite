@@ -58,7 +58,7 @@ export async function POST(req: Request) {
 
   const { data: order } = await supabaseAdmin
     .from("orders")
-    .select("id,status,subtotal_cents,shipping_cents,discount_cents,total_cents,currency,customer_email,customer_name,created_at")
+    .select("id,order_number,status,subtotal_cents,shipping_cents,discount_cents,total_cents,currency,customer_email,customer_name,customer_phone,shipping_address_snapshot,created_at")
     .eq("id", orderId)
     .maybeSingle();
 

@@ -900,13 +900,33 @@ export function InvoiceEditor({
         <div className="rounded-xl border bg-white p-4 text-slate-900">
           <div className="text-sm font-semibold text-slate-900">Add items</div>
           <div className="mt-3">
-            <input
-              className="h-11 w-full rounded-md border bg-white px-3 text-sm text-slate-900"
-              value={catalogQuery}
-              onChange={(e) => setCatalogQuery(e.target.value)}
-              placeholder="Search products / SKU…"
-              disabled={saving || status === "cancelled"}
-            />
+            <div className="relative">
+              <input
+                className="h-11 w-full rounded-md border bg-white px-3 pr-10 text-sm text-slate-900"
+                value={catalogQuery}
+                onChange={(e) => setCatalogQuery(e.target.value)}
+                placeholder="Search products by name, SKU, or description…"
+                disabled={saving || status === "cancelled"}
+              />
+              {catalogQuery && (
+                <button
+                  type="button"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-slate-400 hover:text-slate-600 disabled:opacity-60"
+                  onClick={() => {
+                    setCatalogQuery("");
+                    setCatalog([]);
+                  }}
+                  disabled={saving || status === "cancelled"}
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
+            <div className="mt-1 text-xs text-slate-500">
+              Try exact names, SKUs, or keywords for better results
+            </div>
           </div>
 
           {catalogLoading ? <div className="mt-3 text-sm text-zinc-600">Searching…</div> : null}
@@ -918,31 +938,53 @@ export function InvoiceEditor({
                 const stockColor = item.stock_qty <= 2 ? "text-red-600" : item.stock_qty <= 5 ? "text-yellow-600" : "text-green-600";
                 const stockText = isOutOfStock ? "Out of stock" : `${item.stock_qty} available`;
                 
+                // Determine match quality indicator
+                const getMatchIndicator = (item: any) => {
+                  if (!item._match_type) return null;
+                  
+                  if (item._match_type.includes('exact')) {
+                    return <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800">Exact match</span>;
+                  } else if (item._match_type.includes('word_')) {
+                    return <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800">Keyword match</span>;
+                  } else {
+                    return <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">Partial match</span>;
+                  }
+                };
+                
                 return (
                 <button
                   key={`${item.kind}-${item.product_id}-${item.kind === "variant" ? item.variant_id : "simple"}`}
                   type="button"
-                  className={`w-full rounded-lg border p-3 text-left hover:bg-slate-50 disabled:opacity-60 ${
+                  className={`w-full rounded-lg border p-3 text-left hover:bg-slate-50 disabled:opacity-60 transition-colors ${
                     isOutOfStock ? "border-red-200 bg-red-50 opacity-60" : "border-slate-200"
                   }`}
                   disabled={saving || status === "cancelled" || isOutOfStock}
                   onClick={() => void addLine(item)}
                 >
                   <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="truncate text-sm font-medium text-slate-900">
-                        {item.title}
-                        {item.variant_name ? ` (${item.variant_name})` : ""}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <div className="truncate text-sm font-medium text-slate-900">
+                          {item.title}
+                          {item.variant_name ? (
+                            <span className="text-slate-600"> — {item.variant_name}</span>
+                          ) : ""}
+                        </div>
+                        {getMatchIndicator(item)}
                       </div>
-                      <div className="mt-1 text-xs">
+                      
+                      <div className="mt-1 flex items-center gap-3 text-xs">
                         <span className={`${stockColor} font-medium`}>
                           {stockText}
                         </span>
-                        <span className="text-slate-500"> • Default: {formatZar(item.unit_price_cents_default)}</span>
+                        <span className="text-slate-500">Default: {formatZar(item.unit_price_cents_default)}</span>
+                        {item.sku && (
+                          <span className="text-slate-500 font-mono">SKU: {item.sku}</span>
+                        )}
                       </div>
                     </div>
-                    <div className={`text-xs font-medium ${
-                      isOutOfStock ? "text-red-600" : "text-slate-500"
+                    <div className={`text-xs font-medium whitespace-nowrap ${
+                      isOutOfStock ? "text-red-600" : "text-emerald-600"
                     }`}>
                       {isOutOfStock ? "Unavailable" : "Add"}
                     </div>

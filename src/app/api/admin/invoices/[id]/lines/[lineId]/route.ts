@@ -163,8 +163,46 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       return NextResponse.json({ error: msg }, { status: 400 });
     }
 
-    // Adjust stock if quantity changed (skip for now - stock adjustment functions don't exist)
-    // TODO: Implement stock adjustment logic when needed
+    // Adjust stock if quantity changed
+    if (qtyDiff !== 0) {
+      if (currentLine.variant_id) {
+        const { error: stockError } = await supabaseAdmin
+          .from("product_variants")
+          .update({ stock_qty: Math.max(0, stock_qty - qtyDiff) })
+          .eq("id", currentLine.variant_id);
+        
+        if (stockError) {
+          return NextResponse.json({ error: stockError.message }, { status: 500 });
+        }
+
+        // Record inventory movement
+        await supabaseAdmin.from("inventory_movements").insert({
+          variant_id: currentLine.variant_id,
+          product_id: currentLine.product_id,
+          invoice_id: id,
+          delta_qty: -qtyDiff,
+          reason: qtyDiff > 0 ? "line_updated_increase" : "line_updated_decrease",
+        });
+      } else {
+        const { error: stockError } = await supabaseAdmin
+          .from("products")
+          .update({ stock_qty: Math.max(0, stock_qty - qtyDiff) })
+          .eq("id", currentLine.product_id);
+        
+        if (stockError) {
+          return NextResponse.json({ error: stockError.message }, { status: 500 });
+        }
+
+        // Record inventory movement
+        await supabaseAdmin.from("inventory_movements").insert({
+          variant_id: null,
+          product_id: currentLine.product_id,
+          invoice_id: id,
+          delta_qty: -qtyDiff,
+          reason: qtyDiff > 0 ? "line_updated_increase" : "line_updated_decrease",
+        });
+      }
+    }
   } else {
     const { error } = await supabaseAdmin
       .from("invoice_lines")
@@ -234,6 +272,10 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
       .eq("invoice_id", id)
       .maybeSingle();
 
+    if (!currentLine) {
+      return NextResponse.json({ error: "line_not_found" }, { status: 404 });
+    }
+
     // Delete the line
     const { error } = await supabaseAdmin
       .from("invoice_lines")
@@ -241,10 +283,63 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
       .eq("id", lineId)
       .eq("invoice_id", id);
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
 
-    // Restore stock (skip for now - stock adjustment functions don't exist)
-    // TODO: Implement stock restoration logic when needed
+    // Restore stock
+    let stock_qty = 0;
+    if (currentLine.variant_id) {
+      const { data: variant } = await supabaseAdmin
+        .from("product_variants")
+        .select("stock_qty")
+        .eq("id", currentLine.variant_id)
+        .maybeSingle();
+      stock_qty = variant?.stock_qty ?? 0;
+
+      const { error: stockError } = await supabaseAdmin
+        .from("product_variants")
+        .update({ stock_qty: Math.max(0, stock_qty + currentLine.qty) })
+        .eq("id", currentLine.variant_id);
+      
+      if (stockError) {
+        return NextResponse.json({ error: stockError.message }, { status: 500 });
+      }
+
+      // Record inventory movement
+      await supabaseAdmin.from("inventory_movements").insert({
+        variant_id: currentLine.variant_id,
+        product_id: currentLine.product_id,
+        invoice_id: id,
+        delta_qty: currentLine.qty,
+        reason: "line_removed",
+      });
+    } else {
+      const { data: product } = await supabaseAdmin
+        .from("products")
+        .select("stock_qty")
+        .eq("id", currentLine.product_id)
+        .maybeSingle();
+      stock_qty = product?.stock_qty ?? 0;
+
+      const { error: stockError } = await supabaseAdmin
+        .from("products")
+        .update({ stock_qty: Math.max(0, stock_qty + currentLine.qty) })
+        .eq("id", currentLine.product_id);
+      
+      if (stockError) {
+        return NextResponse.json({ error: stockError.message }, { status: 500 });
+      }
+
+      // Record inventory movement
+      await supabaseAdmin.from("inventory_movements").insert({
+        variant_id: null,
+        product_id: currentLine.product_id,
+        invoice_id: id,
+        delta_qty: currentLine.qty,
+        reason: "line_removed",
+      });
+    }
   } else {
     const { error } = await supabaseAdmin
       .from("invoice_lines")
@@ -252,7 +347,9 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
       .eq("id", lineId)
       .eq("invoice_id", id);
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
   }
 
   // Recalculate invoice totals

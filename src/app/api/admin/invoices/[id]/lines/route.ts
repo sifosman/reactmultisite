@@ -155,7 +155,44 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       return NextResponse.json({ error: msg }, { status: 400 });
     }
 
-    // TODO: Deduct stock for issued invoices (implement stock adjustment logic)
+    // Deduct stock for issued invoices
+    if (parsed.data.variant_id) {
+      const { error: stockError } = await supabaseAdmin
+        .from("product_variants")
+        .update({ stock_qty: Math.max(0, stock_qty - parsed.data.qty) })
+        .eq("id", parsed.data.variant_id);
+      
+      if (stockError) {
+        return NextResponse.json({ error: stockError.message }, { status: 500 });
+      }
+
+      // Record inventory movement
+      await supabaseAdmin.from("inventory_movements").insert({
+        variant_id: parsed.data.variant_id,
+        product_id: parsed.data.product_id,
+        invoice_id: id,
+        delta_qty: -parsed.data.qty,
+        reason: "line_added_issued",
+      });
+    } else {
+      const { error: stockError } = await supabaseAdmin
+        .from("products")
+        .update({ stock_qty: Math.max(0, stock_qty - parsed.data.qty) })
+        .eq("id", parsed.data.product_id);
+      
+      if (stockError) {
+        return NextResponse.json({ error: stockError.message }, { status: 500 });
+      }
+
+      // Record inventory movement
+      await supabaseAdmin.from("inventory_movements").insert({
+        variant_id: null,
+        product_id: parsed.data.product_id,
+        invoice_id: id,
+        delta_qty: -parsed.data.qty,
+        reason: "line_added_issued",
+      });
+    }
   } else {
     const { error } = await supabaseAdmin.from("invoice_lines").insert({
       invoice_id: id,

@@ -14,6 +14,7 @@ type OrderItem = {
 
 type OrderPayload = {
   id: string;
+  order_number?: string;
   status: string;
   subtotal_cents: number;
   shipping_cents: number;
@@ -21,7 +22,16 @@ type OrderPayload = {
   total_cents: number;
   currency: string;
   customer_email: string;
-  customer_name: string | null;
+  customer_name?: string;
+  customer_phone?: string;
+  shipping_address_snapshot: {
+    line1: string;
+    line2?: string;
+    city: string;
+    province: string;
+    postal_code: string;
+    country: string;
+  };
   created_at: string;
   items: OrderItem[];
 };
@@ -61,7 +71,7 @@ export function YocoSuccessClient({ pendingCheckoutId }: { pendingCheckoutId: st
 
   const orderNumber = useMemo(() => {
     if (!order) return null;
-    return `#${order.id.slice(0, 8).toUpperCase()}`;
+    return order.order_number || `#${order.id.slice(0, 8).toUpperCase()}`;
   }, [order]);
 
   useEffect(() => {
