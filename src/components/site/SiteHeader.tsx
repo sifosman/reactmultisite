@@ -21,6 +21,7 @@ export function SiteHeader({
   const config = getSiteConfig();
   const brandName = site?.name ?? config.name;
   const logoUrl = site?.logoUrl ?? config.logo;
+  const instagramUrl = "https://www.instagram.com/coastal.warehouse?igsh=aG13dnlrNWN6ejRq";
   const [cartOpen, setCartOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
@@ -51,8 +52,8 @@ export function SiteHeader({
                     <Facebook className="h-3.5 w-3.5" />
                   </a>
                 )}
-                {config.social.instagram && (
-                  <a className="rounded-full p-1 hover:bg-white/10" href={config.social.instagram} target="_blank" rel="noreferrer">
+                {instagramUrl && (
+                  <a className="rounded-full p-1 hover:bg-white/10" href={instagramUrl} target="_blank" rel="noreferrer">
                     <Instagram className="h-3.5 w-3.5" />
                   </a>
                 )}

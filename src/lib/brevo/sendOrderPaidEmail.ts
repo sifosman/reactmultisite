@@ -28,6 +28,8 @@ export async function sendOrderPaidEmail(orderId: string) {
 
   if (itemsError) throw new Error(itemsError.message);
 
+  const shortOrderId = `#${order.id.slice(0, 8)}`;
+
   const itemRows = (items ?? [])
     .map((i) => {
       const lineTotal = i.unit_price_cents_snapshot * i.qty;
@@ -51,7 +53,7 @@ export async function sendOrderPaidEmail(orderId: string) {
 
       <div style="border:1px solid #eee;border-radius:10px;padding:16px;">
         <div style="color:#666;font-size:12px;">Order ID</div>
-        <div style="font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \"Liberation Mono\", \"Courier New\", monospace;font-size:13px;">${escapeHtml(order.id)}</div>
+        <div style="font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \"Liberation Mono\", \"Courier New\", monospace;font-size:13px;">${escapeHtml(shortOrderId)}</div>
 
         <table style="width:100%;margin-top:16px;border-collapse:collapse;">
           <thead>
@@ -126,7 +128,7 @@ export async function sendOrderPaidEmail(orderId: string) {
   const payload = {
     sender: { email: senderEmail, name: senderName },
     to: recipients,
-    subject: `Payment received - Order ${order.id}`,
+    subject: `Payment received - Order ${shortOrderId}`,
     htmlContent,
   };
 

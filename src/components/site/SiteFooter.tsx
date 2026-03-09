@@ -34,11 +34,14 @@ export function SiteFooter({
   const termsHref = site?.termsHref;
   const termsLabel = site?.termsLabel ?? "Terms";
 
-  const contactEmail = "thecoastalwarehouse@gmail.com";
+  const contactEmail = "coastalwarehouse@gmail.com";
   const contactPhone = site?.contactPhone ?? config.phone;
   const contactAddress = site?.contactAddress ?? config.address;
 
-  const social = site?.social ?? config.social;
+  const social = {
+    ...(site?.social ?? config.social),
+    instagram: "https://www.instagram.com/coastal.warehouse?igsh=aG13dnlrNWN6ejRq",
+  };
   
   return (
     <footer className="bg-zinc-900 text-white">
@@ -70,7 +73,7 @@ export function SiteFooter({
             {/* Social Links */}
             <div className="mt-6 flex gap-3">
               {/* Instagram */}
-              <a href="https://www.instagram.com/coastal_warehouse?igsh=aG13dnlrNWN6ejRq" target="_blank" rel="noreferrer" className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 transition hover:bg-white/20">
+              <a href="https://www.instagram.com/coastal.warehouse?igsh=aG13dnlrNWN6ejRq" target="_blank" rel="noreferrer" className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 transition hover:bg-white/20">
                 <Instagram className="h-5 w-5" />
               </a>
               {/* WhatsApp */}

@@ -20,7 +20,7 @@ export default async function ContactPage() {
   const contact = (site.contact ?? {}) as Record<string, unknown>;
 
   const body = typeof pages.contact === "string" ? pages.contact : "";
-  const email = typeof contact.email === "string" ? contact.email : "admin@coastalwarehouse.co.za";
+  const email = "coastalwarehouse@gmail.com";
   const phone = typeof contact.phone === "string" ? contact.phone : "071 3456 393";
   const address = typeof contact.address === "string" ? contact.address : "Dawncrest, Verulam, Durban, 4340";
 

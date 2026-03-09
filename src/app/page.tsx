@@ -203,7 +203,7 @@ async function HomeContent() {
                   Handpicked for you
                 </h2>
                 <p className="mt-2 text-lg text-zinc-600">
-                  A rotating selection of popular items from the store.
+                  A rotating selection of items from the store.
                 </p>
               </div>
               <Link

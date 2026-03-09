@@ -20,6 +20,7 @@ export default async function CheckoutSuccessPage({
 }) {
   const { orderId, method, pendingCheckoutId } = await searchParams;
   const paymentMethod = method === "bank_transfer" ? "bank_transfer" : "yoco";
+  const displayOrderId = orderId ? `#${orderId.slice(0, 8)}` : "(missing)";
 
   // Fetch order details for bank transfer to get the order number
   let orderNumber = null;
@@ -66,11 +67,8 @@ export default async function CheckoutSuccessPage({
           <div className="mt-6 rounded-xl border bg-white p-4">
             <div className="text-sm text-zinc-600">Order number</div>
             <div className="mt-1 font-mono text-lg font-semibold text-emerald-600">
-              {orderNumber || orderId?.slice(0, 8).toUpperCase() || "(missing)"}
+              {orderNumber || displayOrderId || "(missing)"}
             </div>
-            {!orderNumber && orderId && (
-              <div className="mt-1 text-xs text-zinc-500">Full ID: {orderId}</div>
-            )}
           </div>
 
           <div className="mt-6 rounded-xl border bg-white p-4 text-sm text-zinc-700">
