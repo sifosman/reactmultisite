@@ -69,7 +69,7 @@ async function loadInvoice(supabaseAdmin: ReturnType<typeof createSupabaseAdminC
 
       return {
         ...line,
-        stock_qty
+        stock_qty: invoice.status === "issued" ? stock_qty + line.qty : stock_qty
       };
     })
   );

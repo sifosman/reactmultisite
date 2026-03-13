@@ -1080,7 +1080,7 @@ export function InvoiceEditor({
                               
                               // Validate against stock if available
                               if (typeof l.stock_qty === "number" && newQty > l.stock_qty) {
-                                setError(`Cannot add more than available stock: ${l.stock_qty} item(s)`);
+                                setError(`Cannot add more than ${l.stock_qty} item(s) for this line`);
                                 setTimeout(() => setError(null), 3000);
                                 return;
                               }

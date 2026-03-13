@@ -66,7 +66,7 @@ async function loadInvoice(supabaseAdmin: ReturnType<typeof createSupabaseAdminC
 
       return {
         ...line,
-        stock_qty,
+        stock_qty: invoice.status === "issued" ? stock_qty + line.qty : stock_qty,
       };
     })
   );
@@ -139,8 +139,10 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
   const nextQty = parsed.data.qty ?? (currentLine.qty as number);
   const nextUnit = parsed.data.unit_price_cents ?? (currentLine.unit_price_cents as number);
+  const maxQty = invoice.status === "issued" ? stock_qty + currentLine.qty : stock_qty;
+  const isQtyUpdate = parsed.data.qty !== undefined;
 
-  if (nextQty > stock_qty) {
+  if (isQtyUpdate && nextQty > maxQty) {
     return NextResponse.json({ error: "out_of_stock" }, { status: 400 });
   }
 
