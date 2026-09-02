@@ -1,26 +1,70 @@
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import { AdminShell } from "@/components/admin/AdminShell";
+import { Pagination } from "@/components/admin/Pagination";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getInvoiceCustomerDisplay } from "./customerDisplay";
 
 export const revalidate = 0;
 
-export default async function AdminInvoicesPage() {
+const PAGE_SIZE = 20;
+const MAX_PAGE_SIZE = 100;
+
+type InvoiceListItem = {
+  id: string;
+  invoice_number: string;
+  status: string;
+  total_cents: number;
+  currency: string;
+  created_at: string;
+  customer_snapshot: import("./customerDisplay").InvoiceCustomerSnapshot | null;
+  payment_status: string | null;
+  fulfilment_status: string | null;
+};
+
+export default async function AdminInvoicesPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   await requireAdmin();
   const supabase = await createSupabaseServerClient();
+
+  const sp = await searchParams;
+  const requestedPage = parseInt(Array.isArray(sp.page) ? sp.page[0] ?? "" : sp.page ?? "", 10);
+  const requestedPageSize = parseInt(
+    Array.isArray(sp.page_size) ? sp.page_size[0] ?? "" : sp.page_size ?? "",
+    10,
+  );
+
+  const pageSize = Number.isFinite(requestedPageSize) && requestedPageSize > 0
+    ? Math.min(requestedPageSize, MAX_PAGE_SIZE)
+    : PAGE_SIZE;
+
+  const totalItemsResult = await supabase
+    .from("invoices")
+    .select("id", { count: "exact", head: true });
+
+  const totalItems = totalItemsResult.count ?? 0;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const currentPage = Number.isFinite(requestedPage) && requestedPage > 0
+    ? Math.min(requestedPage, totalPages)
+    : 1;
+
+  const from = (currentPage - 1) * pageSize;
+  const to = from + pageSize - 1;
 
   const { data: invoices, error } = await supabase
     .from("invoices")
     .select("id,invoice_number,status,total_cents,currency,created_at,customer_snapshot,payment_status,fulfilment_status")
     .order("created_at", { ascending: false })
-    .limit(200);
+    .range(from, to);
 
   return (
     <AdminShell title="Invoices">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm text-slate-500">Manage invoices ({(invoices ?? []).length})</p>
+        <p className="text-sm text-slate-500">Manage invoices ({totalItems})</p>
         <Link
           href="/admin/invoices/new"
           className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-indigo-700"
@@ -63,7 +107,7 @@ export default async function AdminInvoicesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {(invoices ?? []).map((inv: any) => (
+                {(invoices ?? []).map((inv: InvoiceListItem) => (
                   <tr key={inv.id} className="hover:bg-slate-50">
                     <td className="px-6 py-4">
                       <div className="font-mono text-sm text-slate-900">{inv.invoice_number}</div>
@@ -73,7 +117,7 @@ export default async function AdminInvoicesPage() {
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-700">
                       {(() => {
-                        const display = getInvoiceCustomerDisplay((inv as any).customer_snapshot ?? null);
+                        const display = getInvoiceCustomerDisplay(inv.customer_snapshot ?? null);
                         return (
                           <>
                             <div className="text-slate-900">{display.primary}</div>
@@ -124,6 +168,15 @@ export default async function AdminInvoicesPage() {
       ) : (
         <div className="mt-6 rounded-xl border bg-white p-6 text-sm text-slate-500">No invoices yet.</div>
       )}
+
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        pageSize={pageSize}
+        basePath="/admin/invoices"
+        searchParams={sp}
+      />
     </AdminShell>
   );
 }
