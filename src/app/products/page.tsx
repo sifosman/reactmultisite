@@ -62,7 +62,7 @@ export default async function ProductsPage({
   const minPriceValue = toNumber(typeof minPrice === "string" ? minPrice : undefined);
   const maxPriceValue = toNumber(typeof maxPrice === "string" ? maxPrice : undefined);
   const limitValueRaw = toNumber(typeof limit === "string" ? limit : undefined);
-  const limitValue = Math.min(120, Math.max(24, limitValueRaw ?? 24));
+  const limitValue = Math.min(1000, Math.max(24, limitValueRaw ?? 24));
   const sortValue = typeof sort === "string" ? sort : "featured";
   const otherFilters = Object.entries(params)
     .filter(([key, value]) => key.startsWith("attr_") && typeof value === "string" && value.trim())
@@ -223,7 +223,7 @@ export default async function ProductsPage({
     if (!value || key === "limit") return;
     loadMoreParams.set(key, value);
   });
-  loadMoreParams.set("limit", String(Math.min(limitValue + 24, 120)));
+  loadMoreParams.set("limit", String(Math.min(limitValue + 24, 1000)));
   const loadMoreHref = `/products?${loadMoreParams.toString()}`;
 
   return (

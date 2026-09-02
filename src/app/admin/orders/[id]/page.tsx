@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { OrderStatusControl } from "@/components/admin/OrderStatusControl";
+import { ResendEmailButton } from "@/components/admin/ResendEmailButton";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -149,6 +150,16 @@ export default async function AdminOrderDetailPage({
           <div className="rounded-xl border bg-white p-4">
             <div className="text-sm text-zinc-600">Current status</div>
             <div className="mt-1 text-lg font-semibold">{order.status}</div>
+          </div>
+
+          <div className="rounded-xl border bg-white p-4">
+            <div className="text-sm font-medium">Confirmation email</div>
+            <div className="mt-1 text-xs text-zinc-600">
+              Manually resend the order confirmation email to the customer.
+            </div>
+            <div className="mt-3">
+              <ResendEmailButton orderId={order.id} />
+            </div>
           </div>
         </div>
       </div>

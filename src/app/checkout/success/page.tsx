@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 import { YocoSuccessClient } from "@/components/checkout/YocoSuccessClient";
+import { ExistingOrderSuccessClient } from "@/components/checkout/ExistingOrderSuccessClient";
 
 async function getOrderDetails(orderId: string) {
   const supabase = await createSupabaseServerClient();
@@ -41,11 +42,19 @@ export default async function CheckoutSuccessPage({
           <h1 className="text-2xl font-semibold">Payment successful</h1>
 
           <div className="mt-2 text-sm text-zinc-600">
-            We're finalizing your order. This can take a few seconds.
+            We&apos;re finalizing your order. This can take a few seconds.
           </div>
 
           <div className="mt-6">
-            <YocoSuccessClient pendingCheckoutId={pendingCheckoutId ?? null} />
+            {pendingCheckoutId ? (
+              <YocoSuccessClient pendingCheckoutId={pendingCheckoutId} />
+            ) : orderId ? (
+              <ExistingOrderSuccessClient orderId={orderId} />
+            ) : (
+              <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+                Missing checkout reference. Please contact support.
+              </div>
+            )}
           </div>
 
           <div className="mt-6 flex gap-3">
@@ -106,7 +115,7 @@ export default async function CheckoutSuccessPage({
           </div>
 
           <div className="mt-8 text-sm text-zinc-600">
-            Make an EFT using the bank details above. We'll update your order once the transfer reflects.
+            Make an EFT using the bank details above. We&apos;ll update your order once the transfer reflects.
           </div>
         </>
       )}
